@@ -1,0 +1,10 @@
+# Ignore the build directory
+build/
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.a
+*.lib
+*.pdb

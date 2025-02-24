@@ -9,7 +9,7 @@
 
 #ifdef _WIN32
 #include <windows.h>
-#include "dask.h"  // DASK API header for PCI7248
+#include "dask64.h"  // DASK API header for PCI7248
 #endif
 
 class PCI7248IO : public IOInterface {

@@ -1,0 +1,44 @@
+{
+    "io": {
+        "device": "PCI7248",
+        "portsConfiguration": {
+            "A": "output",
+            "B": "input",
+            "CL": "output",
+            "CH": "input"
+        },
+        "inputs": [
+            {
+                "pin": 7,
+                "name": "I7_eye1",
+                "description": "eye1 test"
+            },
+            {
+                "pin": 0,
+                "name": "I20_eye2",
+                "description": "eye2 description"
+            }
+        ],
+        "outputs": [
+            {
+                "pin": 0,
+                "name": "O0_motor",
+                "description": "main motor"
+            },
+            {
+                "pin": 1,
+                "name": "O1_vacuum",
+                "description": "vacuum control"
+            }
+        ]
+    },
+    "communication": {
+        "protocol": "TCP/IP",
+        "port": 502,
+        "timeout": 1000
+    },
+    "timers": {
+        "pollInterval": 100,
+        "timeout": 5000
+    }
+}

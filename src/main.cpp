@@ -6,7 +6,8 @@
 #include "Config.h"
 
 int main() {
-    Config config;    
+    // Provide the path to your configuration file
+    Config config("config/settings.json");    
     EventQueue<IOEvent> eventQueue;
     
     PCI7248IO io(&eventQueue, config);

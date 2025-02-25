@@ -4,31 +4,24 @@
 #include <thread>
 
 PCI7248IO::PCI7248IO(EventQueue<IOEvent>* eventQueue, const Config& config)
-    : eventQueue_(eventQueue), config_(config), card_(-1) {
-    // Hardcode mappings for demonstration:
-    // Inputs from Port B: "DI0" to "DI7" (pins 8-15)
-    for (int i = 0; i < 8; i++) {
-        std::string name = "DI" + std::to_string(i);
-        ioPinMap_[name] = 8 + i;  // Port P1B
-        ioStateMap_[name] = 0;
+    : eventQueue_(eventQueue), config_(config), card_(-1)
+{
+    // Load IO device info (optional)
+    std::string device = config_.getIODevice();
+    std::cout << "Configuring IO for device: " << device << std::endl;
+
+    // Populate outputs from configuration
+    for (const auto& mapping : config_.getOutputs()) {
+        ioPinMap_[mapping.name] = mapping.pin;
+        ioStateMap_[mapping.name] = 0;
+        std::cout << "Configured output: " << mapping.name << " on pin " << mapping.pin << std::endl;
     }
-    // Inputs from Port CH: "DI8" to "DI11" (pins 20-23)
-    for (int i = 8; i < 12; i++) {
-        std::string name = "DI" + std::to_string(i);
-        ioPinMap_[name] = 20 + (i - 8);  // Port P1CH
-        ioStateMap_[name] = 0;
-    }
-    // Outputs from Port A: "DO0" to "DO7" (pins 0-7)
-    for (int i = 0; i < 8; i++) {
-        std::string name = "DO" + std::to_string(i);
-        ioPinMap_[name] = i;  // Port P1A
-        ioStateMap_[name] = 0;
-    }
-    // Outputs from Port CL: "DO8" to "DO11" (pins 16-19)
-    for (int i = 8; i < 12; i++) {
-        std::string name = "DO" + std::to_string(i);
-        ioPinMap_[name] = 16 + (i - 8);  // Port P1CL
-        ioStateMap_[name] = 0;
+
+    // Populate inputs from configuration
+    for (const auto& mapping : config_.getInputs()) {
+        ioPinMap_[mapping.name] = mapping.pin;
+        ioStateMap_[mapping.name] = 0;
+        std::cout << "Configured input: " << mapping.name << " on pin " << mapping.pin << std::endl;
     }
 }
 

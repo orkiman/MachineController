@@ -14,39 +14,52 @@ std::string Config::getIODevice() const {
     return configJson_.value("io", nlohmann::json::object()).value("device", "unknown");
 }
 
-std::unordered_map<std::string, std::string> Config::getPortsConfiguration() const {
+std::unordered_map<std::string, std::string> Config::getPci7248IoPortsConfiguration() const {
     std::unordered_map<std::string, std::string> ports;
-    auto portsConfig = configJson_.value("io", nlohmann::json::object()).value("portsConfiguration", nlohmann::json::object());
+    auto portsConfig = configJson_.value("io", nlohmann::json::object())
+                          .value("portsConfiguration", nlohmann::json::object());
     for (auto it = portsConfig.begin(); it != portsConfig.end(); ++it) {
         ports[it.key()] = it.value();
     }
     return ports;
 }
 
-const std::vector<IOMapping>& Config::getInputs() const {
-    static std::vector<IOMapping> inputs;
+const std::vector<IOChannel>& Config::getInputs() const {
+    static std::vector<IOChannel> inputs;
     inputs.clear();
-    auto inputsArray = configJson_.value("io", nlohmann::json::object()).value("inputs", nlohmann::json::array());
+    auto inputsArray = configJson_.value("io", nlohmann::json::object())
+                           .value("inputs", nlohmann::json::array());
     for (const auto& item : inputsArray) {
-        IOMapping map;
-        map.pin = item.value("pin", -1);
-        map.name = item.value("name", "");
-        map.description = item.value("description", "");
-        inputs.push_back(map);
+        IOChannel channel;
+        channel.pin = item.value("pin", -1);
+        channel.name = item.value("name", "");
+        channel.description = item.value("description", "");
+        // You can set defaults here:
+        channel.type = IOType::Input;
+        channel.state = 0;
+        channel.eventType = IOEventType::None;
+        // Optionally, if you include the port in your JSON:
+        channel.ioPort = item.value("ioPort", "");
+        inputs.push_back(channel);
     }
     return inputs;
 }
 
-const std::vector<IOMapping>& Config::getOutputs() const {
-    static std::vector<IOMapping> outputs;
+const std::vector<IOChannel>& Config::getOutputs() const {
+    static std::vector<IOChannel> outputs;
     outputs.clear();
-    auto outputsArray = configJson_.value("io", nlohmann::json::object()).value("outputs", nlohmann::json::array());
+    auto outputsArray = configJson_.value("io", nlohmann::json::object())
+                            .value("outputs", nlohmann::json::array());
     for (const auto& item : outputsArray) {
-        IOMapping map;
-        map.pin = item.value("pin", -1);
-        map.name = item.value("name", "");
-        map.description = item.value("description", "");
-        outputs.push_back(map);
+        IOChannel channel;
+        channel.pin = item.value("pin", -1);
+        channel.name = item.value("name", "");
+        channel.description = item.value("description", "");
+        channel.type = IOType::Output;
+        channel.state = 0;
+        channel.eventType = IOEventType::None;
+        channel.ioPort = item.value("ioPort", "");
+        outputs.push_back(channel);
     }
     return outputs;
 }

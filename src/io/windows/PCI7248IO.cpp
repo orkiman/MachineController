@@ -184,6 +184,7 @@ void PCI7248IO::pollLoop() {
     long long minTime = std::numeric_limits<long long>::max();
     long long maxTime = 0;
     size_t iterations = 0;
+    auto longRuns = 0;
 
     while (!stopPolling_) {
         auto loopStart = clock::now();
@@ -228,13 +229,16 @@ void PCI7248IO::pollLoop() {
             pushStateEvent();
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
-
+        
         // Measure the time taken for this loop iteration
         auto loopEnd = clock::now();
         auto execTime = std::chrono::duration_cast<std::chrono::microseconds>(loopEnd - loopStart).count();
         totalTime += execTime;
         minTime = std::min(minTime, execTime);
         maxTime = std::max(maxTime, execTime);
+        if(execTime > 2000) {
+            longRuns++;
+        }
         iterations++;
 
         // Every second, print the statistics
@@ -243,13 +247,14 @@ void PCI7248IO::pollLoop() {
             double avgTime = static_cast<double>(totalTime) / iterations;
             std::cout << "Poll Loop Execution Time (microseconds) -- Min: " 
                       << minTime << ", Max: " << maxTime 
-                      << ", Avg: " << avgTime << std::endl;
+                      << ", Avg: " << avgTime << ", long runs: "<< longRuns<< std::endl;
             // Reset the stats for the next interval
             statStart = now;
             totalTime = 0;
             minTime = std::numeric_limits<long long>::max();
             maxTime = 0;
             iterations = 0;
+            longRuns = 0;
         }
     }
 }

@@ -35,6 +35,9 @@ public:
     // Get a snapshot of the current input channels.
     std::vector<IOChannel> getInputChannelsSnapshot() const;
 
+    // get a pointer to the output channels
+    const std::vector<IOChannel>& getOutputChannels() const;
+
     // Stop the polling thread.
     void stopPolling();
 

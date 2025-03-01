@@ -5,7 +5,7 @@
             "A": "input",
             "B": "output",
             "CL": "input",
-            "CH": "input"
+            "CH": "output"
         },
         "inputs": [
             {
@@ -29,6 +29,16 @@
                 "pin": 9,
                 "name": "O1_vacuum",
                 "description": "vacuum control"
+            },
+            {
+                "pin": 20,
+                "name": "O2_light",
+                "description": "light control"
+            },
+            {
+                "pin": 21,
+                "name": "O3_camera",
+                "description": "camera control"
             }           
         ]
     },

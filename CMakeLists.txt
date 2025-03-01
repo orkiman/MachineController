@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
 project(MachineController)
 
-# Set C++ standard to C++14
-set(CMAKE_CXX_STANDARD 14)
+# Set C++ standard to C++17
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Define source files
@@ -28,8 +28,8 @@ target_include_directories(MachineController PRIVATE
 # Specify the library directory for ADLINK DASK libraries
 link_directories("C:/ADLINK/DASK/Lib")
 
-# Link with the PCI-Dask64 library using its full path
-target_link_libraries(MachineController PRIVATE "C:/ADLINK/DASK/Lib/PCI-Dask64.lib")
+# ✅ Link with PCI-Dask64 and Winmm (needed for timeBeginPeriod)
+target_link_libraries(MachineController PRIVATE "C:/ADLINK/DASK/Lib/PCI-Dask64.lib" winmm)
 
 # For GNU compilers on Windows, add static linking flags
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND WIN32)
@@ -40,5 +40,3 @@ endif()
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
 endif()
-
-

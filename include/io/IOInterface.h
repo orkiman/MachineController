@@ -28,6 +28,9 @@ public:
 
     // Retrieve a snapshot of the current input channels.
     virtual std::vector<IOChannel> getInputChannelsSnapshot() const = 0;
+
+    //retreve a pointer to the output channels
+    virtual const std::vector<IOChannel>& getOutputChannels() const = 0;
 };
 
 #endif // IO_INTERFACE_H

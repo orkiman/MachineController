@@ -10,6 +10,8 @@
 using namespace std::chrono;
 
 int main() {
+    timeBeginPeriod(1);  // Ensure 1ms sleep accuracy
+
     // Create a Config instance from your settings file.
     Config config("config/settings.json");    
     EventQueue<IOEvent> eventQueue;
@@ -24,7 +26,7 @@ int main() {
     std::cout << "PCI7248IO polling thread started. Press Ctrl+C to exit." << std::endl;
     
     // Retrieve output channels from the configuration.
-    std::vector<IOChannel> outputs = config.getOutputs();
+    std::vector<IOChannel> outputs = io.getOutputChannels();
     // print configured output channels
     for (const auto& ch : outputs) {
         std::cout << "Configured output: " << ch.name << " (port " 
@@ -87,6 +89,6 @@ int main() {
     
     // Optionally join the outputBlinkThread (if you ever exit the loop).
     outputBlinkThread.join();
-    
+    timeEndPeriod(1);  // Restore normal timer resolution
     return 0;
 }

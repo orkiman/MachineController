@@ -118,13 +118,41 @@ bool PCI7248IO::initialize() {
             for (auto &channel : inputChannels_) {
                 if (channel.ioPort == port) {
                     int state = (portValue >> (channel.pin - baseOffset)) & 0x1;
-                    channel.state = state;
+                    channel.state = state;                    
                 }
             }
         } else {
             std::cerr << "Failed to read initial state from Port " << port << "." << std::endl;
         }
     }
+    // set inputChannels ioport field by pin number
+    for (auto &channel : inputChannels_) {
+        if (channel.pin < 8) {
+            channel.ioPort = "A";
+        } else if (channel.pin < 16) {
+            channel.ioPort = "B";
+        } else if (channel.pin < 20) {
+            channel.ioPort = "CL";
+        } else {
+            channel.ioPort = "CH";
+        }
+    }
+
+    // construct the outputChannels_ vector
+    outputChannels_ = config_.getOutputs();
+    // set outputChannels ioport field by pin number
+    for (auto &ch : outputChannels_) {
+        if (ch.pin < 8) {
+            ch.ioPort = "A";
+        } else if (ch.pin < 16) {
+            ch.ioPort = "B";
+        } else if (ch.pin < 20) {
+            ch.ioPort = "CL";
+        } else {
+            ch.ioPort = "CH";
+        }
+    }
+
     
     // Start the polling thread to continuously update inputs.
     stopPolling_ = false;
@@ -133,22 +161,37 @@ bool PCI7248IO::initialize() {
     return true;
 }
 
+//get a pointer to the output channels
+const std::vector<IOChannel>& PCI7248IO::getOutputChannels() const {
+    return outputChannels_;
+}
+
 void PCI7248IO::pollLoop() {
     // Use the stored ports configuration.
     auto portsConfig = config_.getPci7248IoPortsConfiguration();
 
     std::unordered_map<std::string, int> portToChannel = {
-        {"A", Channel_P1A},
-        {"B", Channel_P1B},
+        {"A",  Channel_P1A},
+        {"B",  Channel_P1B},
         {"CL", Channel_P1CL},
         {"CH", Channel_P1CH}
     };
 
+    // Statistics variables
+    using clock = std::chrono::steady_clock;
+    auto statStart = clock::now();
+    long long totalTime = 0;
+    long long minTime = std::numeric_limits<long long>::max();
+    long long maxTime = 0;
+    size_t iterations = 0;
+
     while (!stopPolling_) {
+        auto loopStart = clock::now();
+
         bool anyChange = false;
-        for (const auto& portEntry : portsConfig) {
-            const std::string& port = portEntry.first;
-            const std::string& portType = portEntry.second;
+        for (const auto &portEntry : portsConfig) {
+            const std::string &port = portEntry.first;
+            const std::string &portType = portEntry.second;
             if (portType != "input")
                 continue;
             
@@ -165,7 +208,6 @@ void PCI7248IO::pollLoop() {
                     if (channel.ioPort == port) {
                         int newState = (portValue >> (channel.pin - baseOffset)) & 0x1;
                         if (newState != channel.state) {
-                            // Determine transition type.
                             if (channel.state == 0 && newState == 1) {
                                 channel.eventType = IOEventType::Rising;
                             } else if (channel.state == 1 && newState == 0) {
@@ -174,9 +216,8 @@ void PCI7248IO::pollLoop() {
                                 channel.eventType = IOEventType::None;
                             }
                             anyChange = true;
-                            // Update the stored state.
                             channel.state = newState;
-                        }                        
+                        }
                     }
                 }
             } else {
@@ -187,8 +228,89 @@ void PCI7248IO::pollLoop() {
             pushStateEvent();
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
+        // Measure the time taken for this loop iteration
+        auto loopEnd = clock::now();
+        auto execTime = std::chrono::duration_cast<std::chrono::microseconds>(loopEnd - loopStart).count();
+        totalTime += execTime;
+        minTime = std::min(minTime, execTime);
+        maxTime = std::max(maxTime, execTime);
+        iterations++;
+
+        // Every second, print the statistics
+        auto now = clock::now();
+        if (std::chrono::duration_cast<std::chrono::seconds>(now - statStart).count() >= 1) {
+            double avgTime = static_cast<double>(totalTime) / iterations;
+            std::cout << "Poll Loop Execution Time (microseconds) -- Min: " 
+                      << minTime << ", Max: " << maxTime 
+                      << ", Avg: " << avgTime << std::endl;
+            // Reset the stats for the next interval
+            statStart = now;
+            totalTime = 0;
+            minTime = std::numeric_limits<long long>::max();
+            maxTime = 0;
+            iterations = 0;
+        }
     }
 }
+
+// original loop - without time statistics:
+// void PCI7248IO::pollLoop() {
+//     // Use the stored ports configuration.
+//     auto portsConfig = config_.getPci7248IoPortsConfiguration();
+
+//     std::unordered_map<std::string, int> portToChannel = {
+//         {"A", Channel_P1A},
+//         {"B", Channel_P1B},
+//         {"CL", Channel_P1CL},
+//         {"CH", Channel_P1CH}
+//     };
+
+//     while (!stopPolling_) {
+//         bool anyChange = false;
+//         for (const auto& portEntry : portsConfig) {
+//             const std::string& port = portEntry.first;
+//             const std::string& portType = portEntry.second;
+//             if (portType != "input")
+//                 continue;
+            
+//             auto channelIt = portToChannel.find(port);
+//             if (channelIt == portToChannel.end()) {
+//                 std::cerr << "Port " << port << " is not recognized." << std::endl;
+//                 continue;
+//             }
+//             int channelConstant = channelIt->second;
+//             U32 portValue = 0;
+//             if (DI_ReadPort(card_, channelConstant, &portValue) == 0) {
+//                 int baseOffset = getPortBaseOffset(port);
+//                 for (auto &channel : inputChannels_) {
+//                     if (channel.ioPort == port) {
+//                         int newState = (portValue >> (channel.pin - baseOffset)) & 0x1;
+//                         if (newState != channel.state) {
+//                             // Determine transition type.
+//                             if (channel.state == 0 && newState == 1) {
+//                                 channel.eventType = IOEventType::Rising;
+//                             } else if (channel.state == 1 && newState == 0) {
+//                                 channel.eventType = IOEventType::Falling;
+//                             } else {
+//                                 channel.eventType = IOEventType::None;
+//                             }
+//                             anyChange = true;
+//                             // Update the stored state.
+//                             channel.state = newState;
+//                         }                        
+//                     }
+//                 }
+//             } else {
+//                 std::cerr << "Failed to read Port " << port << " in pollLoop." << std::endl;
+//             }
+//         }
+//         if (anyChange) {
+//             pushStateEvent();
+//         }
+//         std::this_thread::sleep_for(std::chrono::milliseconds(1));
+//     }
+// }
 
 void PCI7248IO::pushStateEvent() {
     if (eventQueue_) {
@@ -238,15 +360,8 @@ bool PCI7248IO::writeOutputs(const std::vector<IOChannel>& newOutputsState) {
     bool overallSuccess = true;
     // Write each aggregated value to the corresponding port.
     for (const auto &p : portAggregates) {
-        std::cout << "Port: " << p.first << std::endl;
-        printf("Port33: %s\n", p.first.c_str());
-        printf("Port44: %u\n", p.second);
-        printf("hi");
+        // std::cout << "Port: " << p.first << std::endl;
         const std::string &port = p.first;
-
-        printf("Port-77 %s: %u\n", port.c_str(), p.second);
-        std::cout << "Port: " << port << std::endl;
-
         U32 aggregatedValue = p.second;
         auto it = portToChannel.find(port);
         if (it != portToChannel.end()) {

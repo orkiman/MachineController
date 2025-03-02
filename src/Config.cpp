@@ -24,8 +24,8 @@ std::unordered_map<std::string, std::string> Config::getPci7248IoPortsConfigurat
     return ports;
 }
 
-const std::vector<IOChannel>& Config::getInputs() const {
-    static std::vector<IOChannel> inputs;
+const std::unordered_map<std::string, IOChannel>& Config::getInputs() const {
+    static std::unordered_map<std::string, IOChannel> inputs;
     inputs.clear();
     auto inputsArray = configJson_.value("io", nlohmann::json::object())
                            .value("inputs", nlohmann::json::array());
@@ -40,13 +40,13 @@ const std::vector<IOChannel>& Config::getInputs() const {
         channel.eventType = IOEventType::None;
         // Optionally, if you include the port in your JSON:
         channel.ioPort = item.value("ioPort", "");
-        inputs.push_back(channel);
+        inputs[channel.name] = channel;
     }
     return inputs;
 }
 
-const std::vector<IOChannel>& Config::getOutputs() const {
-    static std::vector<IOChannel> outputs;
+const std::unordered_map<std::string, IOChannel>& Config::getOutputs() const {
+    static std::unordered_map<std::string, IOChannel> outputs;
     outputs.clear();
     auto outputsArray = configJson_.value("io", nlohmann::json::object())
                             .value("outputs", nlohmann::json::array());
@@ -59,7 +59,7 @@ const std::vector<IOChannel>& Config::getOutputs() const {
         channel.state = 0;
         channel.eventType = IOEventType::None;
         channel.ioPort = item.value("ioPort", "");
-        outputs.push_back(channel);
+        outputs[channel.name] = channel;
     }
     return outputs;
 }

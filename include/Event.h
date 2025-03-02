@@ -1,14 +1,13 @@
 #ifndef EVENT_TYPES_H
 #define EVENT_TYPES_H
-
+#include <unordered_map>
 #include <variant>
 #include <string>
-#include <vector>
 #include "io/IOChannel.h"
 
 // Event for IO state changes
 struct IOEvent {
-    std::vector<IOChannel> channels;  // Input state snapshot
+    std::unordered_map<std::string, IOChannel> channels;
 };
 
 // Event for communication (TCP/IP, RS-232, etc.)

@@ -9,19 +9,15 @@ PCI7248IO::PCI7248IO(EventQueue<EventVariant>* eventQueue, const Config& config)
     : eventQueue_(eventQueue), config_(config), card_(-1)
 {
     // Copy IO channel settings from configuration.
-    // Assuming config_.getInputs() now returns a const std::unordered_map<std::string, IOChannel>&
     inputChannels_ = config_.getInputs();    // active input channels from settings.json
-    // Similarly, for outputs:
-    outputChannels_ = config_.getOutputs();
+    // outputChannels_ = config_.getOutputs();    // active output channels
 
     // Print configured channels.
-    for (const auto& pair : inputChannels_) {
-        const IOChannel &ch = pair.second;
+    for (const auto& ch : inputChannels_) {
         std::cout << "Configured input: " << ch.name << " (port " 
                   << ch.ioPort << ", pin " << ch.pin << ")" << std::endl;
     }
-    for (const auto& pair : outputChannels_) {
-        const IOChannel &ch = pair.second;
+    for (const auto& ch : outputChannels_) {
         std::cout << "Configured output: " << ch.name << " (port " 
                   << ch.ioPort << ", pin " << ch.pin << ")" << std::endl;
     }
@@ -95,9 +91,16 @@ bool PCI7248IO::initialize() {
     
     std::cout << "PCI7248IO initialized successfully." << std::endl;
     
-    // Update ioPort fields for input channels based on pin number.
-    for (auto &pair : inputChannels_) {
-        IOChannel &channel = pair.second;
+    // Read initial input state for each active input channel dynamically.
+    std::unordered_map<std::string, int> portToChannel = {
+        {"A", Channel_P1A},
+        {"B", Channel_P1B},
+        {"CL", Channel_P1CL},
+        {"CH", Channel_P1CH}
+    };
+
+    // set inputChannels ioport field by pin number
+    for (auto &channel : inputChannels_) {
         if (channel.pin < 8) {
             channel.ioPort = "A";
         } else if (channel.pin < 16) {
@@ -109,9 +112,10 @@ bool PCI7248IO::initialize() {
         }
     }
 
-    // Update ioPort fields for output channels similarly.
-    for (auto &pair : outputChannels_) {
-        IOChannel &ch = pair.second;
+    // construct the outputChannels_ vector
+    outputChannels_ = config_.getOutputs();
+    // set outputChannels ioport field by pin number
+    for (auto &ch : outputChannels_) {
         if (ch.pin < 8) {
             ch.ioPort = "A";
         } else if (ch.pin < 16) {
@@ -123,14 +127,6 @@ bool PCI7248IO::initialize() {
         }
     }
     
-    // Read initial input state for each active input channel dynamically.
-    std::unordered_map<std::string, int> portToChannel = {
-        {"A", Channel_P1A},
-        {"B", Channel_P1B},
-        {"CL", Channel_P1CL},
-        {"CH", Channel_P1CH}
-    };
-
     for (const auto &portEntry : portsConfig) {
         const std::string &port = portEntry.first;
         const std::string &portType = portEntry.second;
@@ -147,9 +143,7 @@ bool PCI7248IO::initialize() {
 
         U32 portValue = 0;
         if (DI_ReadPort(card_, daskChannel, &portValue) == 0) {
-            // Iterate over the map and update channels whose ioPort matches.
-            for (auto &pair : inputChannels_) {
-                IOChannel &channel = pair.second;
+            for (auto &channel : inputChannels_) {
                 if (channel.ioPort == port) {
                     int state = (portValue >> (channel.pin - baseOffset)) & 0x1;
                     channel.state = state;                    
@@ -160,6 +154,8 @@ bool PCI7248IO::initialize() {
         }
     }
     
+
+    
     // Start the polling thread to continuously update inputs.
     stopPolling_ = false;
     pollingThread_ = std::thread(&PCI7248IO::pollLoop, this);
@@ -167,8 +163,8 @@ bool PCI7248IO::initialize() {
     return true;
 }
 
-// Return a const reference to the output channels map.
-const std::unordered_map<std::string, IOChannel>& PCI7248IO::getOutputChannels() const {
+//get a pointer to the output channels
+const std::vector<IOChannel>& PCI7248IO::getOutputChannels() const {
     return outputChannels_;
 }
 
@@ -183,14 +179,14 @@ void PCI7248IO::pollLoop() {
         {"CH", Channel_P1CH}
     };
 
-    // Statistics variables.
+    // Statistics variables
     using clock = std::chrono::steady_clock;
     auto statStart = clock::now();
     long long totalTime = 0;
     long long minTime = std::numeric_limits<long long>::max();
     long long maxTime = 0;
     size_t iterations = 0;
-    size_t longRuns = 0;
+    auto longRuns = 0;
 
     while (!stopPolling_) {
         auto loopStart = clock::now();
@@ -211,8 +207,7 @@ void PCI7248IO::pollLoop() {
             U32 portValue = 0;
             if (DI_ReadPort(card_, channelConstant, &portValue) == 0) {
                 int baseOffset = getPortBaseOffset(port);
-                for (auto &pair : inputChannels_) {
-                    IOChannel &channel = pair.second;
+                for (auto &channel : inputChannels_) {
                     if (channel.ioPort == port) {
                         int newState = (portValue >> (channel.pin - baseOffset)) & 0x1;
                         if (newState != channel.state) {
@@ -237,7 +232,7 @@ void PCI7248IO::pollLoop() {
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
         
-        // Measure the time taken for this loop iteration.
+        // Measure the time taken for this loop iteration
         auto loopEnd = clock::now();
         auto execTime = std::chrono::duration_cast<std::chrono::microseconds>(loopEnd - loopStart).count();
         totalTime += execTime;
@@ -248,14 +243,14 @@ void PCI7248IO::pollLoop() {
         }
         iterations++;
 
-        // Every second, print the statistics.
+        // Every second, print the statistics
         auto now = clock::now();
         if (std::chrono::duration_cast<std::chrono::seconds>(now - statStart).count() >= 1) {
             double avgTime = static_cast<double>(totalTime) / iterations;
             std::cout << "Poll Loop Execution Time (microseconds) -- Min: " 
                       << minTime << ", Max: " << maxTime 
-                      << ", Avg: " << avgTime << ", long runs: " << longRuns << std::endl;
-            // Reset the stats for the next interval.
+                      << ", Avg: " << avgTime << ", long runs: "<< longRuns<< std::endl;
+            // Reset the stats for the next interval
             statStart = now;
             totalTime = 0;
             minTime = std::numeric_limits<long long>::max();
@@ -266,22 +261,80 @@ void PCI7248IO::pollLoop() {
     }
 }
 
+// original loop - without time statistics:
+// void PCI7248IO::pollLoop() {
+//     // Use the stored ports configuration.
+//     auto portsConfig = config_.getPci7248IoPortsConfiguration();
+
+//     std::unordered_map<std::string, int> portToChannel = {
+//         {"A", Channel_P1A},
+//         {"B", Channel_P1B},
+//         {"CL", Channel_P1CL},
+//         {"CH", Channel_P1CH}
+//     };
+
+//     while (!stopPolling_) {
+//         bool anyChange = false;
+//         for (const auto& portEntry : portsConfig) {
+//             const std::string& port = portEntry.first;
+//             const std::string& portType = portEntry.second;
+//             if (portType != "input")
+//                 continue;
+            
+//             auto channelIt = portToChannel.find(port);
+//             if (channelIt == portToChannel.end()) {
+//                 std::cerr << "Port " << port << " is not recognized." << std::endl;
+//                 continue;
+//             }
+//             int channelConstant = channelIt->second;
+//             U32 portValue = 0;
+//             if (DI_ReadPort(card_, channelConstant, &portValue) == 0) {
+//                 int baseOffset = getPortBaseOffset(port);
+//                 for (auto &channel : inputChannels_) {
+//                     if (channel.ioPort == port) {
+//                         int newState = (portValue >> (channel.pin - baseOffset)) & 0x1;
+//                         if (newState != channel.state) {
+//                             // Determine transition type.
+//                             if (channel.state == 0 && newState == 1) {
+//                                 channel.eventType = IOEventType::Rising;
+//                             } else if (channel.state == 1 && newState == 0) {
+//                                 channel.eventType = IOEventType::Falling;
+//                             } else {
+//                                 channel.eventType = IOEventType::None;
+//                             }
+//                             anyChange = true;
+//                             // Update the stored state.
+//                             channel.state = newState;
+//                         }                        
+//                     }
+//                 }
+//             } else {
+//                 std::cerr << "Failed to read Port " << port << " in pollLoop." << std::endl;
+//             }
+//         }
+//         if (anyChange) {
+//             pushStateEvent();
+//         }
+//         std::this_thread::sleep_for(std::chrono::milliseconds(1));
+//     }
+// }
+
 void PCI7248IO::pushStateEvent() {
     if (eventQueue_) {
         IOEvent event;
-        // Assuming IOEvent::channels is now an unordered_map.
-        event.channels = inputChannels_;
+        event.channels = inputChannels_; // Copy the inputChannels vector.
         eventQueue_->push(event);
     }
 }
 
-// Return a snapshot of the current input channels as a map.
-std::unordered_map<std::string, IOChannel> PCI7248IO::getInputChannelsSnapshot() const {
+std::vector<IOChannel> PCI7248IO::getInputChannelsSnapshot() const {
     return inputChannels_;
 }
 
-bool PCI7248IO::writeOutputs(const std::unordered_map<std::string, IOChannel>& newOutputsState) {
-    // Mapping from port identifier to DASK channel constant. eg. "A" -> Channel_P1A.
+
+
+bool PCI7248IO::writeOutputs(const std::vector<IOChannel>& newOutputsState) {
+    // Mapping from port identifier to DASK channel constant. eg. "A" -> Channel_P1A
     std::unordered_map<std::string, int> portToChannel = {
         {"A", Channel_P1A},
         {"B", Channel_P1B},
@@ -290,28 +343,31 @@ bool PCI7248IO::writeOutputs(const std::unordered_map<std::string, IOChannel>& n
     };
 
     // Prepare an aggregated output value for each port.
+    // All ports are initialized to 0 (channels not mentioned will be driven low).
     std::unordered_map<std::string, U32> portAggregates;
     for (const auto& entry : portToChannel) {
         portAggregates[entry.first] = 0;
     }
 
     // Process each channel in newOutputsState.
-    for (const auto &pair : newOutputsState) {
-        const IOChannel &channel = pair.second;
+    for (const auto &channel : newOutputsState) {
         // Only process channels marked as output.
         if (channel.type != IOType::Output)
             continue;
-        // Get the base offset for the port.
+        // Get the base offset for the port (e.g., 0 for "A", 8 for "B", etc.).
         int baseOffset = getPortBaseOffset(channel.ioPort);
         int bitPos = channel.pin - baseOffset;
+        // If state is 1, set the corresponding bit in the aggregated value.
         if (channel.state != 0) {
             portAggregates[channel.ioPort] |= (1 << bitPos);
         }
+        // If state is 0, do nothing since the aggregate is already initialized to 0.
     }
 
     bool overallSuccess = true;
     // Write each aggregated value to the corresponding port.
     for (const auto &p : portAggregates) {
+        // std::cout << "Port: " << p.first << std::endl;
         const std::string &port = p.first;
         U32 aggregatedValue = p.second;
         auto it = portToChannel.find(port);
@@ -330,6 +386,7 @@ bool PCI7248IO::writeOutputs(const std::unordered_map<std::string, IOChannel>& n
     return overallSuccess;
 }
 
+
 int PCI7248IO::getPortBaseOffset(const std::string &port) const {
     if (port == "A") return 0;
     if (port == "B") return 8;
@@ -337,6 +394,8 @@ int PCI7248IO::getPortBaseOffset(const std::string &port) const {
     if (port == "CH") return 20;
     return 0;
 }
+
+
 
 void PCI7248IO::stopPolling() {
     stopPolling_ = true;

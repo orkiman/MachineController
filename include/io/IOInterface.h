@@ -2,7 +2,6 @@
 #define IO_INTERFACE_H
 
 #include <string>
-#include <vector>
 #include <unordered_map>
 #include "IOChannel.h"  // Defines the IOChannel structure
 
@@ -18,15 +17,15 @@ public:
     // Initialize hardware and configuration.
     virtual bool initialize() = 0;
 
-    // Write outputs: accepts a vector of updated output channels.
-    // Any output not provided in the vector is driven low.
-    virtual bool writeOutputs(const std::vector<IOChannel>& newOutputsState) = 0;
+    // Write outputs: accepts a unordered_map of updated output channels.
+    // Any output not provided in the unordered_map is driven low.
+    virtual bool writeOutputs(const std::unordered_map<std::string, IOChannel>& newOutputsState) = 0;
 
     // Retrieve a snapshot of the current input channels.
-    virtual std::vector<IOChannel> getInputChannelsSnapshot() const = 0;
+    virtual std::unordered_map<std::string, IOChannel> getInputChannelsSnapshot() const = 0;
 
     //retreve a pointer to the output channels
-    virtual const std::vector<IOChannel>& getOutputChannels() const = 0;
+    virtual const std::unordered_map<std::string, IOChannel>& getOutputChannels() const = 0;
 };
 
 #endif // IO_INTERFACE_H

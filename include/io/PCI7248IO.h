@@ -6,7 +6,6 @@
 #include "EventQueue.h"
 #include "IOChannel.h"
 #include <string>
-#include <vector>
 #include <unordered_map>
 #include <thread>
 #include <atomic>
@@ -28,15 +27,15 @@ public:
     // Initialize the hardware, configure ports, and read the initial input state.
     bool initialize() override;
 
-    // Write outputs by accepting a vector of updated output channel states.
+    // Write outputs by accepting a unordered_map of updated output channel states.
     // Channels not provided in newOutputsState are forced low (0).
-    bool writeOutputs(const std::vector<IOChannel>& newOutputsState);
+    bool writeOutputs(const std::unordered_map<std::string, IOChannel>& newOutputsState);
 
     // Get a snapshot of the current input channels.
-    std::vector<IOChannel> getInputChannelsSnapshot() const;
+    std::unordered_map<std::string, IOChannel> getInputChannelsSnapshot() const;
 
     // get a pointer to the output channels
-    const std::vector<IOChannel>& getOutputChannels() const;
+    const std::unordered_map<std::string, IOChannel>& getOutputChannels() const;
 
     // Stop the polling thread.
     void stopPolling();
@@ -49,7 +48,7 @@ private:
     // if any active input channel changes.
     void pollLoop();
 
-    // Push a consolidated event containing a copy of the current input channels vector.
+    // Push a consolidated event containing a copy of the current input channels unordered_map.
     void pushStateEvent();
 
     // PCI7248-specific helper: returns the base offset for the given port.
@@ -61,9 +60,9 @@ private:
     const Config& config_;
     I16 card_;  // DASK card handle.
 
-    // Vectors storing the configuration and current state for inputs and outputs.
-    std::vector<IOChannel> inputChannels_;
-    std::vector<IOChannel> outputChannels_;
+    // unordered_map storing the configuration and current state for inputs and outputs.
+    std::unordered_map<std::string, IOChannel> inputChannels_;
+    std::unordered_map<std::string, IOChannel> outputChannels_;
 
     // Threading members.
     std::thread pollingThread_;

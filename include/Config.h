@@ -3,7 +3,7 @@
 
 #include <string>
 #include <unordered_map>
-#include <vector>
+#include <unordered_map>
 #include "json.hpp"  // Include the nlohmann JSON header
 #include "io/IOChannel.h"  // This header should define IOChannel, IOType, and IOEventType
 
@@ -16,8 +16,8 @@ public:
     // Accessors for different sections.
     std::string getIODevice() const;
     std::unordered_map<std::string, std::string> getPci7248IoPortsConfiguration() const;
-    const std::vector<IOChannel>& getInputs() const;
-    const std::vector<IOChannel>& getOutputs() const;
+    const std::unordered_map<std::string, IOChannel>& getInputs() const;
+    const std::unordered_map<std::string, IOChannel>& getOutputs() const;
     
     // Other getters for communication and timers.
     nlohmann::json getCommunicationSettings() const;

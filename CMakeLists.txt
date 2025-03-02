@@ -10,6 +10,8 @@ set(SOURCES
     ${CMAKE_SOURCE_DIR}/src/main.cpp
     ${CMAKE_SOURCE_DIR}/src/io/windows/PCI7248IO.cpp
     ${CMAKE_SOURCE_DIR}/src/Config.cpp
+    ${CMAKE_SOURCE_DIR}/src/MainLogic.cpp
+    
 )
 
 # Create the executable target named MachineController

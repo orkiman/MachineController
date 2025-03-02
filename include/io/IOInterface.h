@@ -9,10 +9,6 @@
 // Define a type for IO state (can be adapted as needed)
 typedef int IOState;
 
-// Updated IOEvent structure carrying a snapshot of channels.
-struct IOEvent {
-    std::vector<IOChannel> channels;  // Snapshot of input channels.
-};
 
 // Abstract interface for IO modules reflecting the new design.
 class IOInterface {

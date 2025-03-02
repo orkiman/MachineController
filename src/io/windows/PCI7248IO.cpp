@@ -5,7 +5,7 @@
 
 using namespace std::chrono;
 
-PCI7248IO::PCI7248IO(EventQueue<IOEvent>* eventQueue, const Config& config)
+PCI7248IO::PCI7248IO(EventQueue<EventVariant>* eventQueue, const Config& config)
     : eventQueue_(eventQueue), config_(config), card_(-1)
 {
     // Copy IO channel settings from configuration.
@@ -99,32 +99,6 @@ bool PCI7248IO::initialize() {
         {"CH", Channel_P1CH}
     };
 
-    for (const auto &portEntry : portsConfig) {
-        const std::string &port = portEntry.first;
-        const std::string &portType = portEntry.second;
-        if (portType != "input")
-            continue; // Only process input ports
-
-        auto chIt = portToChannel.find(port);
-        if (chIt == portToChannel.end()) {
-            std::cerr << "Port " << port << " is not recognized for initial state read." << std::endl;
-            continue;
-        }
-        int daskChannel = chIt->second;
-        int baseOffset = getPortBaseOffset(port);
-
-        U32 portValue = 0;
-        if (DI_ReadPort(card_, daskChannel, &portValue) == 0) {
-            for (auto &channel : inputChannels_) {
-                if (channel.ioPort == port) {
-                    int state = (portValue >> (channel.pin - baseOffset)) & 0x1;
-                    channel.state = state;                    
-                }
-            }
-        } else {
-            std::cerr << "Failed to read initial state from Port " << port << "." << std::endl;
-        }
-    }
     // set inputChannels ioport field by pin number
     for (auto &channel : inputChannels_) {
         if (channel.pin < 8) {
@@ -152,6 +126,34 @@ bool PCI7248IO::initialize() {
             ch.ioPort = "CH";
         }
     }
+    
+    for (const auto &portEntry : portsConfig) {
+        const std::string &port = portEntry.first;
+        const std::string &portType = portEntry.second;
+        if (portType != "input")
+            continue; // Only process input ports
+
+        auto chIt = portToChannel.find(port);
+        if (chIt == portToChannel.end()) {
+            std::cerr << "Port " << port << " is not recognized for initial state read." << std::endl;
+            continue;
+        }
+        int daskChannel = chIt->second;
+        int baseOffset = getPortBaseOffset(port);
+
+        U32 portValue = 0;
+        if (DI_ReadPort(card_, daskChannel, &portValue) == 0) {
+            for (auto &channel : inputChannels_) {
+                if (channel.ioPort == port) {
+                    int state = (portValue >> (channel.pin - baseOffset)) & 0x1;
+                    channel.state = state;                    
+                }
+            }
+        } else {
+            std::cerr << "Failed to read initial state from Port " << port << "." << std::endl;
+        }
+    }
+    
 
     
     // Start the polling thread to continuously update inputs.

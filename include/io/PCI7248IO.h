@@ -22,7 +22,7 @@
 class PCI7248IO : public IOInterface {
 public:
     // Constructor accepts a pointer to an event queue and a reference to a Config object.
-    PCI7248IO(EventQueue<IOEvent>* eventQueue, const Config& config);
+    PCI7248IO(EventQueue<EventVariant>* eventQueue, const Config& config);
     virtual ~PCI7248IO();
 
     // Initialize the hardware, configure ports, and read the initial input state.
@@ -57,7 +57,7 @@ private:
     int getPortBaseOffset(const std::string &port) const;
 
     // Member variables.
-    EventQueue<IOEvent>* eventQueue_;
+    EventQueue<EventVariant>* eventQueue_;
     const Config& config_;
     I16 card_;  // DASK card handle.
 

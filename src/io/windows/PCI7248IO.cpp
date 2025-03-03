@@ -341,6 +341,7 @@ int PCI7248IO::getPortBaseOffset(const std::string &port) const {
 void PCI7248IO::stopPolling() {
     stopPolling_ = true;
     if (pollingThread_.joinable()) {
+        
         pollingThread_.join();
     }
 }

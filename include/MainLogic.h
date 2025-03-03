@@ -21,6 +21,7 @@ private:
     void handleEvent(const CommEvent& event);
     void handleEvent(const GUIEvent& event);
     void handleEvent(const TimerEvent& event);
+    void handleEvent(const TerminationEvent& event);
 
     Config config_;
     EventQueue<EventVariant>& eventQueue_;

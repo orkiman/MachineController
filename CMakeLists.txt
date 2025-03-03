@@ -14,6 +14,14 @@ set(SOURCES
     
 )
 
+include(FetchContent)
+FetchContent_Declare(
+    spdlog
+    GIT_REPOSITORY https://github.com/gabime/spdlog.git
+    GIT_TAG v1.11.0  # Use the version you need
+)
+FetchContent_MakeAvailable(spdlog)
+
 # Create the executable target named MachineController
 add_executable(MachineController ${SOURCES})
 
@@ -31,7 +39,7 @@ target_include_directories(MachineController PRIVATE
 link_directories("C:/ADLINK/DASK/Lib")
 
 # ✅ Link with PCI-Dask64 and Winmm (needed for timeBeginPeriod)
-target_link_libraries(MachineController PRIVATE "C:/ADLINK/DASK/Lib/PCI-Dask64.lib" winmm)
+target_link_libraries(MachineController PRIVATE "C:/ADLINK/DASK/Lib/PCI-Dask64.lib" winmm spdlog::spdlog)
 
 # For GNU compilers on Windows, add static linking flags
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND WIN32)

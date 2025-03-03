@@ -1,5 +1,6 @@
 #include "MainLogic.h"
 #include <iostream>
+#include "Logger.h"
 
 MainLogic::MainLogic(EventQueue<EventVariant> &eventQueue, const Config &config)
     : eventQueue_(eventQueue), config_(config), io_(&eventQueue_, config_), running_(true)
@@ -20,26 +21,31 @@ MainLogic::~MainLogic()
     }
 }
 
-void MainLogic::run()
-{
-    logicThread_ = std::thread([this]()
-                               {
+void MainLogic::run() {
+    logicThread_ = std::thread([this]() {       
         while (running_) {
             EventVariant event;
             eventQueue_.wait_and_pop(event);
 
-            std::visit([this](auto&& e) { this->handleEvent(e); }, event);
-        } });
+            std::visit([this](auto&& e) {
+                this->handleEvent(e);
+            }, event);
+        }
+    });
 }
 
-void MainLogic::stop()
-{
-    running_ = false;
-    if (logicThread_.joinable())
-    {
+
+void MainLogic::stop() {
+    // Push a termination event to unblock the waiting call.
+    eventQueue_.push(TerminationEvent{});
+    io_.stopPolling(); // Stop the IO polling thread if necessary.
+    
+    // Now join the logic thread from the main thread.
+    if (logicThread_.joinable()) {
         logicThread_.join();
     }
 }
+
 
 // **Event Handlers**
 void MainLogic::handleEvent(const IOEvent &event)
@@ -52,8 +58,9 @@ void MainLogic::handleEvent(const IOEvent &event)
                   << " (" << (channel.eventType == IOEventType::Rising ? "Rising" : "Falling") << ")"
                   << std::endl;
     }
-    if (event.channels.at("stopButton").eventType == IOEventType::Rising &&
-        event.channels.at("startButton").state == 0)
+    const auto &in = event.channels;
+    if (in.at("stopButton").eventType == IOEventType::Rising &&
+        in.at("startButton").state == 0)
     {
 
         std::cout << "Stop button pressed" << std::endl;
@@ -74,4 +81,12 @@ void MainLogic::handleEvent(const GUIEvent &event)
 void MainLogic::handleEvent(const TimerEvent &event)
 {
     std::cout << "[Timer Event] Timer ID: " << event.timerId << " triggered." << std::endl;
+}
+
+void MainLogic::handleEvent(const TerminationEvent &event)
+{
+    // Just set running_ to false.
+    running_ = false;
+    // Optionally log the termination.
+    getLogger()->info("TerminationEvent received; shutting down logic thread.");
 }

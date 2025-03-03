@@ -1,5 +1,6 @@
-#ifndef EVENT_TYPES_H
-#define EVENT_TYPES_H
+#ifndef EVENT_H
+#define EVENT_H
+
 #include <unordered_map>
 #include <variant>
 #include <string>
@@ -25,7 +26,10 @@ struct TimerEvent {
     int timerId;
 };
 
-// Define a generic event type that can hold any of these event types
-using EventVariant = std::variant<IOEvent, CommEvent, GUIEvent, TimerEvent>;
+// Event for termination/shutdown signal.
+struct TerminationEvent {};
 
-#endif // EVENT_TYPES_H
+// Define a generic event type that can hold any of these event types
+using EventVariant = std::variant<IOEvent, CommEvent, GUIEvent, TimerEvent, TerminationEvent>;
+
+#endif // EVENT_H

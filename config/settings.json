@@ -2,41 +2,41 @@
     "io": {
         "device": "PCI7248",
         "portsConfiguration": {
-            "A": "input",
-            "B": "output",
-            "CL": "input",
-            "CH": "output"
+            "A": "output",
+            "B": "input",
+            "CL": "output",
+            "CH": "input"
         },
         "inputs": [
             {
-                "pin": 7,
-                "name": "I7_eye1",
-                "description": "eye1 test"
+                "pin": 8,
+                "name": "startButton",
+                "description": "startButton description"
             },
             {
-                "pin": 0,
-                "name": "I20_eye2",
-                "description": "eye2 description"
+                "pin": 9,
+                "name": "stopButton",
+                "description": "stopButton description"
             }
         ],
         "outputs": [
             {
-                "pin": 8,
+                "pin": 0,
                 "name": "O0_motor",
                 "description": "main motor"
             },
             {
-                "pin": 9,
+                "pin": 1,
                 "name": "O1_vacuum",
                 "description": "vacuum control"
             },
             {
-                "pin": 20,
+                "pin": 16,
                 "name": "O2_light",
                 "description": "light control"
             },
             {
-                "pin": 21,
+                "pin": 18,
                 "name": "O3_camera",
                 "description": "camera control"
             }           

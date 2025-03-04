@@ -59,11 +59,11 @@ void MainLogic::handleEvent(const IOEvent &event)
                   << std::endl;
     }
     const auto &in = event.channels;
-    if (in.at("stopButton").eventType == IOEventType::Rising &&
-        in.at("startButton").state == 0)
+    if (in.at("startButton").eventType == IOEventType::Rising &&
+        in.at("stopButton").state == 0)
     {
 
-        std::cout << "Stop button pressed" << std::endl;
+        std::cout << "start process started" << std::endl;
         // outputChannels["motor"].state = 0;
     }
 }

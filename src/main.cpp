@@ -4,6 +4,8 @@
 #include "Logger.h"
 
 int main() {
+    timeBeginPeriod(1);  // Ensure 1ms sleep accuracy
+
     Config config("config/settings.json");
     EventQueue<EventVariant> eventQueue;
     MainLogic mainLogic(eventQueue, config);
@@ -14,5 +16,7 @@ int main() {
     std::cin.get();  
     mainLogic.stop();
     std::cout << "Exiting..." << std::endl;
+    timeEndPeriod(1);  // Restore normal timer resolution
+
     return 0;
 }

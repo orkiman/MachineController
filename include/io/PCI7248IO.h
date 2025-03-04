@@ -55,6 +55,9 @@ private:
     // For example, "A" -> 0, "B" -> 8, "CL" -> 16, "CH" -> 20.
     int getPortBaseOffset(const std::string &port) const;
 
+    // Helper function to sleep for a precise number of microseconds.
+    void preciseSleep(int microseconds);
+
     // Member variables.
     EventQueue<EventVariant>* eventQueue_;
     const Config& config_;

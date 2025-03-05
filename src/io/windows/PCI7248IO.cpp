@@ -222,10 +222,10 @@ const std::unordered_map<std::string, IOChannel> &PCI7248IO::getOutputChannels()
 void PCI7248IO::pollLoop()
 {
     // getLogger()->set_level(spdlog::level::debug);
-    
+
     // SetThreadPriority(GetCurrentThread(),THREAD_PRIORITY_HIGHEST );
     SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
-     getLogger()->debug("THREAD_PRIORITY_TIME_CRITICAL");
+    getLogger()->debug("THREAD_PRIORITY_TIME_CRITICAL");
     // Use the stored ports configuration.
     auto portsConfig = config_.getPci7248IoPortsConfiguration();
 
@@ -290,6 +290,10 @@ void PCI7248IO::pollLoop()
                             anyChange = true;
                             channel.state = newState;
                         }
+                        else
+                        {
+                            channel.eventType = IOEventType::None;
+                        }
                     }
                 }
             }
@@ -332,9 +336,7 @@ void PCI7248IO::pollLoop()
             std::cout << "Poll Loop Execution Time (microseconds) -- Min: "
                       << minTime << ", Max: " << maxTime
                       << ", Avg: " << avgTime << ", long runs: " << longRuns << std::endl;
-            getLogger()-> debug("Poll Loop Execution Time (microseconds) -- Min: "
-                      + std::to_string(minTime) + ", Max: " + std::to_string(maxTime)
-                      + ", Avg: " + std::to_string(avgTime) + ", long runs: " + std::to_string(longRuns));
+            getLogger()->debug("Poll Loop Execution Time (microseconds) -- Min: " + std::to_string(minTime) + ", Max: " + std::to_string(maxTime) + ", Avg: " + std::to_string(avgTime) + ", long runs: " + std::to_string(longRuns));
             // Reset the stats for the next interval.
             statStart = now;
             totalTime = 0;

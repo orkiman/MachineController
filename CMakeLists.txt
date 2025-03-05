@@ -11,7 +11,6 @@ set(SOURCES
     ${CMAKE_SOURCE_DIR}/src/io/windows/PCI7248IO.cpp
     ${CMAKE_SOURCE_DIR}/src/Config.cpp
     ${CMAKE_SOURCE_DIR}/src/MainLogic.cpp
-    
 )
 
 include(FetchContent)
@@ -41,12 +40,28 @@ link_directories("C:/ADLINK/DASK/Lib")
 # ✅ Link with PCI-Dask64 and Winmm (needed for timeBeginPeriod)
 target_link_libraries(MachineController PRIVATE "C:/ADLINK/DASK/Lib/PCI-Dask64.lib" winmm spdlog::spdlog)
 
-# For GNU compilers on Windows, add static linking flags
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND WIN32)
-    target_link_options(MachineController PRIVATE "-static-libgcc" "-static-libstdc++")
+# Remove MinGW-specific linking
+# Remove:
+# if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND WIN32)
+#     target_link_options(MachineController PRIVATE "-static-libgcc" "-static-libstdc++")
+# endif()
+
+# ✅ MSVC-specific optimizations
+if(MSVC)
+    message(STATUS "MSVC Compiler detected")
+    target_compile_options(MachineController PRIVATE
+        $<$<CONFIG:Debug>:/W4>
+        $<$<CONFIG:Debug>:/RTC1>
+        $<$<CONFIG:Release>:/W4>
+        $<$<CONFIG:Release>:/O2>
+    )
 endif()
 
-# Optionally add debug symbols for Debug builds
+
+
+# Debug symbols for Debug builds
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Zi") # Use MSVC debug flags
 endif()
+
+add_definitions(-DNOMINMAX)

@@ -2,14 +2,14 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build",
+            "label": "CMake Build",
             "type": "shell",
-            "command": "cmake --build build",
+            "command": "cmake --build build --config Debug",
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
-            "problemMatcher": ["$gcc"]
+            "problemMatcher": ["$msCompile"]
         }
     ]
 }

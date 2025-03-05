@@ -282,11 +282,7 @@ void PCI7248IO::pollLoop()
                             else if (channel.state == 1 && newState == 0)
                             {
                                 channel.eventType = IOEventType::Falling;
-                            }
-                            else
-                            {
-                                channel.eventType = IOEventType::None;
-                            }
+                            }                            
                             anyChange = true;
                             channel.state = newState;
                         }

@@ -55,7 +55,7 @@ void MainLogic::handleEvent(const IOEvent &event)
     {
         const IOChannel &channel = pair.second;
         std::cout << "  " << channel.name << " -> " << channel.state
-                  << " (" << (channel.eventType == IOEventType::Rising ? "Rising" : "Falling") << ")"
+                  << " (" << channel.eventType  << ")"
                   << std::endl;
     }
     const auto &in = event.channels;

@@ -32,6 +32,16 @@ void MainLogic::run() {
             }, event);
         }
     });
+    
+    if(running_) {
+        outputChannels_ = io_.getOutputChannels();
+        blinkThread_ = std::thread([this]() {
+            // blinkLED("O0_motor");
+            blinkLED("O21");
+            
+        });
+    }
+    
 }
 
 
@@ -44,6 +54,10 @@ void MainLogic::stop() {
     if (logicThread_.joinable()) {
         logicThread_.join();
     }
+    if (blinkThread_.joinable()) {
+        blinkThread_.join();
+        std::cout << "Blink thread joined." << std::endl;
+    }
 }
 
 
@@ -55,8 +69,11 @@ void MainLogic::handleEvent(const IOEvent &event)
     {
         const IOChannel &channel = pair.second;
         std::cout << "  " << channel.name << " -> " << channel.state
-                  << " (" << channel.eventType  << ")"
-                  << std::endl;
+          << " channel.eventType = " 
+          << (channel.eventType == IOEventType::Rising ? "Rising" : 
+              (channel.eventType == IOEventType::Falling ? "Falling" : 
+              (channel.eventType == IOEventType::None ? "None" : "Unknown")))
+          << std::endl;
     }
     const auto &in = event.channels;
     if (in.at("startButton").eventType == IOEventType::Rising &&
@@ -89,4 +106,15 @@ void MainLogic::handleEvent(const TerminationEvent &event)
     running_ = false;
     // Optionally log the termination.
     getLogger()->info("TerminationEvent received; shutting down logic thread.");
+}
+
+void MainLogic::blinkLED(std::string channelName) {
+    std::cout << "Blink thread started." << std::endl;
+    while (running_) {
+        // Toggle the LED state.
+        outputChannels_[channelName].state = 1;//!outputChannels_[channelName].state;
+        // std::cout << "Toggling " << channelName <<" state to " << outputChannels_[channelName].state << std::endl;
+        io_.writeOutputs(outputChannels_);
+        std::this_thread::sleep_for(std::chrono::milliseconds(300));
+    }
 }

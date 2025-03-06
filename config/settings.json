@@ -5,19 +5,50 @@
             "A": "output",
             "B": "input",
             "CL": "output",
-            "CH": "input"
+            "CH": "output"
         },
         "inputs": [
             {
                 "pin": 8,
-                "name": "startButton",
-                "description": "startButton description"
+                "name": "i8",
+                "description": "i8 description"
             },
             {
                 "pin": 9,
-                "name": "stopButton",
-                "description": "stopButton description"
+                "name": "i9",
+                "description": "i9 description"
+            },
+            {
+                "pin": 10,
+                "name": "i10",
+                "description": "10 description"
+            },
+            {
+                "pin": 11,
+                "name": "i11",
+                "description": "11 description"
+            },
+            {
+                "pin": 12,
+                "name": "i12",
+                "description": "12 description"
+            },
+            {
+                "pin": 13,
+                "name": "i13",
+                "description": "13 description"
+            },
+            {
+                "pin": 14,
+                "name": "i14",
+                "description": "14 description"
+            },
+            {
+                "pin": 15,
+                "name": "i15",
+                "description": "15 description"
             }
+            
         ],
         "outputs": [
             {
@@ -26,20 +57,16 @@
                 "description": "main motor"
             },
             {
-                "pin": 1,
-                "name": "O1_vacuum",
+                "pin": 7,
+                "name": "O7",
                 "description": "vacuum control"
             },
             {
-                "pin": 16,
-                "name": "O2_light",
-                "description": "light control"
-            },
-            {
-                "pin": 18,
-                "name": "O3_camera",
-                "description": "camera control"
-            }           
+                "pin": 21,
+                "name": "O21",
+                "description": "O21 description"
+            }
+        
         ]
     },
     "communication": {

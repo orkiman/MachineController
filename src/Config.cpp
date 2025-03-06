@@ -1,6 +1,8 @@
 #include "Config.h"
 #include <fstream>
 #include <stdexcept>
+#include "Logger.h"
+
 
 Config::Config(const std::string& filePath) {
     std::ifstream file(filePath);
@@ -71,3 +73,102 @@ nlohmann::json Config::getCommunicationSettings() const {
 nlohmann::json Config::getTimerSettings() const {
     return configJson_.value("timers", nlohmann::json::object());
 }
+
+
+
+bool Config::isPci7248ConfigurationValid() const {
+    bool isValid = true;
+
+    // Define the expected mapping for PCI7248.
+    // Adjust these ranges to match your actual device specification.
+    std::unordered_map<std::string, std::pair<int, int>> portPinRanges = {
+        {"A", {0, 7}},   // Port A covers pins 0-7
+        {"B", {8, 15}},  // Port B covers pins 8-15
+        {"CL", {16, 19}},
+        {"CH", {20, 23}}
+    };
+
+    // Get the "io" object from the JSON.
+    auto ioConfig = configJson_.value("io", nlohmann::json::object());
+
+    // Extract ports configuration.
+    auto portsConfig = ioConfig.value("portsConfiguration", nlohmann::json::object());
+    // Validate each port's configuration.
+    for (auto it = portsConfig.begin(); it != portsConfig.end(); ++it) {
+        std::string port = it.key();
+        std::string direction = it.value();
+        if (direction != "input" && direction != "output") {
+            getLogger()->error("Port {} has an invalid configuration: {}", port, direction);
+            isValid = false;
+        }
+    }
+
+    // Validate each channel in the "inputs" array.
+    auto inputsArray = ioConfig.value("inputs", nlohmann::json::array());
+    for (const auto &item : inputsArray) {
+        int pin = item.value("pin", -1);
+        std::string name = item.value("name", "");  // for error messages
+        bool foundPort = false;
+        for (const auto &p : portPinRanges) {
+            const std::string &port = p.first;
+            int start = p.second.first;
+            int end = p.second.second;
+            if (pin >= start && pin <= end) {
+                foundPort = true;
+                // Check that the port is configured as "input".
+                if (portsConfig.contains(port)) {
+                    std::string portDirection = portsConfig.at(port);
+                    if (portDirection != "input") {
+                        getLogger()->error("Input channel {} (pin {}) belongs to port {} which is not configured as input.", 
+                                             name, pin, port);
+                        isValid = false;
+                    }
+                } else {
+                    getLogger()->error("Port {} is not defined in portsConfiguration.", port);
+                    isValid = false;
+                }
+                break;
+            }
+        }
+        if (!foundPort) {
+            getLogger()->error("Input channel {} (pin {}) does not belong to any defined port.", name, pin);
+            isValid = false;
+        }
+    }
+
+    // Validate each channel in the "outputs" array.
+    auto outputsArray = ioConfig.value("outputs", nlohmann::json::array());
+    for (const auto &item : outputsArray) {
+        int pin = item.value("pin", -1);
+        std::string name = item.value("name", "");
+        bool foundPort = false;
+        for (const auto &p : portPinRanges) {
+            const std::string &port = p.first;
+            int start = p.second.first;
+            int end = p.second.second;
+            if (pin >= start && pin <= end) {
+                foundPort = true;
+                // Check that the port is configured as "output".
+                if (portsConfig.contains(port)) {
+                    std::string portDirection = portsConfig.at(port);
+                    if (portDirection != "output") {
+                        getLogger()->error("Output channel {} (pin {}) belongs to port {} which is not configured as output.", 
+                                             name, pin, port);
+                        isValid = false;
+                    }
+                } else {
+                    getLogger()->error("Port {} is not defined in portsConfiguration.", port);
+                    isValid = false;
+                }
+                break;
+            }
+        }
+        if (!foundPort) {
+            getLogger()->error("Output channel {} (pin {}) does not belong to any defined port.", name, pin);
+            isValid = false;
+        }
+    }
+
+    return isValid;
+}
+

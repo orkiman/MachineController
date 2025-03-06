@@ -18,6 +18,7 @@ public:
     std::unordered_map<std::string, std::string> getPci7248IoPortsConfiguration() const;
     const std::unordered_map<std::string, IOChannel>& getInputs() const;
     const std::unordered_map<std::string, IOChannel>& getOutputs() const;
+    bool isPci7248ConfigurationValid() const;
     
     // Other getters for communication and timers.
     nlohmann::json getCommunicationSettings() const;

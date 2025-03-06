@@ -58,10 +58,14 @@ private:
     // Helper function to sleep for a precise number of microseconds.
     void preciseSleep(int microseconds);
 
+    // Helper function to reset all configured output ports to a known state.
+    bool resetConfiguredOutputPorts();
+
     // Member variables.
     EventQueue<EventVariant>* eventQueue_;
     const Config& config_;
     I16 card_;  // DASK card handle.
+    std::unordered_map<std::string, std::string> portsConfig_;  // Port configuration from the Config object.
 
     // unordered_map storing the configuration and current state for inputs and outputs.
     std::unordered_map<std::string, IOChannel> inputChannels_;

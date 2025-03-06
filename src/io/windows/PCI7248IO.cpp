@@ -15,23 +15,14 @@ PCI7248IO::PCI7248IO(EventQueue<EventVariant> *eventQueue, const Config &config)
     // Similarly, for outputs:
     outputChannels_ = config_.getOutputs();
 
-    // Print configured channels.
-    for (const auto &pair : inputChannels_)
-    {
-        const IOChannel &ch = pair.second;
-        std::cout << "Configured input: " << ch.name << " (port "
-                  << ch.ioPort << ", pin " << ch.pin << ")" << std::endl;
-    }
-    for (const auto &pair : outputChannels_)
-    {
-        const IOChannel &ch = pair.second;
-        std::cout << "Configured output: " << ch.name << " (port "
-                  << ch.ioPort << ", pin " << ch.pin << ")" << std::endl;
-    }
+    
 }
 
 PCI7248IO::~PCI7248IO()
 {
+    //reset all configured output ports to a known state.
+    resetConfiguredOutputPorts();
+
     stopPolling_ = true;
     if (pollingThread_.joinable())
     {
@@ -45,6 +36,10 @@ PCI7248IO::~PCI7248IO()
 
 bool PCI7248IO::initialize()
 {
+    if (!config_.isPci7248ConfigurationValid()) {
+        std::cerr << "Invalid PCI7248 configuration." << std::endl;
+        return false;
+    }
     // Register the PCI-7248 card.
     card_ = Register_Card(PCI_7248, 0);
     if (card_ < 0)
@@ -54,15 +49,15 @@ bool PCI7248IO::initialize()
     }
 
     // Retrieve port configuration from the config.
-    auto portsConfig = config_.getPci7248IoPortsConfiguration();
+    portsConfig_ = config_.getPci7248IoPortsConfiguration();
 
     // Configure each port based on the configuration.
-    if (portsConfig.find("A") != portsConfig.end())
+    if (portsConfig_.find("A") != portsConfig_.end())
     {
-        int type = (portsConfig["A"] == "output") ? OUTPUT_PORT : INPUT_PORT;
+        int type = (portsConfig_["A"] == "output") ? OUTPUT_PORT : INPUT_PORT;
         if (DIO_PortConfig(card_, Channel_P1A, type) != 0)
         {
-            std::cerr << "Failed to configure Port A as " << portsConfig["A"] << "." << std::endl;
+            std::cerr << "Failed to configure Port A as " << portsConfig_["A"] << "." << std::endl;
             return false;
         }
     }
@@ -72,12 +67,12 @@ bool PCI7248IO::initialize()
         return false;
     }
 
-    if (portsConfig.find("B") != portsConfig.end())
+    if (portsConfig_.find("B") != portsConfig_.end())
     {
-        int type = (portsConfig["B"] == "output") ? OUTPUT_PORT : INPUT_PORT;
+        int type = (portsConfig_["B"] == "output") ? OUTPUT_PORT : INPUT_PORT;
         if (DIO_PortConfig(card_, Channel_P1B, type) != 0)
         {
-            std::cerr << "Failed to configure Port B as " << portsConfig["B"] << "." << std::endl;
+            std::cerr << "Failed to configure Port B as " << portsConfig_["B"] << "." << std::endl;
             return false;
         }
     }
@@ -87,12 +82,12 @@ bool PCI7248IO::initialize()
         return false;
     }
 
-    if (portsConfig.find("CL") != portsConfig.end())
+    if (portsConfig_.find("CL") != portsConfig_.end())
     {
-        int type = (portsConfig["CL"] == "output") ? OUTPUT_PORT : INPUT_PORT;
+        int type = (portsConfig_["CL"] == "output") ? OUTPUT_PORT : INPUT_PORT;
         if (DIO_PortConfig(card_, Channel_P1CL, type) != 0)
         {
-            std::cerr << "Failed to configure Port CL as " << portsConfig["CL"] << "." << std::endl;
+            std::cerr << "Failed to configure Port CL as " << portsConfig_["CL"] << "." << std::endl;
             return false;
         }
     }
@@ -102,12 +97,12 @@ bool PCI7248IO::initialize()
         return false;
     }
 
-    if (portsConfig.find("CH") != portsConfig.end())
+    if (portsConfig_.find("CH") != portsConfig_.end())
     {
-        int type = (portsConfig["CH"] == "output") ? OUTPUT_PORT : INPUT_PORT;
+        int type = (portsConfig_["CH"] == "output") ? OUTPUT_PORT : INPUT_PORT;
         if (DIO_PortConfig(card_, Channel_P1CH, type) != 0)
         {
-            std::cerr << "Failed to configure Port CH as " << portsConfig["CH"] << "." << std::endl;
+            std::cerr << "Failed to configure Port CH as " << portsConfig_["CH"] << "." << std::endl;
             return false;
         }
     }
@@ -170,7 +165,7 @@ bool PCI7248IO::initialize()
         {"CL", Channel_P1CL},
         {"CH", Channel_P1CH}};
 
-    for (const auto &portEntry : portsConfig)
+    for (const auto &portEntry : portsConfig_)
     {
         const std::string &port = portEntry.first;
         const std::string &portType = portEntry.second;
@@ -189,6 +184,8 @@ bool PCI7248IO::initialize()
         U32 portValue = 0;
         if (DI_ReadPort(card_, daskChannel, &portValue) == 0)
         {
+            // Invert the port value to match the active-low logic.
+            portValue = ~portValue;
             // Iterate over the map and update channels whose ioPort matches.
             for (auto &pair : inputChannels_)
             {
@@ -204,6 +201,26 @@ bool PCI7248IO::initialize()
         {
             std::cerr << "Failed to read initial state from Port " << port << "." << std::endl;
         }
+    }
+
+    // Print configured channels.
+    for (const auto &pair : inputChannels_)
+    {
+        const IOChannel &ch = pair.second;
+        std::cout << "Configured input: " << ch.name << " (port "
+                  << ch.ioPort << ", pin " << ch.pin << ")" << std::endl;
+    }
+    for (const auto &pair : outputChannels_)
+    {
+        const IOChannel &ch = pair.second;
+        std::cout << "Configured output: " << ch.name << " (port "
+                  << ch.ioPort << ", pin " << ch.pin << ")" << std::endl;
+    }
+
+    // reset all configured output ports to a known state.
+    if (!resetConfiguredOutputPorts()) {
+        std::cerr << "Failed to reset configured output ports." << std::endl;
+        return false;
     }
 
     // Start the polling thread to continuously update inputs.
@@ -226,8 +243,7 @@ void PCI7248IO::pollLoop()
     // SetThreadPriority(GetCurrentThread(),THREAD_PRIORITY_HIGHEST );
     SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
     getLogger()->debug("THREAD_PRIORITY_TIME_CRITICAL");
-    // Use the stored ports configuration.
-    auto portsConfig = config_.getPci7248IoPortsConfiguration();
+    
 
     std::unordered_map<std::string, int> portToChannel = {
         {"A", Channel_P1A},
@@ -249,7 +265,7 @@ void PCI7248IO::pollLoop()
         auto loopStart = clock::now();
 
         bool anyChange = false;
-        for (const auto &portEntry : portsConfig)
+        for (const auto &portEntry : portsConfig_)
         {
             const std::string &port = portEntry.first;
             const std::string &portType = portEntry.second;
@@ -266,6 +282,8 @@ void PCI7248IO::pollLoop()
             U32 portValue = 0;
             if (DI_ReadPort(card_, channelConstant, &portValue) == 0)
             {
+                // Invert the port value to match the active-low logic.
+                portValue = ~portValue;
                 int baseOffset = getPortBaseOffset(port);
                 for (auto &pair : inputChannels_)
                 {
@@ -329,9 +347,9 @@ void PCI7248IO::pollLoop()
         if (std::chrono::duration_cast<std::chrono::seconds>(now - statStart).count() >= 1)
         {
             double avgTime = static_cast<double>(totalTime) / iterations;
-            std::cout << "Poll Loop Execution Time (microseconds) -- Min: "
-                      << minTime << ", Max: " << maxTime
-                      << ", Avg: " << avgTime << ", long runs: " << longRuns << std::endl;
+            // std::cout << "Poll Loop Execution Time (microseconds) -- Min: "
+            //           << minTime << ", Max: " << maxTime
+            //           << ", Avg: " << avgTime << ", long runs: " << longRuns << std::endl;
             getLogger()->debug("Poll Loop Execution Time (microseconds) -- Min: " + std::to_string(minTime) + ", Max: " + std::to_string(maxTime) + ", Avg: " + std::to_string(avgTime) + ", long runs: " + std::to_string(longRuns));
             // Reset the stats for the next interval.
             statStart = now;
@@ -398,26 +416,32 @@ bool PCI7248IO::writeOutputs(const std::unordered_map<std::string, IOChannel> &n
     // Write each aggregated value to the corresponding port.
     for (const auto &p : portAggregates)
     {
+        if (portsConfig_[p.first] != "output")
+            continue; // Skip non-output ports
         const std::string &port = p.first;
         U32 aggregatedValue = p.second;
         auto it = portToChannel.find(port);
         if (it != portToChannel.end())
         {
             int daskChannel = it->second;
+            // Invert the value to match the active-low logic.
+            // Then cast and mask to U16 (adjust the mask as needed).
+            aggregatedValue = ~aggregatedValue & 0xFF;
             if (DO_WritePort(card_, daskChannel, aggregatedValue) != 0)
             {
-                std::cerr << "Failed to write to Port " << port << std::endl;
+                getLogger()->error("Failed to write to Port {}", port);
                 overallSuccess = false;
             }
         }
         else
         {
-            std::cerr << "No DASK channel defined for Port " << port << std::endl;
+            getLogger()->error("No DASK channel defined for Port {}", port);
             overallSuccess = false;
         }
     }
-
+    
     return overallSuccess;
+    
 }
 
 int PCI7248IO::getPortBaseOffset(const std::string &port) const
@@ -456,3 +480,47 @@ void PCI7248IO::preciseSleep(int microseconds)
     WaitForSingleObject(timer, INFINITE);
     CloseHandle(timer);
 }
+
+bool PCI7248IO::resetConfiguredOutputPorts() {
+    bool overallSuccess = true;
+
+    // Mapping from port identifier to DASK channel constant.
+    std::unordered_map<std::string, int> portToChannel = {
+        {"A", Channel_P1A},
+        {"B", Channel_P1B},
+        {"CL", Channel_P1CL},
+        {"CH", Channel_P1CH}
+    };
+
+    // Iterate over the ports configuration.
+    for (const auto &entry : portsConfig_) {
+        const std::string &port = entry.first;
+        const std::string &config = entry.second;
+        // Only reset ports configured as "output"
+        if (config != "output")
+            continue;
+
+        auto it = portToChannel.find(port);
+        if (it != portToChannel.end()) {
+            int daskChannel = it->second;
+            // For resetting, we want to turn off all channels in this port.
+            // Suppose our default "off" value is 0 for aggregated outputs.
+            // If your outputs are active-low, inverting 0 gives all ones.
+            // Adjust the mask to the number of bits your port uses.
+            U32 aggregatedValue = 0;
+            U32 outValue = (~aggregatedValue) & 0xFF; // Here, mask with 0xFF (8 bits); adjust if needed.
+
+            if (DO_WritePort(card_, static_cast<U16>(daskChannel), outValue) != 0) {
+                getLogger()->error("Failed to reset output Port {}", port);
+                overallSuccess = false;
+            } else {
+                getLogger()->debug("Reset output Port {} to value 0x{:X}", port, outValue);
+            }
+        } else {
+            getLogger()->error("No DASK channel mapping for output Port {}", port);
+            overallSuccess = false;
+        }
+    }
+    return overallSuccess;
+}
+

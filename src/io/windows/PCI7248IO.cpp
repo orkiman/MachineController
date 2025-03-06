@@ -68,7 +68,8 @@ bool PCI7248IO::initialize()
     }
 
     // Start polling in a separate thread.
-    pollingThread_ = std::thread(&PCI7248IO::pollLoop, this);
+    bool printLoopStatistics = false;
+    pollingThread_ = std::thread(&PCI7248IO::pollLoop, this,printLoopStatistics);
     return true;
 }
 
@@ -117,7 +118,7 @@ void PCI7248IO::logConfiguredChannels()
 }
 
 // The main polling loop with timing statistics.
-void PCI7248IO::pollLoop()
+void PCI7248IO::pollLoop(bool debugStatistics)
 {
     SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
     getLogger()->debug("THREAD_PRIORITY_TIME_CRITICAL");
@@ -129,6 +130,7 @@ void PCI7248IO::pollLoop()
     using clock = std::chrono::steady_clock;
     auto statStart = clock::now();
 
+    // Only used if debugStatistics is true.
     long long totalTime = 0;
     long long minTime = std::numeric_limits<long long>::max();
     long long maxTime = 0;
@@ -138,55 +140,52 @@ void PCI7248IO::pollLoop()
     while (!stopPolling_) {
         auto loopStart = clock::now();
 
-        // Read all input states and detect changes.
+        // Read inputs and detect changes.
         bool anyChange = updateInputStates(portToChannel);
         if (anyChange) {
             pushStateEvent();
         }
 
-        // Measure how long the loop took.
+        // Always measure loop duration for timing control.
         auto loopEnd = clock::now();
         auto execTime = std::chrono::duration_cast<std::chrono::microseconds>(loopEnd - loopStart).count();
 
-        // If the loop took <1ms, sleep the difference.
+        // Ensure the loop runs at least 1ms (or use your desired target).
         if (execTime < 1000) {
-            preciseSleep(static_cast<int>(500 - execTime));
+            preciseSleep(static_cast<int>(1000 - execTime));
             auto loopEndAfterSleep = clock::now();
             execTime = std::chrono::duration_cast<std::chrono::microseconds>(loopEndAfterSleep - loopStart).count();
         }
-        // else{
-        //     getLogger()->info("Poll Loop Execution Time (microseconds) exceeded 1ms: {}", execTime);
-        // }
 
-        // Update statistics.
-        totalTime += execTime;
-        minTime = std::min(minTime, execTime);
-        maxTime = std::max(maxTime, execTime);
-        if (execTime > 5000) {
-            longRuns++;
-        }
-        iterations++;
+        // If debug statistics are enabled, accumulate measurements.
+        if (debugStatistics) {
+            totalTime += execTime;
+            minTime = std::min(minTime, execTime);
+            maxTime = std::max(maxTime, execTime);
+            if (execTime > 5000) {
+                longRuns++;
+            }
+            iterations++;
 
-        // Print stats every second.
-        auto now = clock::now();
-        if (std::chrono::duration_cast<std::chrono::seconds>(now - statStart).count() >= 1) {
-            double avgTime = static_cast<double>(totalTime) / iterations;
-            getLogger()->debug(
-                "Poll Loop Execution Time (microseconds) -- Min: {}, Max: {}, Avg: {:.2f}, long runs: {}",
-                minTime, maxTime, avgTime, longRuns
-            );
-
-            // Reset stats.
-            statStart = now;
-            totalTime = 0;
-            minTime = std::numeric_limits<long long>::max();
-            maxTime = 0;
-            iterations = 0;
-            longRuns = 0;
+            // Log every second.
+            auto now = clock::now();
+            if (std::chrono::duration_cast<std::chrono::seconds>(now - statStart).count() >= 1) {
+                double avgTime = static_cast<double>(totalTime) / iterations;
+                getLogger()->debug(
+                    "Poll Loop Execution Time (µs) -- Min: {}, Max: {}, Avg: {:.2f}, long runs: {}",
+                    minTime, maxTime, avgTime, longRuns
+                );
+                statStart = now;
+                totalTime = 0;
+                minTime = std::numeric_limits<long long>::max();
+                maxTime = 0;
+                iterations = 0;
+                longRuns = 0;
+            }
         }
     }
 
-    
+    getLogger()->flush();
 }
 
 // Reads input ports, checks for state changes, and updates `inputChannels_`.

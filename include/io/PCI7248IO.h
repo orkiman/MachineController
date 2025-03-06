@@ -30,7 +30,7 @@ private:
     void assignPortNames(std::unordered_map<std::string, IOChannel>& channels);
     void readInitialInputStates(const std::unordered_map<std::string, int>& portToChannel);
     void logConfiguredChannels();
-    void pollLoop();
+    void pollLoop(bool debugStatistics);
     bool updateInputStates(const std::unordered_map<std::string, int>& portToChannel);
     void pushStateEvent();
     int getDaskChannel(const std::string &port) const;

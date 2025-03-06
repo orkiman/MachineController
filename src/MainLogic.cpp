@@ -112,7 +112,7 @@ void MainLogic::blinkLED(std::string channelName) {
     std::cout << "Blink thread started." << std::endl;
     while (running_) {
         // Toggle the LED state.
-        outputChannels_[channelName].state = 1;//!outputChannels_[channelName].state;
+        outputChannels_[channelName].state = !outputChannels_[channelName].state;
         // std::cout << "Toggling " << channelName <<" state to " << outputChannels_[channelName].state << std::endl;
         io_.writeOutputs(outputChannels_);
         std::this_thread::sleep_for(std::chrono::milliseconds(300));

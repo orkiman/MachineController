@@ -1,79 +1,50 @@
-#ifndef PCI7248_IO_H
-#define PCI7248_IO_H
+#pragma once
 
-#include "io/IOInterface.h"
-#include "Config.h"
-#include "EventQueue.h"
-#include "IOChannel.h"
-#include <string>
 #include <unordered_map>
+#include <string>
 #include <thread>
-#include <atomic>
 
-#ifdef _WIN32
-#include <windows.h>
-#include "dask64.h"  // DASK API header for PCI7248
-#endif
+#include "Config.h"      // Provides full definition for Config.
+#include "Event.h"       // Provides full definitions for EventVariant and (if defined there) IOEventType.
+#include "IOChannel.h"   // Provides full definition for IOChannel and possibly IOEventType if not in Event.h.
+#include "EventQueue.h"
 
-// The PCI7248IO class implements the IOInterface for the PCI7248 board.
-// It manages input and output channel states, polls the hardware in a separate thread,
-// and pushes consolidated input state snapshots to the event queue.
-class PCI7248IO : public IOInterface {
+
+// Forward declaration for the event queue template if its definition is not in "EventQueue.h"
+template <typename T>
+class EventQueue;
+
+class PCI7248IO {
 public:
-    // Constructor accepts a pointer to an event queue and a reference to a Config object.
     PCI7248IO(EventQueue<EventVariant>* eventQueue, const Config& config);
-    virtual ~PCI7248IO();
+    ~PCI7248IO();
 
-    // Initialize the hardware, configure ports, and read the initial input state.
-    bool initialize() override;
-
-    // Write outputs by accepting a unordered_map of updated output channel states.
-    // Channels not provided in newOutputsState are forced low (0).
-    bool writeOutputs(const std::unordered_map<std::string, IOChannel>& newOutputsState);
-
-    // Get a snapshot of the current input channels.
-    std::unordered_map<std::string, IOChannel> getInputChannelsSnapshot() const;
-
-    // get a pointer to the output channels
+    bool initialize();
     const std::unordered_map<std::string, IOChannel>& getOutputChannels() const;
-
-    // Stop the polling thread.
+    std::unordered_map<std::string, IOChannel> getInputChannelsSnapshot() const;
+    bool writeOutputs(const std::unordered_map<std::string, IOChannel>& newOutputsState);
     void stopPolling();
 
-    // For compatibility; if needed, you can later implement a proper state map.
-    // const std::unordered_map<std::string, IOState>& getCurrentState() const override;
-
 private:
-    // Polling loop that continuously reads input states and pushes an event
-    // if any active input channel changes.
+    // Helper functions
+    void assignPortNames(std::unordered_map<std::string, IOChannel>& channels);
+    void readInitialInputStates(const std::unordered_map<std::string, int>& portToChannel);
+    void logConfiguredChannels();
     void pollLoop();
-
-    // Push a consolidated event containing a copy of the current input channels unordered_map.
+    bool updateInputStates(const std::unordered_map<std::string, int>& portToChannel);
     void pushStateEvent();
-
-    // PCI7248-specific helper: returns the base offset for the given port.
-    // For example, "A" -> 0, "B" -> 8, "CL" -> 16, "CH" -> 20.
+    int getDaskChannel(const std::string &port) const;
     int getPortBaseOffset(const std::string &port) const;
-
-    // Helper function to sleep for a precise number of microseconds.
     void preciseSleep(int microseconds);
-
-    // Helper function to reset all configured output ports to a known state.
     bool resetConfiguredOutputPorts();
 
-    // Member variables.
+    // Member variables
     EventQueue<EventVariant>* eventQueue_;
-    const Config& config_;
-    I16 card_;  // DASK card handle.
-    std::unordered_map<std::string, std::string> portsConfig_;  // Port configuration from the Config object.
-
-    // unordered_map storing the configuration and current state for inputs and outputs.
+    Config config_;
+    int card_;
     std::unordered_map<std::string, IOChannel> inputChannels_;
     std::unordered_map<std::string, IOChannel> outputChannels_;
-
-    // Threading members.
+    std::unordered_map<std::string, std::string> portsConfig_;
     std::thread pollingThread_;
-    std::atomic<bool> stopPolling_;
+    volatile bool stopPolling_;
 };
-
-#endif // PCI7248_IO_H

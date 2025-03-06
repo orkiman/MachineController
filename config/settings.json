@@ -53,7 +53,7 @@
         "outputs": [
             {
                 "pin": 0,
-                "name": "O0_motor",
+                "name": "O0",
                 "description": "main motor"
             },
             {

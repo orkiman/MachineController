@@ -2,6 +2,9 @@
 #include "MainLogic.h"
 #include "Config.h"
 #include "Logger.h"
+#include <windows.h>
+#include <mmsystem.h>
+#pragma comment(lib, "winmm.lib")  // Link with the winmm.lib if needed
 
 int main() {
     timeBeginPeriod(1);  // Ensure 1ms sleep accuracy

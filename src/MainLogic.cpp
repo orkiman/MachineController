@@ -37,7 +37,7 @@ void MainLogic::run() {
         outputChannels_ = io_.getOutputChannels();
         blinkThread_ = std::thread([this]() {
             // blinkLED("O0_motor");
-            blinkLED("O21");
+            blinkLED("O0");
             
         });
     }
@@ -76,8 +76,8 @@ void MainLogic::handleEvent(const IOEvent &event)
           << std::endl;
     }
     const auto &in = event.channels;
-    if (in.at("startButton").eventType == IOEventType::Rising &&
-        in.at("stopButton").state == 0)
+    if (in.at("i8").eventType == IOEventType::Rising &&
+        in.at("i9").state == 0)
     {
 
         std::cout << "start process started" << std::endl;

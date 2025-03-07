@@ -40,25 +40,28 @@ void MainLogic::run() {
             blinkLED("O0");
             
         });
-    }
-    
+    }    
 }
 
 
 void MainLogic::stop() {
-    // Push a termination event to unblock the waiting call.
-    eventQueue_.push(TerminationEvent{});
-    io_.stopPolling(); // Stop the IO polling thread if necessary.
-    
-    // Now join the logic thread from the main thread.
-    if (logicThread_.joinable()) {
-        logicThread_.join();
-    }
-    if (blinkThread_.joinable()) {
-        blinkThread_.join();
-        std::cout << "Blink thread joined." << std::endl;
-    }
+    static std::once_flag stopFlag;
+    std::call_once(stopFlag, [this]() {
+        // Push a termination event to unblock the waiting call.
+        eventQueue_.push(TerminationEvent{});
+        io_.stopPolling(); // Stop the IO polling thread if necessary.
+        
+        // Now join the logic thread from the main thread.
+        if (logicThread_.joinable()) {
+            logicThread_.join();
+        }
+        if (blinkThread_.joinable()) {
+            blinkThread_.join();
+            getLogger()->info("Blink thread joined.");
+        }
+    });
 }
+
 
 
 // **Event Handlers**
@@ -113,8 +116,13 @@ void MainLogic::blinkLED(std::string channelName) {
     while (running_) {
         // Toggle the LED state.
         outputChannels_[channelName].state = !outputChannels_[channelName].state;
+        // outputChannels_[channelName].state = 1; // solid 1 just for testing
         // std::cout << "Toggling " << channelName <<" state to " << outputChannels_[channelName].state << std::endl;
         io_.writeOutputs(outputChannels_);
         std::this_thread::sleep_for(std::chrono::milliseconds(300));
     }
 }
+void MainLogic::emergencyShutdown() {
+        io_.resetConfiguredOutputPorts();
+    }
+

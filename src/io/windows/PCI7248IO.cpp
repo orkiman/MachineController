@@ -237,6 +237,7 @@ void PCI7248IO::pushStateEvent()
 
 bool PCI7248IO::resetConfiguredOutputPorts()
 {
+    std::lock_guard<std::mutex> lock(resetMutex_);
     // Passing an empty map effectively turns all output pins off.
     return writeOutputs({});
 }

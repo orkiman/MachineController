@@ -10,7 +10,8 @@
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
-            "console": "internalConsole",
+            // "console": "internalConsole",
+            "externalConsole": true,
             "preLaunchTask": "CMake Build"
         }
     ]

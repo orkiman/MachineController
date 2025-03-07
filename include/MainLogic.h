@@ -15,6 +15,7 @@ public:
 
     void run();  // Main loop for event handling
     void stop() ;
+    void emergencyShutdown();
 
 private:
     void handleEvent(const IOEvent& event);

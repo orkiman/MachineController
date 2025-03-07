@@ -24,6 +24,7 @@ public:
     std::unordered_map<std::string, IOChannel> getInputChannelsSnapshot() const;
     bool writeOutputs(const std::unordered_map<std::string, IOChannel>& newOutputsState);
     void stopPolling();
+    bool resetConfiguredOutputPorts();
 
 private:
     // Helper functions
@@ -36,7 +37,8 @@ private:
     int getDaskChannel(const std::string &port) const;
     int getPortBaseOffset(const std::string &port) const;
     void preciseSleep(int microseconds);
-    bool resetConfiguredOutputPorts();
+    std::mutex resetMutex_; //keep resetConfiguredOutputPorts() thread-safe
+    
 
     // Member variables
     EventQueue<EventVariant>* eventQueue_;

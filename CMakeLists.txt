@@ -20,6 +20,9 @@ FetchContent_Declare(
     GIT_TAG v1.11.0  # Use the version you need
 )
 FetchContent_MakeAvailable(spdlog)
+# supress spdlog deprication warnings
+add_definitions(-D_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING -D_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS)
+
 
 # Create the executable target named MachineController
 add_executable(MachineController ${SOURCES})

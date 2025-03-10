@@ -35,7 +35,7 @@ inline std::shared_ptr<spdlog::logger>& getLogger() {
 
 // usage:
 // #include "Logger.h"
-// getLogger()->warn("MainLogic thread about to start.");
+// getLogger()->warn("Logic thread about to start.");
 // getLogger()->info("info from main.cpp");
 // getLogger()->warn("[{}] Warning: something happened", __PRETTY_FUNCTION__);
 // getLogger()->flush(); 

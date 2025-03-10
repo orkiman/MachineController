@@ -30,7 +30,7 @@
   - `Comm.h`
   - `Timer.h`
   - `GUI.h`
-  - `MainLogic.h`
+  - `Logic.h`
   - `Config.h`
   - `Persistence.h`
 
@@ -83,7 +83,7 @@
 
 ### 6.2. Plan Future Enhancements
 - Outline steps for integrating advanced features:
-  - Custom machine-specific logic in `MainLogic`.
+  - Custom machine-specific logic in `Logic`.
   - More sophisticated GUI options (e.g., web-based interface).
   - Remote monitoring support.
   - Machine learning integration for process optimization.

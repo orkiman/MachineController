@@ -2,12 +2,12 @@
 #include <mmsystem.h>
 #pragma comment(lib, "winmm.lib")  // Link with winmm.lib if needed
 
-#include "MainLogic.h"
+#include "Logic.h"
 #include "Logger.h"
 #include <iostream>
 
-// Global pointer to your MainLogic instance.
-MainLogic* g_mainLogic = nullptr;
+// Global pointer to your Logic instance.
+Logic* g_Logic = nullptr;
 
 // Console control handler to catch Ctrl+C, closing the terminal, etc.
 BOOL WINAPI ConsoleHandler(DWORD signal) {
@@ -17,8 +17,8 @@ BOOL WINAPI ConsoleHandler(DWORD signal) {
         case CTRL_LOGOFF_EVENT:
         case CTRL_SHUTDOWN_EVENT:
             // Signal the shutdown but avoid blocking operations here.
-            if (g_mainLogic) {
-                g_mainLogic->emergencyShutdown();
+            if (g_Logic) {
+                g_Logic->emergencyShutdown();
             }
             return TRUE;
         default:
@@ -35,20 +35,20 @@ int main() {
 
     timeBeginPeriod(1);  // Ensure 1ms sleep accuracy
 
-    // Initialize configuration, event queue, and MainLogic.
+    // Initialize configuration, event queue, and Logic.
     Config config("config/settings.json");
     EventQueue<EventVariant> eventQueue;
-    MainLogic mainLogic(eventQueue, config);
-    g_mainLogic = &mainLogic;  // Set global pointer so the handler can access it.
+    Logic Logic(eventQueue, config);
+    g_Logic = &Logic;  // Set global pointer so the handler can access it.
 
-    mainLogic.run();
+    Logic.run();
 
     std::cout << "Press Enter to exit..." << std::endl;
     std::cin.get();
 
-    // Stop the MainLogic (which will, in turn, stop polling and perform cleanup).
-    mainLogic.stop();
-    g_mainLogic = nullptr;  // Prevent dangling pointer in the handler.
+    // Stop the Logic (which will, in turn, stop polling and perform cleanup).
+    Logic.stop();
+    g_Logic = nullptr;  // Prevent dangling pointer in the handler.
 
     std::cout << "Exiting..." << std::endl;
     timeEndPeriod(1);  // Restore normal timer resolution

@@ -1,8 +1,8 @@
-#include "MainLogic.h"
+#include "Logic.h"
 #include <iostream>
 #include "Logger.h"
 
-MainLogic::MainLogic(EventQueue<EventVariant> &eventQueue, const Config &config)
+Logic::Logic(EventQueue<EventVariant> &eventQueue, const Config &config)
     : eventQueue_(eventQueue), config_(config), io_(&eventQueue_, config_), running_(true)
 {
     if (!io_.initialize())
@@ -12,7 +12,7 @@ MainLogic::MainLogic(EventQueue<EventVariant> &eventQueue, const Config &config)
     }
 }
 
-MainLogic::~MainLogic()
+Logic::~Logic()
 {
     running_ = false;
     if (logicThread_.joinable())
@@ -21,7 +21,7 @@ MainLogic::~MainLogic()
     }
 }
 
-void MainLogic::run() {
+void Logic::run() {
     logicThread_ = std::thread([this]() {       
         while (running_) {
             EventVariant event;
@@ -44,7 +44,7 @@ void MainLogic::run() {
 }
 
 
-void MainLogic::stop() {
+void Logic::stop() {
     static std::once_flag stopFlag;
     std::call_once(stopFlag, [this]() {
         // Push a termination event to unblock the waiting call.
@@ -65,7 +65,7 @@ void MainLogic::stop() {
 
 
 // **Event Handlers**
-void MainLogic::handleEvent(const IOEvent &event)
+void Logic::handleEvent(const IOEvent &event)
 {
     std::cout << "[IO Event] Processing input changes..." << std::endl;
     for (const auto &pair : event.channels)
@@ -88,22 +88,22 @@ void MainLogic::handleEvent(const IOEvent &event)
     }
 }
 
-void MainLogic::handleEvent(const CommEvent &event)
+void Logic::handleEvent(const CommEvent &event)
 {
     std::cout << "[Comm Event] Received: " << event.message << std::endl;
 }
 
-void MainLogic::handleEvent(const GUIEvent &event)
+void Logic::handleEvent(const GUIEvent &event)
 {
     std::cout << "[GUI Event] UI Update: " << event.uiMessage << std::endl;
 }
 
-void MainLogic::handleEvent(const TimerEvent &event)
+void Logic::handleEvent(const TimerEvent &event)
 {
     std::cout << "[Timer Event] Timer ID: " << event.timerId << " triggered." << std::endl;
 }
 
-void MainLogic::handleEvent(const TerminationEvent &event)
+void Logic::handleEvent(const TerminationEvent &event)
 {
     // Just set running_ to false.
     running_ = false;
@@ -111,7 +111,7 @@ void MainLogic::handleEvent(const TerminationEvent &event)
     getLogger()->info("TerminationEvent received; shutting down logic thread.");
 }
 
-void MainLogic::blinkLED(std::string channelName) {
+void Logic::blinkLED(std::string channelName) {
     std::cout << "Blink thread started." << std::endl;
     while (running_) {
         // Toggle the LED state.
@@ -122,7 +122,7 @@ void MainLogic::blinkLED(std::string channelName) {
         std::this_thread::sleep_for(std::chrono::milliseconds(300));
     }
 }
-void MainLogic::emergencyShutdown() {
+void Logic::emergencyShutdown() {
         io_.resetConfiguredOutputPorts();
     }
 

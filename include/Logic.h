@@ -1,5 +1,5 @@
-#ifndef MAIN_LOGIC_H
-#define MAIN_LOGIC_H
+#ifndef LOGIC_H
+#define LOGIC_H
 
 #include <thread>
 #include <atomic>
@@ -8,10 +8,10 @@
 #include "Event.h"
 #include "Config.h"
 
-class MainLogic {
+class Logic {
 public:
-    MainLogic(EventQueue<EventVariant>& eventQueue, const Config& config);
-    ~MainLogic();
+    Logic(EventQueue<EventVariant>& eventQueue, const Config& config);
+    ~Logic();
 
     void run();  // Main loop for event handling
     void stop() ;
@@ -36,4 +36,4 @@ private:
 
 };
 
-#endif // MAIN_LOGIC_H
+#endif // LOGIC_H

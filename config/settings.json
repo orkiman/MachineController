@@ -5,7 +5,7 @@
             "A": "output",
             "B": "input",
             "CL": "output",
-            "CH": "output"
+            "CH": "input"
         },
         "inputs": [
             {
@@ -47,6 +47,27 @@
                 "pin": 15,
                 "name": "i15",
                 "description": "15 description"
+            },
+            
+            {
+                "pin": 20,
+                "name": "i20",
+                "description": "20 description"
+            },
+            {
+                "pin": 21,
+                "name": "i21",
+                "description": "21 description"
+            },
+            {
+                "pin": 22,
+                "name": "i22",
+                "description": "22 description"
+            },
+            {
+                "pin": 23,
+                "name": "i23",
+                "description": "23 description"
             }
             
         ],
@@ -60,11 +81,6 @@
                 "pin": 7,
                 "name": "O7",
                 "description": "vacuum control"
-            },
-            {
-                "pin": 21,
-                "name": "O21",
-                "description": "O21 description"
             }
         
         ]

@@ -91,11 +91,20 @@ endif()
 # ✅ Additional compiler definitions
 add_definitions(-DNOMINMAX)
 
+# this is not good enough fix it
+# ✅ Post-build tasks for Windows:
+# if(WIN32)
+#     add_custom_command(TARGET MachineController POST_BUILD
+#         COMMAND ${CMAKE_COMMAND} -DTARGET_PATH="$<TARGET_FILE_DIR:MachineController>" -P ${CMAKE_SOURCE_DIR}/postBuildTasks.cmake
+#         COMMENT "Running post-build tasks (checking and deploying missing Qt dependencies)..."
+#     )
+# endif()
 
-if(WIN32)
-    add_custom_command(TARGET MachineController POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -DTARGET_PATH="$<TARGET_FILE_DIR:MachineController>" -P ${CMAKE_SOURCE_DIR}/postBuildTasks.cmake
-        COMMENT "Running post-build tasks (checking and deploying missing Qt dependencies)..."
-    )
-endif()
 
+# this isnt working:
+# qt_generate_deploy_app_script(
+#     TARGET MachineController
+#     OUTPUT_SCRIPT deploy_script
+#     NO_UNSUPPORTED_PLATFORM_ERROR
+# )
+# install(SCRIPT ${deploy_script})

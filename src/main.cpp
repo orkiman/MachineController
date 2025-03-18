@@ -1,57 +1,69 @@
 #include <windows.h>
 #include <mmsystem.h>
-#pragma comment(lib, "winmm.lib")  // Link with winmm.lib if needed
+#pragma comment(lib, "winmm.lib")
 
 #include "Logic.h"
 #include "Logger.h"
-#include <iostream>
+#include "gui/MainWindow.h"
+#include <QApplication>
+#include <thread>
 
-// Global pointer to your Logic instance.
+// Global pointer to Logic instance for emergency shutdown handling.
 Logic* g_Logic = nullptr;
 
-// Console control handler to catch Ctrl+C, closing the terminal, etc.
+// Console control handler (Ctrl+C handling)
 BOOL WINAPI ConsoleHandler(DWORD signal) {
     switch (signal) {
         case CTRL_C_EVENT:
         case CTRL_CLOSE_EVENT:
         case CTRL_LOGOFF_EVENT:
         case CTRL_SHUTDOWN_EVENT:
-            // Signal the shutdown but avoid blocking operations here.
             if (g_Logic) {
                 g_Logic->emergencyShutdown();
             }
+            QApplication::quit(); // Gracefully close GUI
             return TRUE;
         default:
             return FALSE;
     }
 }
 
-int main() {
-    // Set up the console control handler.
+int main(int argc, char* argv[]) {
+    // Console handler setup
     if (!SetConsoleCtrlHandler(ConsoleHandler, TRUE)) {
-        getLogger()->error("Error: Could not set control handler");
+        getLogger()->error("Could not set control handler");
         return 1;
     }
 
-    timeBeginPeriod(1);  // Ensure 1ms sleep accuracy
+    timeBeginPeriod(1);
 
-    // Initialize configuration, event queue, and Logic.
+    // Qt Application setup
+    QApplication app(argc, argv);
+    MainWindow mainWindow;
+    mainWindow.show();
+
+    // Logic initialization clearly happens here
     Config config("config/settings.json");
     EventQueue<EventVariant> eventQueue;
-    Logic Logic(eventQueue, config);
-    g_Logic = &Logic;  // Set global pointer so the handler can access it.
+    Logic logic(eventQueue, config);
+    g_Logic = &logic;
 
-    Logic.run();
+    // Start Logic in a separate thread clearly
+    std::thread logicThread([&logic]() {
+        logic.run();
+    });
 
-    std::cout << "Press Enter to exit..." << std::endl;
-    std::cin.get();
+    // GUI event loop (main thread)
+    int result = app.exec();
 
-    // Stop the Logic (which will, in turn, stop polling and perform cleanup).
-    Logic.stop();
-    g_Logic = nullptr;  // Prevent dangling pointer in the handler.
+    // GUI closed, initiate Logic shutdown
+    logic.stop();
 
-    std::cout << "Exiting..." << std::endl;
-    timeEndPeriod(1);  // Restore normal timer resolution
+    if (logicThread.joinable())
+        logicThread.join();
 
-    return 0;
+    g_Logic = nullptr;
+    timeEndPeriod(1);
+
+    return result;
 }

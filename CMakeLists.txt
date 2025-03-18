@@ -1,33 +1,43 @@
-cmake_minimum_required(VERSION 3.10)
-project(MachineController)
+cmake_minimum_required(VERSION 3.15)
+project(MachineController LANGUAGES CXX)
 
 # Set C++ standard to C++17
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# ✅ Find Qt Widgets
+find_package(Qt6 REQUIRED COMPONENTS Widgets)
+
+# Automatic handling of Qt UI files and moc
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTOMOC ON)
+
 # Define source files
 set(SOURCES
-    ${CMAKE_SOURCE_DIR}/src/main.cpp
-    ${CMAKE_SOURCE_DIR}/src/io/windows/PCI7248IO.cpp
-    ${CMAKE_SOURCE_DIR}/src/Config.cpp
-    ${CMAKE_SOURCE_DIR}/src/Logic.cpp
+    src/main.cpp
+    src/io/windows/PCI7248IO.cpp
+    src/Config.cpp
+    src/Logic.cpp
+    src/gui/MainWindow.cpp  # GUI cpp added
+    src/gui/MainWindow.ui   # GUI ui added
 )
 
+# Include FetchContent for external libraries
 include(FetchContent)
 FetchContent_Declare(
     spdlog
     GIT_REPOSITORY https://github.com/gabime/spdlog.git
-    GIT_TAG v1.11.0  # Use the version you need
+    GIT_TAG v1.11.0
 )
 FetchContent_MakeAvailable(spdlog)
-# supress spdlog deprication warnings
+
+# Suppress spdlog deprecation warnings
 add_definitions(-D_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING -D_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS)
 
-
-# Create the executable target named MachineController
+# Create the executable target
 add_executable(MachineController ${SOURCES})
 
-# Set the final executable output name to "machineController.exe"
+# Set executable output name
 set_target_properties(MachineController PROPERTIES OUTPUT_NAME "machineController")
 
 # Add include directories
@@ -37,19 +47,18 @@ target_include_directories(MachineController PRIVATE
     "C:/ADLINK/DASK/Include"
 )
 
-# Specify the library directory for ADLINK DASK libraries
+# Specify library directory for ADLINK DASK
 link_directories("C:/ADLINK/DASK/Lib")
 
-# ✅ Link with PCI-Dask64 and Winmm (needed for timeBeginPeriod)
-target_link_libraries(MachineController PRIVATE "C:/ADLINK/DASK/Lib/PCI-Dask64.lib" winmm spdlog::spdlog)
+# Link with required libraries
+target_link_libraries(MachineController PRIVATE
+    "C:/ADLINK/DASK/Lib/PCI-Dask64.lib"
+    winmm
+    spdlog::spdlog
+    Qt6::Widgets
+)
 
-# Remove MinGW-specific linking
-# Remove:
-# if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND WIN32)
-#     target_link_options(MachineController PRIVATE "-static-libgcc" "-static-libstdc++")
-# endif()
-
-# ✅ MSVC-specific optimizations
+# MSVC-specific optimizations and warnings
 if(MSVC)
     message(STATUS "MSVC Compiler detected")
     target_compile_options(MachineController PRIVATE
@@ -60,11 +69,10 @@ if(MSVC)
     )
 endif()
 
-
-
 # Debug symbols for Debug builds
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Zi") # Use MSVC debug flags
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Zi")
 endif()
 
+# Definitions
 add_definitions(-DNOMINMAX)

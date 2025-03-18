@@ -15,54 +15,47 @@ Logic::Logic(EventQueue<EventVariant> &eventQueue, const Config &config)
 Logic::~Logic()
 {
     running_ = false;
-    if (logicThread_.joinable())
+    if (blinkThread_.joinable())
     {
-        logicThread_.join();
+        blinkThread_.join();
     }
 }
 
 void Logic::run() {
-    logicThread_ = std::thread([this]() {       
-        while (running_) {
-            EventVariant event;
-            eventQueue_.wait_and_pop(event);
-
-            std::visit([this](auto&& e) {
-                this->handleEvent(e);
-            }, event);
-        }
-    });
-    
     if(running_) {
         outputChannels_ = io_.getOutputChannels();
         blinkThread_ = std::thread([this]() {
-            // blinkLED("O0_motor");
             blinkLED("O0");
-            
         });
-    }    
-}
+    }
 
+    while (running_) {
+        EventVariant event;
+        eventQueue_.wait_and_pop(event);
+
+        std::visit([this](auto&& e) {
+            this->handleEvent(e);
+        }, event);
+    }
+
+    if (blinkThread_.joinable()) {
+        blinkThread_.join();
+        getLogger()->info("Blink thread joined.");
+    }
+}
 
 void Logic::stop() {
     static std::once_flag stopFlag;
     std::call_once(stopFlag, [this]() {
-        // Push a termination event to unblock the waiting call.
         eventQueue_.push(TerminationEvent{});
-        io_.stopPolling(); // Stop the IO polling thread if necessary.
-        
-        // Now join the logic thread from the main thread.
-        if (logicThread_.joinable()) {
-            logicThread_.join();
-        }
+        io_.stopPolling();
+
         if (blinkThread_.joinable()) {
             blinkThread_.join();
             getLogger()->info("Blink thread joined.");
         }
     });
 }
-
-
 
 // **Event Handlers**
 void Logic::handleEvent(const IOEvent &event)
@@ -82,9 +75,7 @@ void Logic::handleEvent(const IOEvent &event)
     if (in.at("i8").eventType == IOEventType::Rising &&
         in.at("i9").state == 0)
     {
-
         std::cout << "start process started" << std::endl;
-        // outputChannels["motor"].state = 0;
     }
 }
 
@@ -105,24 +96,19 @@ void Logic::handleEvent(const TimerEvent &event)
 
 void Logic::handleEvent(const TerminationEvent &event)
 {
-    // Just set running_ to false.
     running_ = false;
-    // Optionally log the termination.
     getLogger()->info("TerminationEvent received; shutting down logic thread.");
 }
 
 void Logic::blinkLED(std::string channelName) {
     std::cout << "Blink thread started." << std::endl;
     while (running_) {
-        // Toggle the LED state.
         outputChannels_[channelName].state = !outputChannels_[channelName].state;
-        // outputChannels_[channelName].state = 1; // solid 1 just for testing
-        // std::cout << "Toggling " << channelName <<" state to " << outputChannels_[channelName].state << std::endl;
         io_.writeOutputs(outputChannels_);
         std::this_thread::sleep_for(std::chrono::milliseconds(300));
     }
 }
-void Logic::emergencyShutdown() {
-        io_.resetConfiguredOutputPorts();
-    }
 
+void Logic::emergencyShutdown() {
+    io_.resetConfiguredOutputPorts();
+}

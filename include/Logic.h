@@ -29,7 +29,6 @@ private:
     EventQueue<EventVariant>& eventQueue_;
     PCI7248IO io_;
     std::atomic<bool> running_;
-    std::thread logicThread_;
     std::thread blinkThread_;
     std::unordered_map<std::string, IOChannel> outputChannels_;
 

@@ -6,12 +6,12 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui.setupUi(this);
     // Signals and slots connections (optional, usually automatic)
-    connect(ui.buttonStart, &QPushButton::clicked, this, &MainWindow::on_buttonStart_clicked);
+    connect(ui.pushButton, &QPushButton::clicked, this, &MainWindow::on_pushButton_clicked);
 }
 
 MainWindow::~MainWindow() { }
 
-void MainWindow::on_buttonStart_clicked()
+void MainWindow::on_pushButton_clicked()
 {
     QMessageBox::information(this, "Info", "Start button clicked!");
 }

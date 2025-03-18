@@ -14,7 +14,7 @@ public:
 
 private slots:
     // Example slot
-    void on_buttonStart_clicked();
+    void on_pushButton_clicked();
 
 private:
     Ui::MainWindow ui;

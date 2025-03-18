@@ -13,6 +13,8 @@ Logic* g_Logic = nullptr;
 
 // Console control handler (Ctrl+C handling)
 BOOL WINAPI ConsoleHandler(DWORD signal) {
+    // print massage
+    getLogger()->debug("Console signal received: {}", signal);
     switch (signal) {
         case CTRL_C_EVENT:
         case CTRL_CLOSE_EVENT:
@@ -29,6 +31,7 @@ BOOL WINAPI ConsoleHandler(DWORD signal) {
 }
 
 int main(int argc, char* argv[]) {
+    getLogger()->debug("Application started");
     // Console handler setup
     if (!SetConsoleCtrlHandler(ConsoleHandler, TRUE)) {
         getLogger()->error("Could not set control handler");
@@ -41,7 +44,8 @@ int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
     MainWindow mainWindow;
     mainWindow.show();
-
+    // print debug massage
+    
     // Logic initialization clearly happens here
     Config config("config/settings.json");
     EventQueue<EventVariant> eventQueue;

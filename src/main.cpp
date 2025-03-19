@@ -33,10 +33,10 @@ BOOL WINAPI ConsoleHandler(DWORD signal) {
 int main(int argc, char* argv[]) {
     getLogger()->debug("Application started");
     // Console handler setup
-    if (!SetConsoleCtrlHandler(ConsoleHandler, TRUE)) {
-        getLogger()->error("Could not set control handler");
-        return 1;
-    }
+    // if (!SetConsoleCtrlHandler(ConsoleHandler, TRUE)) {
+    //     getLogger()->error("Could not set control handler");
+    //     return 1;
+    // }
 
     timeBeginPeriod(1);
 
@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
     MainWindow mainWindow;
     mainWindow.show();
-    // print debug massage
+    
     
     // Logic initialization clearly happens here
     Config config("config/settings.json");
@@ -59,6 +59,8 @@ int main(int argc, char* argv[]) {
 
     // GUI event loop (main thread)
     int result = app.exec();
+        // print debug massage
+    getLogger()->debug("Application closing");
 
     // GUI closed, initiate Logic shutdown
     logic.stop();

@@ -20,12 +20,16 @@ PCI7248IO::PCI7248IO(EventQueue<EventVariant> *eventQueue, const Config &config)
 
 PCI7248IO::~PCI7248IO()
 {
+
     resetConfiguredOutputPorts();
     stopPolling();
     if (card_ >= 0) {
         Release_Card(card_);
     }
     getLogger()->flush();
+    if (pollingThread_.joinable()) {
+        pollingThread_.join();
+    }
 }
 
 bool PCI7248IO::initialize()
@@ -183,8 +187,7 @@ void PCI7248IO::pollLoop(bool debugStatistics)
                 longRuns = 0;
             }
         }
-    }
-
+    }    
     getLogger()->flush();
 }
 
@@ -282,9 +285,7 @@ bool PCI7248IO::writeOutputs(const std::unordered_map<std::string, IOChannel> &n
 void PCI7248IO::stopPolling()
 {
     stopPolling_ = true;
-    if (pollingThread_.joinable()) {
-        pollingThread_.join();
-    }
+    
 }
 
 // Return a snapshot of the current input channels.

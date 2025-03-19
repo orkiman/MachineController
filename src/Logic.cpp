@@ -15,10 +15,11 @@ Logic::Logic(EventQueue<EventVariant> &eventQueue, const Config &config)
 Logic::~Logic()
 {
     running_ = false;
-    if (blinkThread_.joinable())
-    {
+    if (blinkThread_.joinable()) {
         blinkThread_.join();
+        getLogger()->info("Blink thread joined.");
     }
+    
 }
 
 void Logic::run() {
@@ -38,10 +39,7 @@ void Logic::run() {
         }, event);
     }
 
-    if (blinkThread_.joinable()) {
-        blinkThread_.join();
-        getLogger()->info("Blink thread joined.");
-    }
+    
 }
 
 void Logic::stop() {
@@ -50,10 +48,7 @@ void Logic::stop() {
         eventQueue_.push(TerminationEvent{});
         io_.stopPolling();
 
-        if (blinkThread_.joinable()) {
-            blinkThread_.join();
-            getLogger()->info("Blink thread joined.");
-        }
+        
     });
 }
 

@@ -16,7 +16,7 @@ class EventQueue;
 
 class PCI7248IO {
 public:
-    PCI7248IO(EventQueue<EventVariant>* eventQueue, const Config& config);
+    PCI7248IO(EventQueue<EventVariant> &eventQueue, const Config& config);
     ~PCI7248IO();
 
     bool initialize();
@@ -41,7 +41,7 @@ private:
     
 
     // Member variables
-    EventQueue<EventVariant>* eventQueue_;
+    EventQueue<EventVariant>& eventQueue_;
     Config config_;
     int card_;
     std::unordered_map<std::string, IOChannel> inputChannels_;

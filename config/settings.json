@@ -74,12 +74,18 @@
         "outputs": [
             {
                 "pin": 0,
-                "name": "O0",
+                "name": "o0",
                 "description": "main motor"
             },
             {
+                "pin": 1,
+                "name": "o1",
+                "description": "o1 description"
+            },
+        
+            {
                 "pin": 7,
-                "name": "O7",
+                "name": "o7",
                 "description": "vacuum control"
             }
         

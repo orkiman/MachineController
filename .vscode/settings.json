@@ -92,7 +92,8 @@
         "regex": "cpp",
         "set": "cpp",
         "stack": "cpp",
-        "unordered_set": "cpp"
+        "unordered_set": "cpp",
+        "stdfloat": "cpp"
     },
     
         "cmake.configureSettings": {

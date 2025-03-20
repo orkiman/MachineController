@@ -13,7 +13,6 @@ Logic* g_Logic = nullptr;
 
 // Console control handler (Ctrl+C handling)
 BOOL WINAPI ConsoleHandler(DWORD signal) {
-    // print massage
     getLogger()->debug("Console signal received: {}", signal);
     switch (signal) {
         case CTRL_C_EVENT:
@@ -32,7 +31,7 @@ BOOL WINAPI ConsoleHandler(DWORD signal) {
 
 int main(int argc, char* argv[]) {
     getLogger()->debug("Application started");
-    // Console handler setup
+    // Console handler setup (if needed)
     // if (!SetConsoleCtrlHandler(ConsoleHandler, TRUE)) {
     //     getLogger()->error("Could not set control handler");
     //     return 1;
@@ -40,36 +39,36 @@ int main(int argc, char* argv[]) {
 
     timeBeginPeriod(1);
 
-    // Qt Application setup
+    EventQueue<EventVariant> eventQueue;
+
+    // 1. GUI Initialization
     QApplication app(argc, argv);
-    MainWindow mainWindow;
+    MainWindow mainWindow(nullptr, eventQueue);  // Pass pointer to the event queue
     mainWindow.show();
     
-    
-    // Logic initialization clearly happens here
+    // 2. Logic Setup
     Config config("config/settings.json");
-    EventQueue<EventVariant> eventQueue;
     Logic logic(eventQueue, config);
     g_Logic = &logic;
 
-    // Start Logic in a separate thread clearly
+    QObject::connect(&logic, &Logic::guiUpdate, &mainWindow, &MainWindow::onGuiUpdate);
+
+
+    // 3. Start Logic in a separate thread
     std::thread logicThread([&logic]() {
         logic.run();
     });
 
-    // GUI event loop (main thread)
+    // 4. Start the GUI event loop (this blocks until the GUI closes)
     int result = app.exec();
-        // print debug massage
     getLogger()->debug("Application closing");
 
-    // GUI closed, initiate Logic shutdown
+    // 5. Shutdown Sequence
     logic.stop();
-
     if (logicThread.joinable())
         logicThread.join();
-
     g_Logic = nullptr;
-    timeEndPeriod(1);
 
+    timeEndPeriod(1);
     return result;
 }

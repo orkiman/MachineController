@@ -28,6 +28,7 @@ set(SOURCES
     src/io/windows/PCI7248IO.cpp
     src/Config.cpp
     src/Logic.cpp
+    # include/Logic.h
     src/gui/MainWindow.cpp
 )
 
@@ -90,6 +91,19 @@ endif()
 
 # ✅ Additional compiler definitions
 add_definitions(-DNOMINMAX)
+
+
+if(WIN32)
+  add_custom_command(TARGET MachineController POST_BUILD
+      COMMAND "C:/Qt/6.8.2/msvc2022_64/bin/windeployqt.exe" "$<TARGET_FILE:MachineController>"
+      WORKING_DIRECTORY "$<TARGET_FILE_DIR:MachineController>"
+      COMMENT "Deploying Qt dependencies with windeployqt..."
+  )
+endif()
+
+
+
+
 
 # this is not good enough fix it
 # ✅ Post-build tasks for Windows:

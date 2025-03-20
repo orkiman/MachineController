@@ -16,10 +16,24 @@ struct CommEvent {
     std::string message;
 };
 
-// Event for GUI updates
-struct GUIEvent {
-    std::string uiMessage;
+// Event for GUI updates ###
+enum class GuiEventType {
+    ButtonPress,
+    SetOutput,
+    SetVariable,
+    ParameterChange,
+    StatusRequest,
+    StatusUpdate,
+    ErrorMessage
 };
+
+struct GuiEvent {
+    GuiEventType type;
+    std::string uiMessage; // For logging or display
+    std::string outputName;  // Identifier for the output to set (if needed)
+    int intValue = 0;      // For numeric parameters
+};
+// #### GUI END ####
 
 // Event for timers
 struct TimerEvent {
@@ -30,6 +44,6 @@ struct TimerEvent {
 struct TerminationEvent {};
 
 // Define a generic event type that can hold any of these event types
-using EventVariant = std::variant<IOEvent, CommEvent, GUIEvent, TimerEvent, TerminationEvent>;
+using EventVariant = std::variant<IOEvent, CommEvent, GuiEvent, TimerEvent, TerminationEvent>;
 
 #endif // EVENT_H

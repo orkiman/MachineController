@@ -11,7 +11,7 @@
 
 using namespace std::chrono;
 
-PCI7248IO::PCI7248IO(EventQueue<EventVariant> *eventQueue, const Config &config)
+PCI7248IO::PCI7248IO(EventQueue<EventVariant> &eventQueue, const Config &config)
     : eventQueue_(eventQueue), config_(config), card_(-1), stopPolling_(false)
 {
     inputChannels_ = config_.getInputs();
@@ -231,11 +231,10 @@ bool PCI7248IO::updateInputStates(const std::unordered_map<std::string, int> &po
 // Push an IOEvent containing the updated inputChannels_.
 void PCI7248IO::pushStateEvent()
 {
-    if (eventQueue_) {
         IOEvent event;
         event.channels = inputChannels_;
-        eventQueue_->push(event);
-    }
+        eventQueue_.push(event);
+    
 }
 
 bool PCI7248IO::resetConfiguredOutputPorts()

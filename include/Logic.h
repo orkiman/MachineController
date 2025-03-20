@@ -7,26 +7,31 @@
 #include "EventQueue.h"
 #include "Event.h"
 #include "Config.h"
+#include <QObject>
 
-class Logic {
+class Logic : public QObject {
+    Q_OBJECT
 public:
-    Logic(EventQueue<EventVariant>& eventQueue, const Config& config);
+    Logic(EventQueue<EventVariant> &eventQueue, const Config& config);
     ~Logic();
 
     void run();  // Main loop for event handling
     void stop() ;
     void emergencyShutdown();
 
+signals:
+    void guiUpdate(const QString &msg);
+    
 private:
     void handleEvent(const IOEvent& event);
     void handleEvent(const CommEvent& event);
-    void handleEvent(const GUIEvent& event);
+    void handleEvent(const GuiEvent& event);
     void handleEvent(const TimerEvent& event);
     void handleEvent(const TerminationEvent& event);
     void blinkLED(std::string channelName);
 
     Config config_;
-    EventQueue<EventVariant>& eventQueue_;
+    EventQueue<EventVariant> &eventQueue_;
     PCI7248IO io_;
     std::atomic<bool> running_;
     std::thread blinkThread_;

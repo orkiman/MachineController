@@ -8,6 +8,8 @@
 #include "Event.h"
 #include "Config.h"
 #include <QObject>
+#include "Timer.h"
+
 
 class Logic : public QObject {
     Q_OBJECT
@@ -20,7 +22,7 @@ public:
     void emergencyShutdown();
 
 signals:
-    void guiUpdate(const QString &msg);
+    void updateGui(const QString &msg);
     
 private:
     void handleEvent(const IOEvent& event);
@@ -36,6 +38,7 @@ private:
     std::atomic<bool> running_;
     std::thread blinkThread_;
     std::unordered_map<std::string, IOChannel> outputChannels_;
+    Timer t1_, t2_;
 
 
 };

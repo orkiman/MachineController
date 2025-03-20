@@ -39,7 +39,7 @@ void MainWindow::on_o1Button_released()
     eventQueue_.push(event); // Correctly using the reference directly
 }
 
-void MainWindow::onGuiUpdate(const QString &msg) {
+void MainWindow::onUpdateGui(const QString &msg) {
     ui.massageLable->setText(msg);
 }
 

@@ -47,8 +47,7 @@ void Logic::stop()
     std::call_once(stopFlag, [this]()
                    {
                        eventQueue_.push(TerminationEvent{});
-                       io_.stopPolling();
-                   });
+                       io_.stopPolling(); });
 }
 
 // **Event Handlers**
@@ -69,13 +68,17 @@ void Logic::handleEvent(const IOEvent &event)
     {
         std::cout << "start process started" << std::endl;
     }
-    if (in.at("i11").eventType == IOEventType::Rising){
-        emit guiUpdate("i11 on");
+    if (in.at("i11").eventType == IOEventType::Rising)
+    {
+        emit updateGui("i11 on, t1 is off");
+        t1_.start(std::chrono::milliseconds(2000), [this]()
+                  { emit updateGui("i11 on, t1 is on"); });
     }
-    if (in.at("i11").eventType == IOEventType::Falling){
-        emit guiUpdate("i11 off");
+    if (in.at("i11").eventType == IOEventType::Falling)
+    {
+        emit updateGui("i11 off t1 is off");
+        t1_.cancel();
     }
-    
 }
 
 void Logic::handleEvent(const CommEvent &event)
@@ -152,6 +155,5 @@ void Logic::emergencyShutdown()
 {
     io_.resetConfiguredOutputPorts();
 }
-
 
 #include "moc_Logic.cpp"

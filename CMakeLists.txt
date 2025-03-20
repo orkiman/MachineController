@@ -93,6 +93,7 @@ endif()
 add_definitions(-DNOMINMAX)
 
 
+# copy Qt dll's
 if(WIN32)
   add_custom_command(TARGET MachineController POST_BUILD
       COMMAND "C:/Qt/6.8.2/msvc2022_64/bin/windeployqt.exe" "$<TARGET_FILE:MachineController>"
@@ -100,25 +101,3 @@ if(WIN32)
       COMMENT "Deploying Qt dependencies with windeployqt..."
   )
 endif()
-
-
-
-
-
-# this is not good enough fix it
-# ✅ Post-build tasks for Windows:
-# if(WIN32)
-#     add_custom_command(TARGET MachineController POST_BUILD
-#         COMMAND ${CMAKE_COMMAND} -DTARGET_PATH="$<TARGET_FILE_DIR:MachineController>" -P ${CMAKE_SOURCE_DIR}/postBuildTasks.cmake
-#         COMMENT "Running post-build tasks (checking and deploying missing Qt dependencies)..."
-#     )
-# endif()
-
-
-# this isnt working:
-# qt_generate_deploy_app_script(
-#     TARGET MachineController
-#     OUTPUT_SCRIPT deploy_script
-#     NO_UNSUPPORTED_PLATFORM_ERROR
-# )
-# install(SCRIPT ${deploy_script})

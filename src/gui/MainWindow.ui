@@ -50,7 +50,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>TextLabel</string>
+     <string>input 11 didnt changed yet</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_2">

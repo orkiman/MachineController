@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
     Logic logic(eventQueue, config);
     g_Logic = &logic;
 
-    QObject::connect(&logic, &Logic::guiUpdate, &mainWindow, &MainWindow::onGuiUpdate);
+    QObject::connect(&logic, &Logic::updateGui, &mainWindow, &MainWindow::onUpdateGui);
 
 
     // 3. Start Logic in a separate thread

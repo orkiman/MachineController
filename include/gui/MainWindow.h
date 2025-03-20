@@ -23,7 +23,7 @@ private slots:
     void on_o1Button_released();
 
 public slots:
-    void onGuiUpdate(const QString &msg);
+    void onUpdateGui(const QString &msg);
 
 private:
     Ui::MainWindow ui;

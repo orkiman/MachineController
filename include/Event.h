@@ -13,8 +13,11 @@ struct IOEvent {
 
 // Event for communication (TCP/IP, RS-232, etc.)
 struct CommEvent {
-    std::string message;
+    std::string port;    // Identifier for the communication port (e.g., "COM3")
+    std::string message; // The received message
 };
+
+// #### GUI START ####
 
 // Event for GUI updates ###
 enum class GuiEventType {

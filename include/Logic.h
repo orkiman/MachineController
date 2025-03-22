@@ -35,7 +35,7 @@ private:
     Config config_;
     EventQueue<EventVariant> &eventQueue_;
     PCI7248IO io_;
-    std::atomic<bool> running_;
+    std::atomic<bool> controllerRunning_;
     std::thread blinkThread_;
     std::unordered_map<std::string, IOChannel> outputChannels_;
     Timer t1_, t2_;

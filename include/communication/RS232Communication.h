@@ -7,19 +7,19 @@
 #include <atomic>
 #include <mutex>
 #include <windows.h>
+#include "Event.h"
+#include "EventQueue.h"
 
 class RS232Communication : public CommunicationInterface {
 public:
-    // Constructor takes the port name (e.g., "COM3") and baud rate.
-    RS232Communication(const std::string &portName, unsigned long baudRate);
+    RS232Communication(EventQueue<EventVariant>& eventQueue, const std::string &portName, unsigned long baudRate);
+    
     virtual ~RS232Communication();
 
-    // CommunicationInterface methods.
     virtual bool initialize() override;
     virtual bool send(const std::string &message) override;
     virtual std::string receive() override;
     virtual void close() override;
-    virtual void setDataReceivedCallback(std::function<void(const std::string&)> callback) override;
 
 private:
     HANDLE hSerial_;
@@ -27,12 +27,8 @@ private:
     unsigned long baudRate_;
 
     // For asynchronous reception.
-    std::function<void(const std::string&)> dataReceivedCallback_;
     std::thread receiveThread_;
     std::atomic<bool> receiving_;
     void receiveLoop();
-    std::mutex callbackMutex_;
-
-    // For graceful shutdown.
-    HANDLE shutdownEvent_;
+    EventQueue<EventVariant>& eventQueue_;
 };

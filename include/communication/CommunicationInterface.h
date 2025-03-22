@@ -19,5 +19,5 @@ public:
     virtual void close() = 0;
 
     // Optional: set a callback to be invoked when new data is received.
-    virtual void setDataReceivedCallback(std::function<void(const std::string&)> callback) = 0;
+    // virtual void setDataReceivedCallback(std::function<void(const std::string&)> callback) = 0;
 };

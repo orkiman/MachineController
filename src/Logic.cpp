@@ -3,18 +3,18 @@
 #include "Logger.h"
 
 Logic::Logic(EventQueue<EventVariant> &eventQueue, const Config &config)
-    : eventQueue_(eventQueue), config_(config), io_(eventQueue_, config_), running_(true)
+    : eventQueue_(eventQueue), config_(config), io_(eventQueue_, config_), controllerRunning_(true)
 {
     if (!io_.initialize())
     {
         std::cerr << "Failed to initialize PCI7248IO." << std::endl;
-        running_ = false;
+        controllerRunning_ = false;
     }
 }
 
 Logic::~Logic()
 {
-    running_ = false;
+    controllerRunning_ = false;
     if (blinkThread_.joinable())
     {
         blinkThread_.join();
@@ -24,14 +24,14 @@ Logic::~Logic()
 
 void Logic::run()
 {
-    if (running_)
+    if (controllerRunning_)
     {
         outputChannels_ = io_.getOutputChannels();
         blinkThread_ = std::thread([this]()
                                    { blinkLED("o0"); });
     }
 
-    while (running_)
+    while (controllerRunning_)
     {
         EventVariant event;
         eventQueue_.wait_and_pop(event);
@@ -83,7 +83,8 @@ void Logic::handleEvent(const IOEvent &event)
 
 void Logic::handleEvent(const CommEvent &event)
 {
-    std::cout << "[Comm Event] Received: " << event.message << std::endl;
+    std::cout << "[Comm Event] Received from port " 
+              << event.port << ": " << event.message << std::endl;
 }
 
 void Logic::handleEvent(const GuiEvent &event)
@@ -136,14 +137,14 @@ void Logic::handleEvent(const TimerEvent &event)
 
 void Logic::handleEvent(const TerminationEvent &event)
 {
-    running_ = false;
+    controllerRunning_ = false;
     getLogger()->info("TerminationEvent received; shutting down logic thread.");
 }
 
 void Logic::blinkLED(std::string channelName)
 {
     std::cout << "Blink thread started." << std::endl;
-    while (running_)
+    while (controllerRunning_)
     {
         outputChannels_[channelName].state = !outputChannels_[channelName].state;
         io_.writeOutputs(outputChannels_);

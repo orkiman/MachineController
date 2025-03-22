@@ -28,8 +28,8 @@ set(SOURCES
     src/io/windows/PCI7248IO.cpp
     src/Config.cpp
     src/Logic.cpp
-    # include/Logic.h
     src/gui/MainWindow.cpp
+    src/communication/RS232Communication.cpp
 )
 
 # ✅ Create the executable target (including auto-generated headers)

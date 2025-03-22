@@ -80,7 +80,7 @@ int main() {
     Timer timer;
 
     // Start a timer that will call the callback after 3 seconds.
-    timer.start(std::chrono::microsecond(3000), []() {
+    timer.start(std::chrono::microsecond(3000), [this]() {
         std::cout << "Timer elapsed! Callback executed." << std::endl;
     });
 

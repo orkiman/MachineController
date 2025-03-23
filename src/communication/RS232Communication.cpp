@@ -1,10 +1,12 @@
 #include "communication/RS232Communication.h"
 #include <iostream>
 
-RS232Communication::RS232Communication(EventQueue<EventVariant>& eventQueue, const std::string &portName, unsigned long baudRate)
+RS232Communication::RS232Communication(EventQueue<EventVariant>& eventQueue, const std::string &portName, unsigned long baudRate, const std::string& stx, char etx)
     : eventQueue_(eventQueue),
       portName_(portName),
       baudRate_(baudRate),
+      STX(stx),
+      ETX(etx),
       receiving_(false),
       hSerial_(INVALID_HANDLE_VALUE)
 {
@@ -88,17 +90,71 @@ bool RS232Communication::send(const std::string &message)
 
 std::string RS232Communication::receive()
 {
+    std::string completeMessage;
     char buffer[256];
-    std::string result;
+    DWORD bytesRead;
+
     if (hSerial_ == INVALID_HANDLE_VALUE)
         return "";
-    DWORD bytesRead;
-    if (ReadFile(hSerial_, buffer, sizeof(buffer) - 1, &bytesRead, NULL))
+
+    while (true)
     {
-        buffer[bytesRead] = '\0';
-        result = buffer;
+        if (!ReadFile(hSerial_, buffer, sizeof(buffer) - 1, &bytesRead, NULL))
+        {
+            std::cerr << "Error reading from serial port." << std::endl;
+            return "";
+        }
+
+        if (bytesRead == 0)
+        {
+            // No data read, return what we have so far (if any).
+            return completeMessage;
+        }
+
+        buffer[bytesRead] = '\0'; // Null-terminate the buffer.
+        receiveBuffer_ += buffer;
+
+        size_t stxPos = std::string::npos;
+        if (!STX.empty()) {
+            stxPos = receiveBuffer_.find(STX);
+        }
+        size_t etxPos = receiveBuffer_.find(ETX);
+
+        if (STX.empty())
+        {
+            if (etxPos != std::string::npos)
+            {
+                // No STX, but ETX found. Return everything up to ETX.
+                completeMessage = receiveBuffer_.substr(0, etxPos);
+                receiveBuffer_.erase(0, etxPos + 1); // Remove processed data.
+                return completeMessage;
+            }
+        }
+        else
+        {
+            if (stxPos != std::string::npos && etxPos != std::string::npos)
+            {
+                if (etxPos > stxPos)
+                {
+                    // STX and ETX found, ETX after STX. Return the message between them.
+                    completeMessage = receiveBuffer_.substr(stxPos + STX.length(), etxPos - stxPos - STX.length());
+                    receiveBuffer_.erase(0, etxPos + 1); // Remove processed data.
+                    return completeMessage;
+                }
+                else
+                {
+                    // ETX before STX. Discard everything up to STX.
+                    receiveBuffer_.erase(0, stxPos);
+                }
+            }
+            else if (stxPos != std::string::npos && etxPos == std::string::npos)
+            {
+                // STX found, but no ETX. Discard everything before STX.
+                receiveBuffer_.erase(0, stxPos);
+            }
+        }
+        
     }
-    return result;
 }
 
 void RS232Communication::close()

@@ -1,7 +1,8 @@
+// RS232Communication.cpp
 #include "communication/RS232Communication.h"
 #include <iostream>
 
-RS232Communication::RS232Communication(EventQueue<EventVariant>& eventQueue, const std::string &portName, unsigned long baudRate, const std::string& stx, char etx)
+RS232Communication::RS232Communication(EventQueue<EventVariant>& eventQueue, const std::string &portName, unsigned long baudRate, char stx, char etx)
     : eventQueue_(eventQueue),
       portName_(portName),
       baudRate_(baudRate),
@@ -12,6 +13,7 @@ RS232Communication::RS232Communication(EventQueue<EventVariant>& eventQueue, con
 {
     // Additional initialization code if needed.
 }
+
 RS232Communication::~RS232Communication()
 {
     close();
@@ -115,12 +117,12 @@ std::string RS232Communication::receive()
         receiveBuffer_ += buffer;
 
         size_t stxPos = std::string::npos;
-        if (!STX.empty()) {
+        if (STX != 0) {
             stxPos = receiveBuffer_.find(STX);
         }
         size_t etxPos = receiveBuffer_.find(ETX);
 
-        if (STX.empty())
+        if (STX == 0)
         {
             if (etxPos != std::string::npos)
             {
@@ -137,7 +139,7 @@ std::string RS232Communication::receive()
                 if (etxPos > stxPos)
                 {
                     // STX and ETX found, ETX after STX. Return the message between them.
-                    completeMessage = receiveBuffer_.substr(stxPos + STX.length(), etxPos - stxPos - STX.length());
+                    completeMessage = receiveBuffer_.substr(stxPos + 1, etxPos - stxPos - 1);
                     receiveBuffer_.erase(0, etxPos + 1); // Remove processed data.
                     return completeMessage;
                 }
@@ -153,7 +155,6 @@ std::string RS232Communication::receive()
                 receiveBuffer_.erase(0, stxPos);
             }
         }
-        
     }
 }
 

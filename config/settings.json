@@ -92,10 +92,26 @@
         ]
     },
     "communication": {
-        "protocol": "TCP/IP",
-        "port": 502,
-        "timeout": 1000
+        //please write common values as a comment in the end of each line of communication1
+    "communication1": {
+      "portName": "COM1",
+      "baudRate": 9600,//9600, 19200, 38400, 57600, 115200
+      "parity": "N",//N, E, O
+      "dataBits": 8,//7, 8
+      "stopBits": 1,
+      "stx": 2, //2, 0x02, "B", "" //stx is a char
+      "etx": "0x03" //3, 0x03, "A" //etx is a char
     },
+    "communication2": {
+      "portName": "COM4",
+      "baudRate": 115200,
+      "parity": "N",
+      "dataBits": 8,
+      "stopBits": 1,
+      "stx": "",
+      "etx": 3
+    }
+  },
     "timers": {
         "pollInterval": 100,
         "timeout": 5000

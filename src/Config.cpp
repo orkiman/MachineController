@@ -1,8 +1,9 @@
+// Config.cpp
 #include "Config.h"
 #include <fstream>
 #include <stdexcept>
 #include "Logger.h"
-
+#include "communication/RS232Communication.h"
 
 Config::Config(const std::string& filePath) {
     std::ifstream file(filePath);
@@ -74,7 +75,68 @@ nlohmann::json Config::getTimerSettings() const {
     return configJson_.value("timers", nlohmann::json::object());
 }
 
+// New function to get communication settings for a specific communication object
+CommunicationSettings Config::getCommunicationSettings(const std::string& communicationName) const {
+    CommunicationSettings settings;
+    // Default values
+    settings.baudRate = 115200;
+    settings.parity = 'N';
+    settings.dataBits = 8;
+    settings.stopBits = 1;
+    settings.stx = 0x02; // Default STX
+    settings.etx = 0x03; // Default ETX
 
+    auto commSettings = configJson_.value("communication", nlohmann::json::object());
+    if (commSettings.contains(communicationName)) {
+        auto specificCommSettings = commSettings[communicationName];
+        settings.portName = specificCommSettings.value("portName", "");
+        settings.baudRate = specificCommSettings.value("baudRate", settings.baudRate);
+
+        std::string parityStr = specificCommSettings.value("parity", "N");
+        if (parityStr == "N" || parityStr == "E" || parityStr == "O") {
+            settings.parity = parityStr[0];
+        } else {
+            getLogger()->warn("Invalid parity setting for {}: {}. Using default 'N'.", communicationName, parityStr);
+        }
+
+        settings.dataBits = specificCommSettings.value("dataBits", settings.dataBits);
+        settings.stopBits = specificCommSettings.value("stopBits", settings.stopBits);
+
+        // Simplified STX handling
+        settings.stx = parseCharSetting(specificCommSettings, "stx", settings.stx);
+
+        // Simplified ETX handling
+        settings.etx = parseCharSetting(specificCommSettings, "etx", settings.etx);
+    } else {
+        getLogger()->warn("Communication settings for {} not found in config. Using default values.", communicationName);
+    }
+
+    return settings;
+}
+
+// Helper function to parse char settings (STX, ETX)
+char Config::parseCharSetting(const nlohmann::json& settings, const std::string& key, char defaultValue) const {
+    if (!settings.contains(key)) {
+        return defaultValue;
+    }
+
+    const auto& value = settings[key];
+    if (value.is_number_integer()) {
+        return static_cast<char>(value.get<int>());
+    } else if (value.is_string()) {
+        std::string strValue = value.get<std::string>();
+        if (strValue.empty()) {
+            return 0; // Empty string means no STX/ETX
+        } else if (strValue.rfind("0x", 0) == 0) {
+            return static_cast<char>(std::stoi(strValue, nullptr, 16));
+        } else {
+            return strValue[0]; // Take the first character
+        }
+    } else {
+        getLogger()->warn("Invalid type for {} setting. Using default value.", key);
+        return defaultValue;
+    }
+}
 
 bool Config::isPci7248ConfigurationValid() const {
     bool isValid = true;
@@ -171,4 +233,3 @@ bool Config::isPci7248ConfigurationValid() const {
 
     return isValid;
 }
-

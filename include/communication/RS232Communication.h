@@ -1,3 +1,4 @@
+// RS232Communication.h
 #pragma once
 
 #include "CommunicationInterface.h"
@@ -10,9 +11,20 @@
 #include "Event.h"
 #include "EventQueue.h"
 
+// Structure to hold communication settings (now inside RS232Communication.h)
+struct CommunicationSettings {
+    std::string portName;
+    unsigned long baudRate;
+    char parity; // 'N', 'E', 'O' for None, Even, Odd
+    int dataBits;
+    int stopBits;
+    char stx; // Changed to char
+    char etx;
+};
+
 class RS232Communication : public CommunicationInterface {
 public:
-    RS232Communication(EventQueue<EventVariant>& eventQueue, const std::string &portName, unsigned long baudRate, const std::string& stx = "", char etx = 0x03);
+    RS232Communication(EventQueue<EventVariant>& eventQueue, const std::string &portName, unsigned long baudRate, char stx = 0, char etx = 0x03);
     
     virtual ~RS232Communication();
 
@@ -22,7 +34,7 @@ public:
     virtual void close() override;
 
 private:
-    const std::string STX; // Start of Text (can be empty)
+    const char STX; // Start of Text (can be empty)
     const char ETX; // End of Text
 
     HANDLE hSerial_;

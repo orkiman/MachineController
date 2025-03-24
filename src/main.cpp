@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
     // Replace "COM3" with the appropriate port for your system, and set the desired baud rate.
     //RS232Communication comm(eventQueue, "COM1", 9600); // no stx, default etx
     //RS232Communication comm(eventQueue, "COM1", 9600, "\x02"); // with stx, default etx
-    RS232Communication comm(eventQueue, "COM1", 9600, "\x02", 0x13); // with stx, etx = 0x13
+    RS232Communication comm(eventQueue, "COM4", 9600, 2, 0x13); // with stx, etx = 0x13
 
     // Initialize the serial port.
     if (!comm.initialize()) {

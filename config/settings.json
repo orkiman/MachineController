@@ -8,110 +8,45 @@
             "CH": "input"
         },
         "inputs": [
-            {
-                "pin": 8,
-                "name": "i8",
-                "description": "i8 description"
-            },
-            {
-                "pin": 9,
-                "name": "i9",
-                "description": "i9 description"
-            },
-            {
-                "pin": 10,
-                "name": "i10",
-                "description": "10 description"
-            },
-            {
-                "pin": 11,
-                "name": "i11",
-                "description": "11 description"
-            },
-            {
-                "pin": 12,
-                "name": "i12",
-                "description": "12 description"
-            },
-            {
-                "pin": 13,
-                "name": "i13",
-                "description": "13 description"
-            },
-            {
-                "pin": 14,
-                "name": "i14",
-                "description": "14 description"
-            },
-            {
-                "pin": 15,
-                "name": "i15",
-                "description": "15 description"
-            },
-            
-            {
-                "pin": 20,
-                "name": "i20",
-                "description": "20 description"
-            },
-            {
-                "pin": 21,
-                "name": "i21",
-                "description": "21 description"
-            },
-            {
-                "pin": 22,
-                "name": "i22",
-                "description": "22 description"
-            },
-            {
-                "pin": 23,
-                "name": "i23",
-                "description": "23 description"
-            }
-            
+            { "pin": 8, "name": "i8", "description": "i8 description" },
+            { "pin": 9, "name": "i9", "description": "i9 description" },
+            { "pin": 10, "name": "i10", "description": "10 description" },
+            { "pin": 11, "name": "i11", "description": "11 description" },
+            { "pin": 12, "name": "i12", "description": "12 description" },
+            { "pin": 13, "name": "i13", "description": "13 description" },
+            { "pin": 14, "name": "i14", "description": "14 description" },
+            { "pin": 15, "name": "i15", "description": "15 description" },
+            { "pin": 20, "name": "i20", "description": "20 description" },
+            { "pin": 21, "name": "i21", "description": "21 description" },
+            { "pin": 22, "name": "i22", "description": "22 description" },
+            { "pin": 23, "name": "i23", "description": "23 description" }
         ],
         "outputs": [
-            {
-                "pin": 0,
-                "name": "o0",
-                "description": "main motor"
-            },
-            {
-                "pin": 1,
-                "name": "o1",
-                "description": "o1 description"
-            },
-        
-            {
-                "pin": 7,
-                "name": "o7",
-                "description": "vacuum control"
-            }
-        
+            { "pin": 0, "name": "o0", "description": "main motor" },
+            { "pin": 1, "name": "o1", "description": "o1 description" },
+            { "pin": 7, "name": "o7", "description": "vacuum control" }
         ]
     },
     "communication": {
-        //please write common values as a comment in the end of each line of communication1
-    "communication1": {
-      "portName": "COM1",
-      "baudRate": 9600,//9600, 19200, 38400, 57600, 115200
-      "parity": "N",//N, E, O
-      "dataBits": 8,//7, 8
-      "stopBits": 1,
-      "stx": 2, //2, 0x02, "B", "" //stx is a char
-      "etx": "0x03" //3, 0x03, "A" //etx is a char
+        "communication1": {
+            "portName": "COM1",
+            "baudRate": 9600, // 9600, 19200, 38400, 57600, 115200
+            "parity": "N", // N, E, O
+            "dataBits": 8, // 7, 8
+            "stopBits": 1,
+            "stx": 2, // 2, 0x02, "B", "" (char)
+            "etx": "0x03" // 3, 0x03, "A" (char)
+        },
+        "communication2": {
+            "portName": "COM4",
+            "baudRate": 115200,
+            "parity": "N",
+            "dataBits": 8,
+            "stopBits": 1,
+            "stx": "",
+            "etx": 3
+        }
     },
-    "communication2": {
-      "portName": "COM4",
-      "baudRate": 115200,
-      "parity": "N",
-      "dataBits": 8,
-      "stopBits": 1,
-      "stx": "",
-      "etx": 3
-    }
-  },
     "timers": {
         "pollInterval": 100,
         "timeout": 5000

@@ -1,0 +1,10 @@
+// to implement dinamic overide in settings_window.ui tommorow :)
+
+if(ui->overrideOutputsCheckBox->isChecked()){
+    ui->SettingsWindow->setProperty("override", true);
+} else {
+    ui->SettingsWindow->setProperty("override", false);
+}
+ui->SettingsWindow->style()->unpolish(ui->SettingsWindow);
+ui->SettingsWindow->style()->polish(ui->SettingsWindow);
+ui->SettingsWindow->update();

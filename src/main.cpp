@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
         logic.run();
     });
 
-    
+/*
     // communication example : *******************************
 
     // Replace "COM3" with the appropriate port for your system, and set the desired baud rate.
@@ -92,12 +92,13 @@ int main(int argc, char* argv[]) {
         std::cerr << "Failed to send message." << std::endl;
     }
 
-
+*/
     
     // 4. Start the GUI event loop (this blocks until the GUI closes)
     int result = app.exec();
     // Close the communication channel gracefully.
-    comm.close();           //************************************  */
+
+    // comm.close();           //************************************  */
     getLogger()->debug("Application closing");
 
     // 5. Shutdown Sequence

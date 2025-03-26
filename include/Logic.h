@@ -9,6 +9,7 @@
 #include "Config.h"
 #include <QObject>
 #include "Timer.h"
+#include "communication/RS232Communication.h"
 
 
 class Logic : public QObject {

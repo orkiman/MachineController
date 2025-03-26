@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include "json.hpp"  // Include the nlohmann JSON header
 #include "io/IOChannel.h"  // This header should define IOChannel, IOType, and IOEventType
-#include "communication/RS232Communication.h" // Include RS232Communication.h
+// #include "communication/RS232Communication.h" // Include RS232Communication.h
 
 // Config class for the project settings.
 class Config {
@@ -24,11 +24,9 @@ public:
     // Other getters for communication and timers.
     nlohmann::json getCommunicationSettings() const;
     nlohmann::json getTimerSettings() const;
-    CommunicationSettings getCommunicationSettings(const std::string& communicationName) const;
 
 private:
     nlohmann::json configJson_;
-    char parseCharSetting(const nlohmann::json& settings, const std::string& key, char defaultValue) const;
 };
 
 #endif // CONFIG_H

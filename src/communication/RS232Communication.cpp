@@ -1,17 +1,16 @@
 // RS232Communication.cpp
 #include "communication/RS232Communication.h"
 #include <iostream>
+#include <thread>
+#include <windows.h> // Ensure this is included for Windows API functions
 
-RS232Communication::RS232Communication(EventQueue<EventVariant>& eventQueue, const std::string &portName, unsigned long baudRate, char stx, char etx)
+RS232Communication::RS232Communication(EventQueue<EventVariant>& eventQueue, const std::string& communicationName, const Config& config)
     : eventQueue_(eventQueue),
-      portName_(portName),
-      baudRate_(baudRate),
-      STX(stx),
-      ETX(etx),
+      communicationName_(communicationName),
       receiving_(false),
-      hSerial_(INVALID_HANDLE_VALUE)
+      hSerial_(INVALID_HANDLE_VALUE),
+      config_(config) // Initialize config_ member
 {
-    // Additional initialization code if needed.
 }
 
 RS232Communication::~RS232Communication()
@@ -21,6 +20,35 @@ RS232Communication::~RS232Communication()
 
 bool RS232Communication::initialize()
 {
+    // Read configuration values from JSON.
+    nlohmann::json commSettings = config_.getCommunicationSettings(); 
+    if (commSettings.contains("communication"))
+    {
+        commSettings = commSettings["communication"];
+    }
+    else
+    {
+        getLogger()->warn("No 'communication' section found in config. Using default values.");
+        commSettings = nlohmann::json::object(); // Initialize to an empty object if not found
+    }
+
+    if (commSettings.contains(communicationName_))
+    {
+        auto specificCommSettings = commSettings[communicationName_];
+        portName_ = specificCommSettings.value("portName", "");
+        baudRate_ = specificCommSettings.value("baudRate", 115200);
+        parity_   = specificCommSettings.value("parity", 'N');
+        dataBits_ = specificCommSettings.value("dataBits", 8);
+        stopBits_ = specificCommSettings.value("stopBits", 1);
+        stx_ = parseCharSetting(specificCommSettings, "stx", 2);
+        etx_ = parseCharSetting(specificCommSettings, "etx", 3);
+        // todo: validate the configuration values as needed.
+    }
+    else
+    {
+        getLogger()->warn("Communication settings for {} not found in config. Using default values.", communicationName_);
+    }
+
     // Open the serial port.
     hSerial_ = CreateFileA(portName_.c_str(),
                            GENERIC_READ | GENERIC_WRITE,
@@ -43,16 +71,40 @@ bool RS232Communication::initialize()
         std::cerr << "Error getting serial state." << std::endl;
         return false;
     }
+
     dcbSerialParams.BaudRate = baudRate_;
-    dcbSerialParams.ByteSize = 8;
-    dcbSerialParams.StopBits = ONESTOPBIT;
-    dcbSerialParams.Parity = NOPARITY;
+    dcbSerialParams.ByteSize = dataBits_; // Use configured data bits.
+
+    // Convert stopBits_ to the proper constant.
+    if (stopBits_ == 1)
+        dcbSerialParams.StopBits = ONESTOPBIT;
+    else if (stopBits_ == 2)
+        dcbSerialParams.StopBits = TWOSTOPBITS;
+    else
+    {
+        getLogger()->warn("Unsupported stopBits value {}. Defaulting to 1 stop bit.", stopBits_);
+        dcbSerialParams.StopBits = ONESTOPBIT;
+    }
+
+    // Convert parity char to the proper constant.
+    switch (parity_)
+    {
+        case 'N': dcbSerialParams.Parity = NOPARITY; break;
+        case 'E': dcbSerialParams.Parity = EVENPARITY; break;
+        case 'O': dcbSerialParams.Parity = ODDPARITY; break;
+        default:
+            getLogger()->warn("Unsupported parity {}. Defaulting to NOPARITY.", parity_);
+            dcbSerialParams.Parity = NOPARITY;
+            break;
+    }
+
     if (!SetCommState(hSerial_, &dcbSerialParams))
     {
         std::cerr << "Error setting serial state." << std::endl;
         return false;
     }
 
+    // Set timeouts.
     COMMTIMEOUTS timeouts = {0};
     timeouts.ReadIntervalTimeout = 50;
     timeouts.ReadTotalTimeoutConstant = 50;
@@ -65,6 +117,7 @@ bool RS232Communication::initialize()
         return false;
     }
 
+    // Set event mask.
     if (!SetCommMask(hSerial_, EV_RXCHAR))
     {
         std::cerr << "Error setting comm mask." << std::endl;
@@ -75,6 +128,42 @@ bool RS232Communication::initialize()
     receiving_ = true;
     receiveThread_ = std::thread(&RS232Communication::receiveLoop, this);
     return true;
+}
+
+// Helper function to parse char settings (STX, ETX)
+char RS232Communication::parseCharSetting(const nlohmann::json &settings, const std::string &key, char defaultValue) const
+{
+    if (!settings.contains(key))
+    {
+        return defaultValue;
+    }
+
+    const auto &value = settings[key];
+    if (value.is_number_integer())
+    {
+        return static_cast<char>(value.get<int>());
+    }
+    else if (value.is_string())
+    {
+        std::string strValue = value.get<std::string>();
+        if (strValue.empty())
+        {
+            return 0; // Empty string means no STX/ETX.
+        }
+        else if (strValue.rfind("0x", 0) == 0)
+        {
+            return static_cast<char>(std::stoi(strValue, nullptr, 16));
+        }
+        else
+        {
+            return strValue[0]; // Take the first character.
+        }
+    }
+    else
+    {
+        getLogger()->warn("Invalid type for {} setting. Using default value.", key);
+        return defaultValue;
+    }
 }
 
 bool RS232Communication::send(const std::string &message)
@@ -117,18 +206,19 @@ std::string RS232Communication::receive()
         receiveBuffer_ += buffer;
 
         size_t stxPos = std::string::npos;
-        if (STX != 0) {
-            stxPos = receiveBuffer_.find(STX);
+        if (stx_ != 0)
+        {
+            stxPos = receiveBuffer_.find(stx_);
         }
-        size_t etxPos = receiveBuffer_.find(ETX);
+        size_t etxPos = receiveBuffer_.find(etx_);
 
-        if (STX == 0)
+        if (stx_ == 0)
         {
             if (etxPos != std::string::npos)
             {
                 // No STX, but ETX found. Return everything up to ETX.
                 completeMessage = receiveBuffer_.substr(0, etxPos);
-                receiveBuffer_.erase(0, etxPos + 1); // Remove processed data.
+                receiveBuffer_.erase(0, etxPos + 1);
                 return completeMessage;
             }
         }
@@ -140,7 +230,7 @@ std::string RS232Communication::receive()
                 {
                     // STX and ETX found, ETX after STX. Return the message between them.
                     completeMessage = receiveBuffer_.substr(stxPos + 1, etxPos - stxPos - 1);
-                    receiveBuffer_.erase(0, etxPos + 1); // Remove processed data.
+                    receiveBuffer_.erase(0, etxPos + 1);
                     return completeMessage;
                 }
                 else
@@ -205,7 +295,7 @@ void RS232Communication::receiveLoop()
                 break;
             }
         }
-        // The communication event occurred.
+        // Wait for the event to be signaled.
         DWORD bytesTransferred;
         if (!GetOverlappedResult(hSerial_, &overlapped, &bytesTransferred, TRUE))
         {

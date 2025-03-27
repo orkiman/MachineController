@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+  <class>SettingsWindow</class>
+  <widget class="QDialog" name="SettingsWindow">
+    <property name="geometry">
+      <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>555</width>
+        <height>398</height>
+      </rect>
+    </property>
+    <property name="windowTitle">
+      <string>Settings</string>
+    </property>
+    <!-- Removed the dynamic property here to avoid uic generating setOverrideOutputs() -->
+    <!-- The stylesheet uses the dynamic property "overrideOutputs" -->
+    <property name="styleSheet">
+      <string notr="true">
+QDialog[overrideOutputs="true"] {
+    border: 5px solid red;
+}
+      </string>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+        <widget class="QTabWidget" name="tabWidget">
+          <property name="currentIndex">
+            <number>3</number>
+          </property>
+          <widget class="QWidget" name="communicationTab1">
+            <attribute name="title">
+              <string>Communication 1</string>
+            </attribute>
+            <layout class="QGridLayout" name="gridLayout">
+              <item row="6" column="0">
+                <widget class="QLabel" name="label_7">
+                  <property name="text">
+                    <string>ETX:</string>
+                  </property>
+                </widget>
+              </item>
+              <item row="2" column="0">
+                <widget class="QLabel" name="label_3">
+                  <property name="text">
+                    <string>Parity:</string>
+                  </property>
+                </widget>
+              </item>
+              <item row="2" column="1">
+                <widget class="QComboBox" name="parity1ComboBox"/>
+              </item>
+              <item row="1" column="0">
+                <widget class="QLabel" name="label_2">
+                  <property name="text">
+                    <string>Baud Rate:</string>
+                  </property>
+                </widget>
+              </item>
+              <item row="1" column="1">
+                <widget class="QComboBox" name="baudRate1ComboBox"/>
+              </item>
+              <item row="0" column="2">
+                <spacer name="horizontalSpacer">
+                  <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                    <size>
+                      <width>40</width>
+                      <height>20</height>
+                    </size>
+                  </property>
+                </spacer>
+              </item>
+              <item row="6" column="1">
+                <widget class="QLineEdit" name="etx1LineEdit"/>
+              </item>
+              <item row="5" column="1">
+                <widget class="QLineEdit" name="stx1LineEdit"/>
+              </item>
+              <item row="3" column="0">
+                <widget class="QLabel" name="label_4">
+                  <property name="text">
+                    <string>Data Bits:</string>
+                  </property>
+                </widget>
+              </item>
+              <item row="4" column="0">
+                <widget class="QLabel" name="label_5">
+                  <property name="text">
+                    <string>Stop Bits:</string>
+                  </property>
+                </widget>
+              </item>
+              <item row="0" column="0">
+                <widget class="QLabel" name="label">
+                  <property name="text">
+                    <string>Port Name:</string>
+                  </property>
+                </widget>
+              </item>
+              <item row="3" column="1">
+                <widget class="QComboBox" name="dataBits1ComboBox"/>
+              </item>
+              <item row="4" column="1">
+                <widget class="QComboBox" name="stopBits1ComboBox"/>
+              </item>
+              <item row="0" column="1">
+                <widget class="QComboBox" name="portName1ComboBox"/>
+              </item>
+              <item row="5" column="0">
+                <widget class="QLabel" name="label_6">
+                  <property name="text">
+                    <string>STX:</string>
+                  </property>
+                </widget>
+              </item>
+              <item row="7" column="1">
+                <spacer name="verticalSpacer">
+                  <property name="orientation">
+                    <enum>Qt::Vertical</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                    <size>
+                      <width>20</width>
+                      <height>40</height>
+                    </size>
+                  </property>
+                </spacer>
+              </item>
+            </layout>
+          </widget>
+          <widget class="QWidget" name="communicationTab2">
+            <attribute name="title">
+              <string>Communication 2</string>
+            </attribute>
+            <layout class="QGridLayout" name="gridLayout_2">
+              <item row="5" column="1">
+                <widget class="QLineEdit" name="stx2LineEdit"/>
+              </item>
+              <item row="0" column="0">
+                <widget class="QLabel" name="label_8">
+                  <property name="text">
+                    <string>Port Name:</string>
+                  </property>
+                </widget>
+              </item>
+              <item row="7" column="1">
+                <spacer name="verticalSpacer_2">
+                  <property name="orientation">
+                    <enum>Qt::Vertical</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                    <size>
+                      <width>20</width>
+                      <height>40</height>
+                    </size>
+                  </property>
+                </spacer>
+              </item>
+              <item row="0" column="1">
+                <widget class="QComboBox" name="portName2ComboBox"/>
+              </item>
+              <item row="2" column="0">
+                <widget class="QLabel" name="label_10">
+                  <property name="text">
+                    <string>Parity:</string>
+                  </property>
+                </widget>
+              </item>
+              <item row="2" column="1">
+                <widget class="QComboBox" name="parity2ComboBox"/>
+              </item>
+              <item row="6" column="0">
+                <widget class="QLabel" name="label_14">
+                  <property name="text">
+                    <string>ETX:</string>
+                  </property>
+                </widget>
+              </item>
+              <item row="5" column="0">
+                <widget class="QLabel" name="label_13">
+                  <property name="text">
+                    <string>STX:</string>
+                  </property>
+                </widget>
+              </item>
+              <item row="1" column="0">
+                <widget class="QLabel" name="label_9">
+                  <property name="text">
+                    <string>Baud Rate:</string>
+                  </property>
+                </widget>
+              </item>
+              <item row="4" column="1">
+                <widget class="QComboBox" name="stopBits2ComboBox"/>
+              </item>
+              <item row="6" column="1">
+                <widget class="QLineEdit" name="etx2LineEdit"/>
+              </item>
+              <item row="4" column="0">
+                <widget class="QLabel" name="label_12">
+                  <property name="text">
+                    <string>Stop Bits:</string>
+                  </property>
+                </widget>
+              </item>
+              <item row="3" column="1">
+                <widget class="QComboBox" name="dataBits2ComboBox"/>
+              </item>
+              <item row="1" column="1">
+                <widget class="QComboBox" name="baudRate2ComboBox"/>
+              </item>
+              <item row="3" column="0">
+                <widget class="QLabel" name="label_11">
+                  <property name="text">
+                    <string>Data Bits:</string>
+                  </property>
+                </widget>
+              </item>
+              <item row="4" column="2">
+                <spacer name="horizontalSpacer_2">
+                  <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                    <size>
+                      <width>40</width>
+                      <height>20</height>
+                    </size>
+                  </property>
+                </spacer>
+              </item>
+            </layout>
+          </widget>
+          <widget class="QWidget" name="timersTab">
+            <attribute name="title">
+              <string>Timers</string>
+            </attribute>
+            <layout class="QVBoxLayout" name="verticalLayout_2">
+              <item>
+                <widget class="QTableWidget" name="timersTable">
+                  <property name="editTriggers">
+                    <set>QAbstractItemView::AllEditTriggers</set>
+                  </property>
+                  <property name="selectionMode">
+                    <enum>QAbstractItemView::SingleSelection</enum>
+                  </property>
+                  <column>
+                    <property name="text">
+                      <string>Timer Name</string>
+                    </property>
+                  </column>
+                  <column>
+                    <property name="text">
+                      <string>Duration (ms)</string>
+                    </property>
+                  </column>
+                </widget>
+              </item>
+            </layout>
+          </widget>
+          <widget class="QWidget" name="diagnosticsTab">
+            <attribute name="title">
+              <string>Diagnostics</string>
+            </attribute>
+            <layout class="QVBoxLayout" name="verticalLayout_3">
+              <item>
+                <widget class="QLabel" name="label_18">
+                  <property name="text">
+                    <string>Input States</string>
+                  </property>
+                </widget>
+              </item>
+              <item>
+                <widget class="QTableWidget" name="inputStatesTable">
+                  <property name="editTriggers">
+                    <set>QAbstractItemView::NoEditTriggers</set>
+                  </property>
+                  <property name="selectionMode">
+                    <enum>QAbstractItemView::NoSelection</enum>
+                  </property>
+                  <column>
+                    <property name="text">
+                      <string>Name</string>
+                    </property>
+                  </column>
+                  <column>
+                    <property name="text">
+                      <string>Description</string>
+                    </property>
+                  </column>
+                  <column>
+                    <property name="text">
+                      <string>State</string>
+                    </property>
+                  </column>
+                </widget>
+              </item>
+              <item>
+                <layout class="QHBoxLayout" name="horizontalLayout">
+                  <item>
+                    <widget class="QLabel" name="label_19">
+                      <property name="font">
+                        <font>
+                          <italic>false</italic>
+                          <bold>true</bold>
+                        </font>
+                      </property>
+                      <property name="text">
+                        <string>Outputs</string>
+                      </property>
+                    </widget>
+                  </item>
+                  <item>
+                    <widget class="QCheckBox" name="overrideOutputsCheckBox">
+                      <property name="styleSheet">
+                        <string notr="true">
+QCheckBox {
+    color: red;
+}
+                        </string>
+                      </property>
+                      <property name="text">
+                        <string>Override Outputs</string>
+                      </property>
+                    </widget>
+                  </item>
+                </layout>
+              </item>
+              <item>
+                <widget class="QTableWidget" name="outputOverridesTable">
+                  <property name="editTriggers">
+                    <set>QAbstractItemView::NoEditTriggers</set>
+                  </property>
+                  <property name="selectionMode">
+                    <enum>QAbstractItemView::NoSelection</enum>
+                  </property>
+                  <column>
+                    <property name="text">
+                      <string>Name</string>
+                    </property>
+                  </column>
+                  <column>
+                    <property name="text">
+                      <string>Description</string>
+                    </property>
+                  </column>
+                  <column>
+                    <property name="text">
+                      <string>Override</string>
+                    </property>
+                  </column>
+                  <column>
+                    <property name="text">
+                      <string>State</string>
+                    </property>
+                  </column>
+                </widget>
+              </item>
+              <item>
+                <widget class="QPushButton" name="refreshButton">
+                  <property name="text">
+                    <string>Refresh</string>
+                  </property>
+                </widget>
+              </item>
+            </layout>
+          </widget>
+        </widget>
+      </item>
+      <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <item>
+            <widget class="QPushButton" name="applyButton">
+              <property name="text">
+                <string>Apply</string>
+              </property>
+            </widget>
+          </item>
+          <item>
+            <widget class="QPushButton" name="cancelButton">
+              <property name="text">
+                <string>Cancel</string>
+              </property>
+            </widget>
+          </item>
+          <item>
+            <widget class="QPushButton" name="defaultsButton">
+              <property name="text">
+                <string>Defaults</string>
+              </property>
+            </widget>
+          </item>
+        </layout>
+      </item>
+    </layout>
+  </widget>
+  <resources/>
+  <connections/>
+</ui>

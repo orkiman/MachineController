@@ -2,32 +2,26 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "ui_MainWindow.h"
-#include "Event.h"       // Provides full definitions for EventVariant and (if defined there) IOEventType.
-#include "EventQueue.h"
 
+namespace Ui {
+    class MainWindow;
+}
 
-class MainWindow : public QMainWindow
-{
+class MainWindow : public QMainWindow {
     Q_OBJECT
 
 public:
-    // explicit MainWindow(QWidget *parent = nullptr, EventQueue<EventVariant>& eventQueue);
-    explicit MainWindow(QWidget *parent, EventQueue<EventVariant>& eventQueue);
+    explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
 private slots:
-    // Example slot
-    void on_pushButton_clicked();
-    void on_o1Button_pressed();
-    void on_o1Button_released();
-
-public slots:
-    void onUpdateGui(const QString &msg);
+    void on_runButton_clicked();
+    void on_stopButton_clicked();
+    void on_settingsButton_clicked();
+    void on_clearMessageAreaButton_clicked();
 
 private:
-    Ui::MainWindow ui;
-    EventQueue<EventVariant>& eventQueue_;
+    Ui::MainWindow *ui;
 };
 
 #endif // MAINWINDOW_H

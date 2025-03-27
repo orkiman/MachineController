@@ -2,7 +2,7 @@
 #include "communication/RS232Communication.h"
 #include <iostream>
 #include <thread>
-#include <windows.h> // Ensure this is included for Windows API functions
+#include <windows.h> // For Windows API functions
 
 RS232Communication::RS232Communication(EventQueue<EventVariant>& eventQueue, const std::string& communicationName, const Config& config)
     : eventQueue_(eventQueue),
@@ -22,31 +22,31 @@ bool RS232Communication::initialize()
 {
     // Read configuration values from JSON.
     nlohmann::json commSettings = config_.getCommunicationSettings(); 
-    if (commSettings.contains("communication"))
-    {
-        commSettings = commSettings["communication"];
-    }
-    else
-    {
-        getLogger()->warn("No 'communication' section found in config. Using default values.");
-        commSettings = nlohmann::json::object(); // Initialize to an empty object if not found
-    }
-
     if (commSettings.contains(communicationName_))
     {
         auto specificCommSettings = commSettings[communicationName_];
         portName_ = specificCommSettings.value("portName", "");
         baudRate_ = specificCommSettings.value("baudRate", 115200);
-        parity_   = specificCommSettings.value("parity", 'N');
+        
+        // First get parity as string and then convert to char.
+        std::string parityStr = specificCommSettings.value("parity", "N");
+        parity_ = parityStr.empty() ? 'N' : parityStr[0];
+        
         dataBits_ = specificCommSettings.value("dataBits", 8);
         stopBits_ = specificCommSettings.value("stopBits", 1);
         stx_ = parseCharSetting(specificCommSettings, "stx", 2);
         etx_ = parseCharSetting(specificCommSettings, "etx", 3);
-        // todo: validate the configuration values as needed.
     }
     else
     {
         getLogger()->warn("Communication settings for {} not found in config. Using default values.", communicationName_);
+    }
+
+    // Validate the settings.
+    if (!validateSettings())
+    {
+        getLogger()->warn("Communication settings validation failed for {}. Aborting initialization.", communicationName_);
+        return false;
     }
 
     // Open the serial port.
@@ -128,6 +128,39 @@ bool RS232Communication::initialize()
     receiving_ = true;
     receiveThread_ = std::thread(&RS232Communication::receiveLoop, this);
     return true;
+}
+
+// Validation function for RS232 settings.
+bool RS232Communication::validateSettings()
+{
+    bool valid = true;
+    if (portName_.empty())
+    {
+        getLogger()->warn("Port name is empty. Please specify a valid port.");
+        valid = false;
+    }
+    // You might want to define a minimum baud rate, e.g., 9600.
+    if (baudRate_ < 9600)
+    {
+        getLogger()->warn("Baud rate ({}) is too low; recommended minimum is 9600.", baudRate_);
+        valid = false;
+    }
+    if (!(parity_ == 'N' || parity_ == 'E' || parity_ == 'O'))
+    {
+        getLogger()->warn("Invalid parity value: {}. Only 'N', 'E', or 'O' are allowed.", parity_);
+        valid = false;
+    }
+    if (!(dataBits_ == 7 || dataBits_ == 8))
+    {
+        getLogger()->warn("Invalid data bits value: {}. Only 7 or 8 are allowed.", dataBits_);
+        valid = false;
+    }
+    if (!(stopBits_ == 1 || stopBits_ == 2))
+    {
+        getLogger()->warn("Invalid stop bits value: {}. Only 1 or 2 are allowed.", stopBits_);
+        valid = false;
+    }
+    return valid;
 }
 
 // Helper function to parse char settings (STX, ETX)

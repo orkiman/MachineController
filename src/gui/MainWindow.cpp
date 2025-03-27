@@ -1,46 +1,36 @@
 #include "gui/MainWindow.h"
-#include <QMessageBox>
-#include "gui/MainWindow.h"
+#include "ui_MainWindow.h"
+#include <QDebug>
 
-MainWindow::MainWindow(QWidget *parent, EventQueue<EventVariant>& eventQueue)
-    : QMainWindow(parent), eventQueue_(eventQueue)
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent),
+      ui(new Ui::MainWindow)
 {
-    ui.setupUi(this);
-    // Signals and slots connections (optional, usually automatic)
-    // connect(ui.pushButton, &QPushButton::clicked, this, &MainWindow::on_pushButton_clicked);
+    ui->setupUi(this);
+
+    // Connect signals to slots using the ui pointer
+    connect(ui->runButton, &QPushButton::clicked, this, &MainWindow::on_runButton_clicked);
+    connect(ui->stopButton, &QPushButton::clicked, this, &MainWindow::on_stopButton_clicked);
+    connect(ui->settingsButton, &QPushButton::clicked, this, &MainWindow::on_settingsButton_clicked);
+    connect(ui->clearMessageAreaButton, &QPushButton::clicked, this, &MainWindow::on_clearMessageAreaButton_clicked);
 }
 
-MainWindow::~MainWindow() { }
-
-// this is called automatically when the button is clicked
-// because When you call ui.setupUi(this), Qt automatically calls QMetaObject::connectSlotsByName(this)
-// which connects the signals and slots based on the object names.
-void MainWindow::on_pushButton_clicked()
-{
-    QMessageBox::information(this, "Info", "Start button clicked!");
-}
-void MainWindow::on_o1Button_pressed()
-{
-    GuiEvent event;
-    event.type = GuiEventType::SetOutput;
-    event.uiMessage = "o1Button pressed";
-    event.outputName = "o1";
-    event.intValue = 1;
-    eventQueue_.push(event); // Correctly using the reference directly
+MainWindow::~MainWindow() {
+    delete ui;
 }
 
-void MainWindow::on_o1Button_released()
-{
-    GuiEvent event;
-    event.type = GuiEventType::SetOutput;
-    event.uiMessage = "o1Button released";
-    event.outputName = "o1";
-    event.intValue = 0;
-    eventQueue_.push(event); // Correctly using the reference directly
+void MainWindow::on_runButton_clicked() {
+    qDebug() << "Run button clicked";
 }
 
-void MainWindow::onUpdateGui(const QString &msg) {
-    ui.massageLable->setText(msg);
+void MainWindow::on_stopButton_clicked() {
+    qDebug() << "Stop button clicked";
 }
 
+void MainWindow::on_settingsButton_clicked() {
+    // Your logic for showing the settings window
+}
 
+void MainWindow::on_clearMessageAreaButton_clicked() {
+    ui->messageArea->clear();
+}

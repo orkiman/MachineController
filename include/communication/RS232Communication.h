@@ -52,4 +52,7 @@ private:
     std::string receiveBuffer_; // Buffer to accumulate received data
 
     const Config & config_;
+
+    bool validateSettings();
+
 };

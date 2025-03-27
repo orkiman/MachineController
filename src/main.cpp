@@ -50,7 +50,8 @@ int main(int argc, char* argv[]) {
 
     // 1. GUI Initialization
     QApplication app(argc, argv);
-    MainWindow mainWindow(nullptr, eventQueue);  // Pass pointer to the event queue
+    // MainWindow mainWindow(nullptr, eventQueue);  // Pass pointer to the event queue
+    MainWindow mainWindow(nullptr);  // Pass pointer to the event queue
     mainWindow.show();
     
     // 2. Logic Setup
@@ -58,7 +59,7 @@ int main(int argc, char* argv[]) {
     Logic logic(eventQueue, config);
     g_Logic = &logic;
 
-    QObject::connect(&logic, &Logic::updateGui, &mainWindow, &MainWindow::onUpdateGui);
+    // QObject::connect(&logic, &Logic::updateGui, &mainWindow, &MainWindow::onUpdateGui);
 
 
     // 3. Start Logic in a separate thread

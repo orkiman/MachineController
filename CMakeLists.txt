@@ -16,14 +16,18 @@ set(CMAKE_AUTORCC ON)
 # Set the directory where .ui files are located
 set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_SOURCE_DIR}/src/gui)
 
+# Add UI files explicitly
+set(UI_FILES
+    src/gui/MainWindow.ui
+    src/gui/SettingsWindow.ui
+)
+
+# Process UI files
+qt6_wrap_ui(UI_HEADERS ${UI_FILES})
+
 # ✅ Ensure `MainWindow.h` is processed for Qt Meta-Object System (MOC)
 qt6_wrap_cpp(GENERATED_MOC_SOURCES include/gui/MainWindow.h)
 qt6_wrap_cpp(GENERATED_MOC_SOURCES include/gui/SettingsWindow.h)
-
-# ✅ Ensure `MainWindow.ui` is processed for Qt UI generation
-qt6_wrap_ui(GENERATED_UI_HEADERS src/gui/MainWindow.ui)
-qt6_wrap_ui(GENERATED_UI_HEADERS src/gui/SettingsWindow.ui)
-
 
 # Define source files
 set(SOURCES
@@ -35,6 +39,7 @@ set(SOURCES
     src/gui/SettingsWindow.cpp
     src/communication/RS232Communication.cpp
     ${GENERATED_MOC_SOURCES} # ✅ Add generated MOC files here
+    ${UI_HEADERS} # Add UI headers here
 
    
 )

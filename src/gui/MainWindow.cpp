@@ -8,11 +8,12 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    // no need to manuly connect signals to slots it's done automatically
     // Connect signals to slots using the ui pointer
-    connect(ui->runButton, &QPushButton::clicked, this, &MainWindow::on_runButton_clicked);
-    connect(ui->stopButton, &QPushButton::clicked, this, &MainWindow::on_stopButton_clicked);
-    connect(ui->settingsButton, &QPushButton::clicked, this, &MainWindow::on_settingsButton_clicked);
-    connect(ui->clearMessageAreaButton, &QPushButton::clicked, this, &MainWindow::on_clearMessageAreaButton_clicked);
+    // connect(ui->runButton, &QPushButton::clicked, this, &MainWindow::on_runButton_clicked);
+    // connect(ui->stopButton, &QPushButton::clicked, this, &MainWindow::on_stopButton_clicked);
+    // connect(ui->settingsButton, &QPushButton::clicked, this, &MainWindow::on_settingsButton_clicked);
+    // connect(ui->clearMessageAreaButton, &QPushButton::clicked, this, &MainWindow::on_clearMessageAreaButton_clicked);
 }
 
 MainWindow::~MainWindow() {

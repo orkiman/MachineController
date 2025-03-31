@@ -20,7 +20,7 @@ Logic::Logic(EventQueue<EventVariant> &eventQueue, const Config &config)
     {
         std::cout << "RS232Communication initialized successfully." << std::endl;
     }
-    communication1.send("Hello, RS232!");
+    // communication1.send("Hello, RS232!");
     communication1.close();
     
 }

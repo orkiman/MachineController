@@ -5,7 +5,7 @@
             "type": "lldb",
             "request": "launch",
             "name": "Launch (LLDB)",
-            "program": "${workspaceFolder}/build/Debug/machineController.exe"
+            "program": "${workspaceFolder}/build/machineController.exe"
         },
         {
             "name": "(MSVC) Launch",

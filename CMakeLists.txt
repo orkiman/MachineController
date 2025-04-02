@@ -1,6 +1,15 @@
 cmake_minimum_required(VERSION 3.15)
 project(MachineController LANGUAGES CXX)
 
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    message(STATUS "Using Clang: setting DWARF flags for LLDB")
+    set(CMAKE_CXX_FLAGS_DEBUG "-fno-ms-compatibility -gdwarf-4 -g")
+else()
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Zi")
+    endif()
+endif()
+
 # Set C++ standard to C++17
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -107,4 +116,12 @@ if(WIN32)
       WORKING_DIRECTORY "$<TARGET_FILE_DIR:MachineController>"
       COMMENT "Deploying Qt dependencies with windeployqt..."
   )
+endif()
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    message(STATUS "Using Clang: setting DWARF flags for LLDB")
+    set(CMAKE_CXX_FLAGS_DEBUG "-fno-ms-compatibility -gdwarf-4 -g")
+    # Remove any occurrences of /Zi that might be appended
+    string(REPLACE "/Zi" "" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
+    message(STATUS "Final Debug Flags: ${CMAKE_CXX_FLAGS_DEBUG}")
 endif()

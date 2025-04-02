@@ -2,6 +2,12 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Launch (LLDB)",
+            "program": "${workspaceFolder}/build/Debug/machineController.exe"
+        },
+        {
             "name": "(MSVC) Launch",
             "type": "cppvsdbg",
             "request": "launch",

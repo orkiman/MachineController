@@ -32,6 +32,7 @@ private:
     void handleEvent(const TimerEvent& event);
     void handleEvent(const TerminationEvent& event);
     void blinkLED(std::string channelName);
+    
 
     Config config_;
     EventQueue<EventVariant> &eventQueue_;
@@ -40,6 +41,8 @@ private:
     std::thread blinkThread_;
     std::unordered_map<std::string, IOChannel> outputChannels_;
     Timer t1_, t2_;
+    RS232Communication communication1_;
+    RS232Communication communication2_;
 
 
 };

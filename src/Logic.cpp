@@ -10,18 +10,18 @@ Logic::Logic(EventQueue<EventVariant> &eventQueue, const Config &config)
         std::cerr << "Failed to initialize PCI7248IO." << std::endl;
         controllerRunning_ = false;
     }
-    RS232Communication communication1 (eventQueue_, "communication1", config_);
-    if (!communication1.initialize())
+
+    RS232Communication communication (eventQueue_, "communication1", config_);
+    if (!communication.initialize())
     {
         std::cerr << "Failed to initialize RS232Communication." << std::endl;
         controllerRunning_ = false;
     }
     else
     {
+        communication1_ = std::move(communication);
         std::cout << "RS232Communication initialized successfully." << std::endl;
     }
-    // communication1.send("Hello, RS232!");
-    communication1.close();
     
 }
 

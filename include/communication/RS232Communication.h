@@ -21,6 +21,12 @@ public:
                        const std::string & communicationName, 
                        const Config & config);
     
+    RS232Communication(RS232Communication&& other) noexcept;
+    RS232Communication& operator=(RS232Communication&& other) noexcept;
+    
+    RS232Communication(const RS232Communication&) = delete;
+    RS232Communication& operator=(const RS232Communication&) = delete;
+    
     virtual ~RS232Communication();
 
     virtual bool initialize() override;

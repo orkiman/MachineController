@@ -13,6 +13,39 @@ RS232Communication::RS232Communication(EventQueue<EventVariant>& eventQueue, con
 {
 }
 
+RS232Communication::RS232Communication(RS232Communication&& other) noexcept
+    : eventQueue_(other.eventQueue_),
+      communicationName_(std::move(other.communicationName_)),
+      receiving_(other.receiving_.load()),
+      hSerial_(other.hSerial_),
+      config_(other.config_),
+      portName_(std::move(other.portName_)),
+      baudRate_(other.baudRate_)
+{
+    other.hSerial_ = INVALID_HANDLE_VALUE;
+    other.receiving_ = false;
+}
+
+RS232Communication& RS232Communication::operator=(RS232Communication&& other) noexcept
+{
+    if (this != &other)
+    {
+        close(); // Close current connection if any
+        
+        eventQueue_ = other.eventQueue_;
+        communicationName_ = std::move(other.communicationName_);
+        receiving_ = other.receiving_.load();
+        hSerial_ = other.hSerial_;
+        config_ = other.config_;
+        portName_ = std::move(other.portName_);
+        baudRate_ = other.baudRate_;
+        
+        other.hSerial_ = INVALID_HANDLE_VALUE;
+        other.receiving_ = false;
+    }
+    return *this;
+}
+
 RS232Communication::~RS232Communication()
 {
     close();

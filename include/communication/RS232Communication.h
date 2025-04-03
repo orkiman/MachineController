@@ -54,10 +54,10 @@ private:
     std::thread receiveThread_;
     std::atomic<bool> receiving_;
     void receiveLoop();
-    EventQueue<EventVariant> & eventQueue_;
+    EventQueue<EventVariant>* eventQueue_;
     std::string receiveBuffer_; // Buffer to accumulate received data
 
-    const Config & config_;
+    const Config* config_;
 
     bool validateSettings();
 

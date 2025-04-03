@@ -5,11 +5,11 @@
 #include <windows.h> // For Windows API functions
 
 RS232Communication::RS232Communication(EventQueue<EventVariant>& eventQueue, const std::string& communicationName, const Config& config)
-    : eventQueue_(eventQueue),
+    : eventQueue_(&eventQueue),
       communicationName_(communicationName),
       receiving_(false),
       hSerial_(INVALID_HANDLE_VALUE),
-      config_(config) // Initialize config_ member
+      config_(&config) // Initialize config_ member as pointer
 {
 }
 
@@ -54,7 +54,7 @@ RS232Communication::~RS232Communication()
 bool RS232Communication::initialize()
 {
     // Read configuration values from JSON.
-    nlohmann::json commSettings = config_.getCommunicationSettings(); 
+    nlohmann::json commSettings = config_->getCommunicationSettings(); 
     if (commSettings.contains(communicationName_))
     {
         auto specificCommSettings = commSettings[communicationName_];
@@ -378,7 +378,7 @@ void RS232Communication::receiveLoop()
                 CommEvent event;
                 event.port = portName_; // Assuming portName_ holds the identifier.
                 event.message = msg;
-                eventQueue_.push(event); // eventQueue_ should be thread-safe.
+                eventQueue_->push(event); // eventQueue_ should be thread-safe.
             }
         }
     }

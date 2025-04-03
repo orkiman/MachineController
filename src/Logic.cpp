@@ -3,7 +3,9 @@
 #include "Logger.h"
 
 Logic::Logic(EventQueue<EventVariant> &eventQueue, const Config &config)
-    : eventQueue_(eventQueue), config_(config), io_(eventQueue_, config_), controllerRunning_(true)
+    : eventQueue_(eventQueue), config_(config), io_(eventQueue_, config_), controllerRunning_(true),
+      communication1_(eventQueue, "communication1", config),
+      communication2_(eventQueue, "communication2", config)
 {
     if (!io_.initialize())
     {

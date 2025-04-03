@@ -1,63 +1,117 @@
-// PCI7248IO.cpp
-
 #include "io/PCI7248IO.h"
 #include "Logger.h"
-#include <thread>
-#include <unordered_map>
-#include <limits>
-#include <chrono>
-#include <windows.h>         // For GetCurrentThread, SetThreadPriority, etc.
 #include "dask64.h"
+#include <chrono>
+#include <mutex>
+#include <limits>
+#include <stdexcept>
 
-using namespace std::chrono;
+// Define DASK constants if not implicitly included via dask64.h in IOChannel.h or elsewhere
+// (Example, actual values might differ slightly based on dask64.h version)
+#ifndef Channel_P1A
+#define Channel_P1A 0
+#endif
+#ifndef Channel_P1B
+#define Channel_P1B 1
+#endif
+#ifndef Channel_P1CL
+#define Channel_P1CL 2
+#endif
+#ifndef Channel_P1CH
+#define Channel_P1CH 3
+#endif
 
-PCI7248IO::PCI7248IO(EventQueue<EventVariant> &eventQueue, const Config &config)
-    : eventQueue_(eventQueue), config_(config), card_(-1), stopPolling_(false)
+
+PCI7248IO::PCI7248IO(EventQueue<EventVariant>& eventQueue, const Config& config)
+    : eventQueue_(eventQueue),
+      config_(config),
+      card_(-1),
+      stopPolling_(false),
+      timer_(nullptr),
+      statsStartTime(std::chrono::steady_clock::now()),
+      lastCallbackTime(),  // Initialize to epoch
+      totalDuration(0),
+      minDuration(std::numeric_limits<long long>::max()),
+      maxDuration(0),
+      iterationCount(0),
+      delaysOver5ms(0)
 {
     inputChannels_ = config_.getInputs();
     outputChannels_ = config_.getOutputs();
 }
 
-PCI7248IO::~PCI7248IO()
-{
+PCI7248IO::~PCI7248IO() {
+    getLogger()->info("Shutting down PCI7248IO...");
+    stopPolling(); // Signal intent to stop (useful if external logic checks flag)
 
+    // Signal threads to stop
+    stopPolling_ = true;
+    timerRunning_ = false;
+    
+    // Clean up timer
+    if (timer_) {
+        CancelWaitableTimer(timer_);
+        CloseHandle(timer_);
+        timer_ = nullptr;
+    }
+    
+    // End high-resolution timer period
+    timeEndPeriod(1);
+
+    // Ensure outputs are in a safe state before releasing the card
     resetConfiguredOutputPorts();
-    stopPolling();
+
+    // Release the hardware card
     if (card_ >= 0) {
         Release_Card(card_);
+        getLogger()->info("PCI-7248 Card ({}) released.", card_);
+        card_ = -1;
     }
+
+    // Ensure all logs are written
     getLogger()->flush();
-    if (pollingThread_.joinable()) {
-        pollingThread_.join();
-    }
 }
 
-bool PCI7248IO::initialize()
-{
+bool PCI7248IO::initialize() {
     if (!config_.isPci7248ConfigurationValid()) {
         getLogger()->error("Invalid PCI7248 configuration.");
         return false;
     }
 
-    card_ = Register_Card(PCI_7248, 0);
+    getLogger()->info("Initializing PCI-7248...");
+    card_ = Register_Card(PCI_7248, 0); // Use board number 0
     if (card_ < 0) {
-        getLogger()->error("Failed to register PCI-7248! Error Code: {}", card_);
+        getLogger()->error("Failed to register PCI-7248! DASK Error Code: {}", card_);
         return false;
     }
+    getLogger()->info("PCI-7248 Card registered successfully (Card ID: {}).", card_);
 
     portsConfig_ = config_.getPci7248IoPortsConfiguration();
 
+    // Define mapping from configuration string to DASK constant
     static const std::unordered_map<std::string, int> portToChannel = {
-        {"A", Channel_P1A}, {"B", Channel_P1B}, {"CL", Channel_P1CL}, {"CH", Channel_P1CH}
-    };
+        {"A", Channel_P1A}, {"B", Channel_P1B}, {"CL", Channel_P1CL}, {"CH", Channel_P1CH}};
 
-    // Configure each port as input or output.
-    for (const auto &[port, portTypeAsString] : portsConfig_) {
-        int portType = (portTypeAsString == "output") ? OUTPUT_PORT : INPUT_PORT;
-        if (DIO_PortConfig(card_, portToChannel.at(port), portType) != 0) {
-            getLogger()->error("Failed to configure Port {} as {}", port, portTypeAsString);
+    // Configure each physical port as input or output based on config
+    for (const auto& [portName, portTypeStr] : portsConfig_) {
+        int daskPortConstant = -1;
+        try {
+            daskPortConstant = portToChannel.at(portName);
+        } catch (const std::out_of_range& oor) {
+             getLogger()->error("Invalid port name '{}' found in configuration.", portName);
+             Release_Card(card_); card_ = -1;
+             return false;
+        }
+
+        int portDirection = (portTypeStr == "output") ? OUTPUT_PORT : INPUT_PORT;
+        I16 result = DIO_PortConfig(card_, daskPortConstant, portDirection);
+        if (result != 0) {
+            getLogger()->error("Failed to configure Port {} as {}. DASK Error Code: {}",
+                             portName, portTypeStr, result);
+            Release_Card(card_); card_ = -1;
             return false;
         }
+         getLogger()->debug("Configured Port {} ({}) as {}", portName, daskPortConstant, portTypeStr);
     }
 
     assignPortNames(inputChannels_);
@@ -66,161 +120,249 @@ bool PCI7248IO::initialize()
     readInitialInputStates(portToChannel);
     logConfiguredChannels();
 
+    // Reset outputs to a known state (off) after configuration
     if (!resetConfiguredOutputPorts()) {
-        getLogger()->error("Failed to reset configured output ports.");
+        getLogger()->error("Failed to perform initial reset of configured output ports.");
+        Release_Card(card_); card_ = -1;
         return false;
     }
 
-    // Start polling in a separate thread.
-    bool printLoopStatistics = false;
-    pollingThread_ = std::thread(&PCI7248IO::pollLoop, this,printLoopStatistics);
+    // --- Start the polling timer ---
+
+    // Set up high-resolution timer capabilities check
+    if (timeGetDevCaps(&tc_, sizeof(TIMECAPS)) != TIMERR_NOERROR) {
+        getLogger()->error("Could not get timer capabilities.");
+        Release_Card(card_); card_ = -1;
+        return false;
+    }
+
+    getLogger()->info("Timer capabilities - Min: {}ms, Max: {}ms", tc_.wPeriodMin, tc_.wPeriodMax);
+    
+    // Request 1ms timer resolution
+    MMRESULT result = timeBeginPeriod(1);
+    if (result != TIMERR_NOERROR) {
+        getLogger()->error("Failed to set 1ms timer resolution. Error: {}", result);
+        Release_Card(card_); card_ = -1;
+        return false;
+    }
+    getLogger()->info("Successfully set timer resolution to 1ms");
+
+    // Create high-resolution timer
+    timer_ = CreateWaitableTimerEx(
+        nullptr,    // No name needed
+        nullptr,    // Default security
+        CREATE_WAITABLE_TIMER_HIGH_RESOLUTION,  // Request high-resolution timer
+        TIMER_ALL_ACCESS
+    );
+    
+    if (timer_ == nullptr) {
+        getLogger()->error("Failed to create high-resolution timer. Error: {}", GetLastError());
+        timeEndPeriod(1);
+        Release_Card(card_); card_ = -1;
+        return false;
+    }
+
+    // Start timer thread with real-time priority
+    timerRunning_ = true;
+    std::thread timerThread([this]() {
+        // Set thread to real-time priority
+        HANDLE threadHandle = GetCurrentThread();
+        if (!SetThreadPriority(threadHandle, THREAD_PRIORITY_TIME_CRITICAL)) {
+            getLogger()->warn("Failed to set timer thread to real-time priority. Error: {}", GetLastError());
+        } else {
+            getLogger()->info("Timer thread set to real-time priority.");
+        }
+        LARGE_INTEGER dueTime;
+        dueTime.QuadPart = -20000LL; // 2ms in 100ns units (negative for relative time)
+
+        if (!SetWaitableTimer(
+            timer_,
+            &dueTime,
+            2,        // 2ms period
+            nullptr,  // No completion routine
+            nullptr,  // No argument
+            FALSE     // No resume from power saving
+        )) {
+            getLogger()->error("Failed to set timer parameters. Error: {}", GetLastError());
+            return;
+        }
+
+        while (timerRunning_) {
+            if (WaitForSingleObject(timer_, INFINITE) == WAIT_OBJECT_0) {
+                if (!stopPolling_) {
+                    pollingIteration();
+                }
+            }
+        }
+    });
+    timerThread.detach(); // Let the thread run independently
+
+    getLogger()->info("PCI7248IO initialized successfully. High-resolution timer started with 2ms interval.");
+    return true;
     return true;
 }
 
 // Assign the ioPort field based on pin number.
-void PCI7248IO::assignPortNames(std::unordered_map<std::string, IOChannel> &channels)
-{
-    for (auto &[_, channel] : channels) {
+void PCI7248IO::assignPortNames(std::unordered_map<std::string, IOChannel>& channels) {
+    for (auto& [name, channel] : channels) {
         if (channel.pin < 8) channel.ioPort = "A";
         else if (channel.pin < 16) channel.ioPort = "B";
         else if (channel.pin < 20) channel.ioPort = "CL";
-        else channel.ioPort = "CH";
+        else if (channel.pin < 24) channel.ioPort = "CH"; // Pins 0-23 typically
+        else {
+            // Handle invalid pin number if necessary
+             getLogger()->warn("Channel '{}' has an invalid pin number: {}", name, channel.pin);
+             channel.ioPort = "Invalid"; // Mark as invalid
+        }
     }
 }
 
 // Read initial input states for all ports configured as input.
-void PCI7248IO::readInitialInputStates(const std::unordered_map<std::string, int> &portToChannel)
-{
-    for (const auto &[port, portTypeAsString] : portsConfig_) {
-        if (portTypeAsString != "input") continue;
+void PCI7248IO::readInitialInputStates(const std::unordered_map<std::string, int>& portToChannel) {
+    std::lock_guard<std::mutex> lock(inputMutex_); // Protect inputChannels_ during update
 
+    for (const auto& [portName, portTypeStr] : portsConfig_) {
+        if (portTypeStr != "input") continue;
+
+        int daskPortConstant = portToChannel.at(portName); // Assumes valid name due to earlier check
         U32 portValue = 0;
-        if (DI_ReadPort(card_, portToChannel.at(port), &portValue) != 0) {
-            getLogger()->error("Failed to read initial state from Port {}", port);
-            continue;
+        I16 result = DI_ReadPort(card_, daskPortConstant, &portValue);
+        if (result != 0) {
+            getLogger()->error("Failed to read initial state from Input Port {}. DASK Error Code: {}", portName, result);
+            continue; // Skip this port but try others
         }
-        portValue = ~portValue; // Active-low
-        int baseOffset = getPortBaseOffset(port);
 
-        for (auto &[_, channel] : inputChannels_) {
-            if (channel.ioPort == port) {
-                channel.state = (portValue >> (channel.pin - baseOffset)) & 0x1;
+        // Apply active-low logic if necessary (Assume active-low for now)
+        // TODO: Make active-low configurable per channel/port
+        portValue = ~portValue;
+
+        int baseOffset = getPortBaseOffset(portName);
+
+        for (auto& [chanName, channel] : inputChannels_) {
+            if (channel.ioPort == portName) {
+                int pinWithinPort = channel.pin - baseOffset;
+                if (pinWithinPort >= 0 && pinWithinPort < 8) { // Check valid bit range within port
+                    channel.state = (portValue >> pinWithinPort) & 0x1;
+                    channel.eventType = IOEventType::None; // Initial state has no edge
+                     getLogger()->trace("Initial state for Input '{}' (Port {}, Pin {}): {}", chanName, portName, channel.pin, channel.state);
+                } else {
+                     getLogger()->warn("Input Channel '{}' pin {} calculation resulted in invalid bit position {} for port {}", chanName, channel.pin, pinWithinPort, portName);
+                }
             }
         }
     }
 }
 
 // Log which channels are configured as input vs. output.
-void PCI7248IO::logConfiguredChannels()
-{
-    for (const auto &[_, ch] : inputChannels_) {
-        getLogger()->info("Configured input: {} (port {}, pin {})", ch.name, ch.ioPort, ch.pin);
+void PCI7248IO::logConfiguredChannels() {
+    getLogger()->info("--- Configured Input Channels ---");
+    for (const auto& [_, ch] : inputChannels_) {
+        getLogger()->info("Input : {} (Port {}, Pin {})", ch.name, ch.ioPort, ch.pin);
     }
-    for (const auto &[_, ch] : outputChannels_) {
-        getLogger()->info("Configured output: {} (port {}, pin {})", ch.name, ch.ioPort, ch.pin);
+    getLogger()->info("--- Configured Output Channels ---");
+    for (const auto& [_, ch] : outputChannels_) {
+        getLogger()->info("Output: {} (Port {}, Pin {})", ch.name, ch.ioPort, ch.pin);
     }
+     getLogger()->info("---------------------------------");
 }
 
-// The main polling loop with timing statistics.
-void PCI7248IO::pollLoop(bool debugStatistics)
-{
-    SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
-    getLogger()->debug("THREAD_PRIORITY_TIME_CRITICAL");
 
-    static const std::unordered_map<std::string, int> portToChannel = {
-        {"A", Channel_P1A}, {"B", Channel_P1B}, {"CL", Channel_P1CL}, {"CH", Channel_P1CH}
-    };
+// Timer callback worker function
+void PCI7248IO::pollingIteration() {
+    const auto now = std::chrono::steady_clock::now();
+    
+    // Read inputs and detect changes.
+    bool anyChange = updateInputStates();
+    if (anyChange) {
+        pushStateEvent();
+    }
 
-    using clock = std::chrono::steady_clock;
-    auto statStart = clock::now();
-
-    // Only used if debugStatistics is true.
-    long long totalTime = 0;
-    long long minTime = std::numeric_limits<long long>::max();
-    long long maxTime = 0;
-    size_t iterations = 0;
-    size_t longRuns = 0;
-
-    while (!stopPolling_) {
-        auto loopStart = clock::now();
-
-        // Read inputs and detect changes.
-        bool anyChange = updateInputStates(portToChannel);
-        if (anyChange) {
-            pushStateEvent();
-        }
-
-        // Always measure loop duration for timing control.
-        auto loopEnd = clock::now();
-        auto execTime = std::chrono::duration_cast<std::chrono::microseconds>(loopEnd - loopStart).count();
-
-        // Ensure the loop runs at least 1ms (or use your desired target).
-        if (execTime < 1000) {
-            preciseSleep(static_cast<int>(1000 - execTime));
-            auto loopEndAfterSleep = clock::now();
-            execTime = std::chrono::duration_cast<std::chrono::microseconds>(loopEndAfterSleep - loopStart).count();
-        }
-
-        // If debug statistics are enabled, accumulate measurements.
-        if (debugStatistics) {
-            totalTime += execTime;
-            minTime = std::min(minTime, execTime);
-            maxTime = std::max(maxTime, execTime);
-            if (execTime > 5000) {
-                longRuns++;
+    {
+        std::lock_guard<std::mutex> lock(this->statsMutex);
+        if (this->lastCallbackTime != std::chrono::steady_clock::time_point()) {
+            const auto interval = std::chrono::duration_cast<std::chrono::microseconds>(now - this->lastCallbackTime).count();
+            this->totalDuration += interval;
+            this->minDuration = std::min(this->minDuration, interval);
+            this->maxDuration = std::max(this->maxDuration, interval);
+            
+            if (interval > 5000) { // 5ms threshold
+                this->delaysOver5ms++;
             }
-            iterations++;
+        }
+        this->lastCallbackTime = now;
+        this->iterationCount++;
 
-            // Log every second.
-            auto now = clock::now();
-            if (std::chrono::duration_cast<std::chrono::seconds>(now - statStart).count() >= 1) {
-                double avgTime = static_cast<double>(totalTime) / iterations;
-                getLogger()->debug(
-                    "Poll Loop Execution Time (µs) -- Min: {}, Max: {}, Avg: {:.2f}, long runs: {}",
-                    minTime, maxTime, avgTime, longRuns
+        // Check interval and log statistics
+        const auto now = std::chrono::steady_clock::now();
+        if (now - this->statsStartTime >= this->statsInterval) {
+            if (this->iterationCount > 0) {
+                const double avg = static_cast<double>(this->totalDuration) / this->iterationCount;
+                double samplesPerSecond = this->iterationCount / 10.0; // 10-second window
+                double actualInterval = 10000.0 / this->iterationCount; // actual ms between samples
+                getLogger()->info(
+                    "[Poll Stats] Min: {:.3f}ms | Max: {:.3f}ms | Avg: {:.3f}ms | Samples: {} ({:.1f}/s, {:.3f}ms interval) | >5ms: {}",
+                    this->minDuration / 1000.0,
+                    this->maxDuration / 1000.0,
+                    avg / 1000.0,
+                    this->iterationCount,
+                    samplesPerSecond,
+                    actualInterval,
+                    this->delaysOver5ms
                 );
-                statStart = now;
-                totalTime = 0;
-                minTime = std::numeric_limits<long long>::max();
-                maxTime = 0;
-                iterations = 0;
-                longRuns = 0;
             }
+            
+            // Reset counters
+            this->totalDuration = 0;
+            this->minDuration = std::numeric_limits<long long>::max();
+            this->maxDuration = 0;
+            this->iterationCount = 0;
+            this->delaysOver5ms = 0;
+            this->statsStartTime = now;
         }
-    }    
-    getLogger()->flush();
+    }
 }
 
 // Reads input ports, checks for state changes, and updates `inputChannels_`.
-bool PCI7248IO::updateInputStates(const std::unordered_map<std::string, int> &portToChannel)
-{
+bool PCI7248IO::updateInputStates() {
     bool anyChange = false;
+    std::lock_guard<std::mutex> lock(inputMutex_); // Protect inputChannels_ during update
 
-    for (const auto &[port, portTypeAsString] : portsConfig_) {
-        if (portTypeAsString != "input") continue;
+    for (const auto& [portName, portTypeStr] : portsConfig_) {
+        if (portTypeStr != "input") continue;
 
+        int daskPortConstant = getDaskChannel(portName);
         U32 portValue = 0;
-        if (DI_ReadPort(card_, portToChannel.at(port), &portValue) != 0) {
-            getLogger()->error("Failed to read Port {}", port);
+        I16 result = DI_ReadPort(card_, daskPortConstant, &portValue);
+        if (result != 0) {
+            // Log error but continue trying other ports/channels
+            getLogger()->error("Failed to read Input Port {} during polling. DASK Error Code: {}", portName, result);
             continue;
         }
 
-        portValue = ~portValue; // Active-low
-        int baseOffset = getPortBaseOffset(port);
+        // Apply active-low logic (assumed)
+        portValue = ~portValue;
+        int baseOffset = getPortBaseOffset(portName);
 
-        for (auto &[_, channel] : inputChannels_) {
-            if (channel.ioPort != port) continue;
+        for (auto& [chanName, channel] : inputChannels_) {
+            if (channel.ioPort != portName) continue;
 
-            int newState = (portValue >> (channel.pin - baseOffset)) & 0x1;
+            int pinWithinPort = channel.pin - baseOffset;
+             if (pinWithinPort < 0 || pinWithinPort >= 8) continue; // Skip if pin mapping is wrong
+
+            int newState = (portValue >> pinWithinPort) & 0x1;
+
+            // Compare with previous state and update if changed
             if (channel.state != newState) {
                 if (channel.state == 0 && newState == 1) {
                     channel.eventType = IOEventType::Rising;
                 } else if (channel.state == 1 && newState == 0) {
                     channel.eventType = IOEventType::Falling;
                 }
+                 getLogger()->trace("Input state change: {} ({}) from {} to {}", channel.name, channel.eventType == IOEventType::Rising ? "Rising" : "Falling", channel.state, newState);
                 channel.state = newState;
                 anyChange = true;
             } else {
+                // Reset event type if state hasn't changed since last event
                 channel.eventType = IOEventType::None;
             }
         }
@@ -229,105 +371,151 @@ bool PCI7248IO::updateInputStates(const std::unordered_map<std::string, int> &po
 }
 
 // Push an IOEvent containing the updated inputChannels_.
-void PCI7248IO::pushStateEvent()
-{
-        IOEvent event;
-        event.channels = inputChannels_;
-        eventQueue_.push(event);
-    
+void PCI7248IO::pushStateEvent() {
+    IOEvent event;
+    // Create a copy under lock to send to the queue
+    {
+       std::lock_guard<std::mutex> lock(inputMutex_);
+       event.channels = inputChannels_; // Make a copy of the current state
+    }
+    eventQueue_.push(event); // Push the copy
 }
 
-bool PCI7248IO::resetConfiguredOutputPorts()
-{
-    std::lock_guard<std::mutex> lock(resetMutex_);
-    // Passing an empty map effectively turns all output pins off.
+
+// Resets all configured output ports to their off state.
+bool PCI7248IO::resetConfiguredOutputPorts() {
+    getLogger()->debug("Resetting configured output ports to OFF state.");
+    // Passing an empty map to writeOutputs effectively turns all output pins off.
+    // Lock is handled within writeOutputs.
     return writeOutputs({});
 }
 
 // Write outputs using active-low logic.
-bool PCI7248IO::writeOutputs(const std::unordered_map<std::string, IOChannel> &newOutputsState)
-{
-    // Prepare an aggregate of bits for each port.
+// Takes a map representing the desired *ON* state for output channels.
+// Channels configured as output but *not* present in the map will be turned OFF.
+bool PCI7248IO::writeOutputs(const std::unordered_map<std::string, IOChannel>& desiredOnOutputs) {
+    std::lock_guard<std::mutex> lock(outputMutex_); // Ensure thread-safe access to hardware
+
+    // Prepare an aggregate bitmask for each physical port configured as output.
+    // Initialize all output port aggregates to 0 (all bits OFF initially).
     std::unordered_map<std::string, U32> portAggregates;
-    // Initialize aggregates for all ports in the config so we don't miss any.
-    for (const auto &entry : portsConfig_) {
-        portAggregates[entry.first] = 0;
+    for (const auto& [portName, portTypeStr] : portsConfig_) {
+         if (portTypeStr == "output") {
+              portAggregates[portName] = 0; // Initialize output ports only
+         }
     }
 
-    // Set bits for each channel in newOutputsState.
-    for (const auto &[_, ch] : newOutputsState) {
-        if (ch.type != IOType::Output) continue;
-        int baseOffset = getPortBaseOffset(ch.ioPort);
-        int bitPos = ch.pin - baseOffset;
-        if (ch.state != 0) {
-            portAggregates[ch.ioPort] |= (1u << bitPos);
+
+    // Set bits corresponding to the channels that should be ON.
+    for (const auto& [name, channelState] : desiredOnOutputs) {
+        // Find the corresponding configured output channel definition
+         auto it = outputChannels_.find(name);
+         if (it == outputChannels_.end()) {
+             getLogger()->warn("Attempted to write to non-configured or non-output channel: {}", name);
+             continue; // Skip this entry
+         }
+
+         const IOChannel& configuredChannel = it->second;
+
+        // Check if this channel belongs to a port configured as output
+        if (portsConfig_.count(configuredChannel.ioPort) && portsConfig_.at(configuredChannel.ioPort) == "output") {
+             int baseOffset = getPortBaseOffset(configuredChannel.ioPort);
+             int pinWithinPort = configuredChannel.pin - baseOffset;
+
+              if (pinWithinPort >= 0 && pinWithinPort < 8) {
+                   // Only set the bit if the desired state is ON (non-zero)
+                   if (channelState.state != 0) {
+                         portAggregates[configuredChannel.ioPort] |= (1u << pinWithinPort);
+                         getLogger()->trace("Setting bit {} for Port {} (Channel {})", pinWithinPort, configuredChannel.ioPort, name);
+                   }
+              } else {
+                 getLogger()->warn("Output Channel '{}' pin {} calculation resulted in invalid bit position {} for port {}", configuredChannel.name, configuredChannel.pin, pinWithinPort, configuredChannel.ioPort);
+              }
+        } else {
+             getLogger()->warn("Attempted to write to channel '{}' on Port {}, which is not configured as output.", name, configuredChannel.ioPort);
         }
     }
 
-    // Write each port's aggregated value (inverted for active-low).
-    bool success = true;
-    for (const auto &[port, value] : portAggregates) {
-        if (portsConfig_[port] != "output") {
-            continue;
-        }
-        int daskChannel = getDaskChannel(port);
-        U32 outValue = (~value) & 0xFF;  // invert and mask to 8 bits
-        if (DO_WritePort(card_, daskChannel, outValue) != 0) {
-            getLogger()->error("Failed to write Port {}", port);
-            success = false;
+    // Write the final aggregated value to each physical output port.
+    bool overallSuccess = true;
+    for (const auto& [portName, aggregateValue] : portAggregates) {
+        // We already know this port is configured as output from the initialization loop above.
+        int daskPortConstant = getDaskChannel(portName);
+
+        // Apply active-low logic: invert the bits for the physical write.
+        // Mask to 8 bits just in case.
+        U32 valueToWrite = (~aggregateValue) & 0xFF;
+
+         getLogger()->trace("Writing value {:#04x} (raw aggregate {:#04x}) to Port {}", valueToWrite, aggregateValue, portName);
+        I16 result = DO_WritePort(card_, daskPortConstant, valueToWrite);
+        if (result != 0) {
+            getLogger()->error("Failed to write to Output Port {}. DASK Error Code: {}", portName, result);
+            overallSuccess = false; // Mark failure but continue trying other ports
         }
     }
-    return success;
+
+    return overallSuccess;
 }
 
-// Stop polling gracefully.
-void PCI7248IO::stopPolling()
-{
-    stopPolling_ = true;
+// Signal intent to stop polling (actual stop happens in destructor).
+void PCI7248IO::stopPolling() {
+    this->stopPolling_ = true;
     
+    // Log final statistics
+    std::lock_guard<std::mutex> lock(this->statsMutex);
+    if (this->iterationCount > 0) {
+        const double avg = static_cast<double>(this->totalDuration) / this->iterationCount;
+        getLogger()->info(
+            "[Final Poll Stats] Min: {:.3f}ms | Max: {:.3f}ms | Avg: {:.3f}ms | Samples: {} | >5ms: {}",
+            this->minDuration / 1000.0,
+            this->maxDuration / 1000.0,
+            avg / 1000.0,
+            this->iterationCount,
+            this->delaysOver5ms
+        );
+    }
+    
+    getLogger()->debug("Stop polling signal set.");
+    // Note: Timer callbacks might still execute briefly after this flag is set,
+    // until the timer is fully closed in the destructor. The check within the
+    // callback lambda prevents processing if the flag is set.
 }
 
 // Return a snapshot of the current input channels.
-std::unordered_map<std::string, IOChannel> PCI7248IO::getInputChannelsSnapshot() const
-{
+std::unordered_map<std::string, IOChannel> PCI7248IO::getInputChannelsSnapshot() const {
+     std::lock_guard<std::mutex> lock(inputMutex_);
+    // Return a copy to ensure thread safety and prevent modification of internal state.
     return inputChannels_;
 }
 
 // Return a reference to the output channels map.
-const std::unordered_map<std::string, IOChannel> &PCI7248IO::getOutputChannels() const
-{
+const std::unordered_map<std::string, IOChannel>& PCI7248IO::getOutputChannels() const {
+    // Generally safe to return const ref as internal structure doesn't change post-init.
+    // The states within might be outdated if not updated via writeOutputs.
     return outputChannels_;
 }
 
 // Utility to map port name to the DASK channel constant.
-int PCI7248IO::getDaskChannel(const std::string &port) const
-{
+int PCI7248IO::getDaskChannel(const std::string& port) const {
+    // Use static map for efficiency
     static const std::unordered_map<std::string, int> channels = {
-        {"A", Channel_P1A}, {"B", Channel_P1B}, {"CL", Channel_P1CL}, {"CH", Channel_P1CH}
-    };
-    return channels.at(port);
+        {"A", Channel_P1A}, {"B", Channel_P1B}, {"CL", Channel_P1CL}, {"CH", Channel_P1CH}};
+    try {
+        return channels.at(port);
+    } catch (const std::out_of_range& oor) {
+        getLogger()->error("Invalid port name '{}' requested for DASK channel lookup.", port);
+        // Consider returning a specific error code or throwing an exception
+        return -1; // Or some other indicator of error
+    }
 }
 
-// Return the base offset for a given port name.
-int PCI7248IO::getPortBaseOffset(const std::string &port) const
-{
-    if (port == "A")  return 0;
-    if (port == "B")  return 8;
+// Return the base pin offset for a given port name.
+int PCI7248IO::getPortBaseOffset(const std::string& port) const {
+    if (port == "A") return 0;
+    if (port == "B") return 8;
     if (port == "CL") return 16;
     if (port == "CH") return 20;
-    return 0; // fallback
-}
 
-// Sleep for the specified number of microseconds.
-void PCI7248IO::preciseSleep(int microseconds)
-{
-    HANDLE timer = CreateWaitableTimer(NULL, TRUE, NULL);
-    if (!timer) return;
-
-    LARGE_INTEGER dueTime;
-    // Convert microseconds to 100-nanosecond intervals.
-    dueTime.QuadPart = -static_cast<LONGLONG>(microseconds) * 10LL;
-    SetWaitableTimer(timer, &dueTime, 0, NULL, NULL, FALSE);
-    WaitForSingleObject(timer, INFINITE);
-    CloseHandle(timer);
+    getLogger()->warn("Requested base offset for unknown port name: {}", port);
+    return 0; // Fallback, though this indicates a config/logic error upstream
 }

@@ -1,5 +1,6 @@
 #include "gui/MainWindow.h"
 #include "ui_MainWindow.h"
+#include "gui/SettingsWindow.h"
 #include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent, EventQueue<EventVariant>& eventQueue)
@@ -8,6 +9,9 @@ MainWindow::MainWindow(QWidget *parent, EventQueue<EventVariant>& eventQueue)
       eventQueue_(eventQueue)
 {
     ui->setupUi(this);
+
+    // Create the settings window once
+    settingsWindow_ = new SettingsWindow(this, eventQueue_);
 
     // no need to manuly connect signals to slots it's done automatically
     // Connect signals to slots using the ui pointer
@@ -19,6 +23,7 @@ MainWindow::MainWindow(QWidget *parent, EventQueue<EventVariant>& eventQueue)
 
 MainWindow::~MainWindow() {
     delete ui;
+    delete settingsWindow_;
 }
 
 void MainWindow::on_runButton_clicked() {
@@ -30,8 +35,10 @@ void MainWindow::on_stopButton_clicked() {
 }
 
 void MainWindow::on_settingsButton_clicked() {
-    // Your logic for showing the settings window
-   
+    // Show the settings window when the settings button is clicked
+    if (settingsWindow_) {
+        settingsWindow_->show();
+    }
 }
 
 void MainWindow::on_clearMessageAreaButton_clicked() {

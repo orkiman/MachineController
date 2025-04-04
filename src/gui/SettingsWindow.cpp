@@ -2,21 +2,22 @@
 #include "ui_SettingsWindow.h"
 #include <QDebug>
 
-SettingsWindow::SettingsWindow(QWidget *parent)
+SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQueue)
     : QDialog(parent),
-      ui(new Ui::SettingsWindow)
+      ui(new Ui::SettingsWindow),
+      eventQueue_(eventQueue)
 {
     ui->setupUi(this);
 
     // Connect signals and slots using the ui pointer
-    connect(ui->overrideOutputsCheckBox, &QCheckBox::stateChanged,
-            this, &SettingsWindow::on_overrideOutputsCheckBox_stateChanged);
-    connect(ui->applyButton, &QPushButton::clicked,
-            this, &SettingsWindow::on_applyButton_clicked);
-    connect(ui->cancelButton, &QPushButton::clicked,
-            this, &SettingsWindow::on_cancelButton_clicked);
-    connect(ui->defaultsButton, &QPushButton::clicked,
-            this, &SettingsWindow::on_defaultsButton_clicked);
+    // connect(ui->overrideOutputsCheckBox, &QCheckBox::stateChanged,
+    //         this, &SettingsWindow::on_overrideOutputsCheckBox_stateChanged);
+    // connect(ui->applyButton, &QPushButton::clicked,
+    //         this, &SettingsWindow::on_applyButton_clicked);
+    // connect(ui->cancelButton, &QPushButton::clicked,
+    //         this, &SettingsWindow::on_cancelButton_clicked);
+    // connect(ui->defaultsButton, &QPushButton::clicked,
+    //         this, &SettingsWindow::on_defaultsButton_clicked);
 }
 
 SettingsWindow::~SettingsWindow() {
@@ -33,6 +34,8 @@ void SettingsWindow::on_overrideOutputsCheckBox_stateChanged(int state) {
 
 void SettingsWindow::on_applyButton_clicked() {
     qDebug() << "Apply button clicked";
+    // Send a message through the event queue to notify about settings changes
+    eventQueue_.push(GuiEvent{GuiEventType::SendMessage, "Settings applied", "settings"});
 }
 
 void SettingsWindow::on_cancelButton_clicked() {

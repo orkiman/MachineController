@@ -2,6 +2,8 @@
 #define SETTINGSWINDOW_H
 
 #include <QDialog>
+#include "Event.h"
+#include "EventQueue.h"
 
 namespace Ui {
     class SettingsWindow;
@@ -11,7 +13,7 @@ class SettingsWindow : public QDialog {
     Q_OBJECT
 
 public:
-    explicit SettingsWindow(QWidget *parent = nullptr);
+    explicit SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQueue);
     ~SettingsWindow();
 
 private slots:
@@ -22,6 +24,7 @@ private slots:
 
 private:
     Ui::SettingsWindow *ui;
+    EventQueue<EventVariant>& eventQueue_;
 };
 
 #endif // SETTINGSWINDOW_H

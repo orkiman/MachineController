@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include "Event.h"
 #include "EventQueue.h"
+#include "gui/SettingsWindow.h"
 
 namespace Ui {
     class MainWindow;
@@ -26,6 +27,8 @@ private slots:
 private:
     Ui::MainWindow *ui;
     EventQueue<EventVariant> &eventQueue_;
+    SettingsWindow *settingsWindow_;
+
 };
 
 #endif // MAINWINDOW_H

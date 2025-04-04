@@ -27,13 +27,14 @@ enum class GuiEventType {
     ParameterChange,
     StatusRequest,
     StatusUpdate,
-    ErrorMessage
+    ErrorMessage,
+    SendMessage
 };
 
 struct GuiEvent {
     GuiEventType type;
-    std::string uiMessage; // For logging or display
-    std::string outputName;  // Identifier for the output to set (if needed)
+    std::string data; // For logging or display
+    std::string identifier;  // Identifier for the output to set (if needed)
     int intValue = 0;      // For numeric parameters
 };
 // #### GUI END ####

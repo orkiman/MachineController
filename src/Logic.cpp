@@ -107,25 +107,25 @@ void Logic::handleEvent(const GuiEvent &event)
     switch (event.type)
     {
     case GuiEventType::ButtonPress:
-        std::cout << "[GUI Event] Button pressed: " << event.uiMessage << std::endl;
+        std::cout << "[GUI Event] Button pressed: " << event.data << std::endl;
         // For example, if this button press should trigger an output change:
         // setOutput(...);
         break;
     case GuiEventType::SetOutput:
-        std::cout << "[GUI Event] Set output " << event.outputName << " to "
+        std::cout << "[GUI Event] Set output " << event.identifier << " to "
                   << (event.intValue == 0 ? "OFF" : "ON") << std::endl;
-        outputChannels_[event.outputName].state = event.intValue;
+        outputChannels_[event.identifier].state = event.intValue;
         io_.writeOutputs(outputChannels_);
         // Call a function to set the output accordingly, e.g.:
         // setOutput(event.outputId, event.boolValue);
         break;
     case GuiEventType::SetVariable:
-        std::cout << "[GUI Event] Set variable: " << event.uiMessage
+        std::cout << "[GUI Event] Set variable: " << event.data
                   << " Value: " << event.intValue << std::endl;
         // setVariable(event.intValue);
         break;
     case GuiEventType::ParameterChange:
-        std::cout << "[GUI Event] Parameter changed: " << event.uiMessage
+        std::cout << "[GUI Event] Parameter changed: " << event.data
                   << " New value: " << event.intValue << std::endl;
         // adjustParameter(event.intValue);
         break;
@@ -134,13 +134,37 @@ void Logic::handleEvent(const GuiEvent &event)
         // trigger a status update
         break;
     case GuiEventType::StatusUpdate:
-        std::cout << "[GUI Event] Status update: " << event.uiMessage << std::endl;
+        std::cout << "[GUI Event] Status update: " << event.data << std::endl;
         break;
     case GuiEventType::ErrorMessage:
-        std::cerr << "[GUI Event] Error: " << event.uiMessage << std::endl;
+        std::cerr << "[GUI Event] Error: " << event.data << std::endl;
         break;
+    case GuiEventType::SendMessage:
+        if (event.identifier == "communication1")
+        {
+            if (!communication1_.send(event.data))
+            {
+                getLogger()->error("[GUI Event] SendMessage: Failed to send message to communication1");
+            }else{
+                getLogger()->info("[GUI Event] SendMessage: Message sent to communication1");
+            }
+        }
+        else if (event.identifier == "communication2")
+        {
+            if (!communication2_.send(event.data))
+            {
+                getLogger()->error("[GUI Event] SendMessage: Failed to send message to communication2");
+            }else{
+                getLogger()->info("[GUI Event] SendMessage: Message sent to communication2");
+            }
+        }
+        else
+        {
+            getLogger()->error("[GUI Event] SendMessage: Unknown identifier: {}", event.identifier);
+        }  
+        break;  
     default:
-        std::cout << "[GUI Event] Unknown event: " << event.uiMessage << std::endl;
+        std::cout << "[GUI Event] Unknown event: " << event.data << std::endl;
         break;
     }
 }

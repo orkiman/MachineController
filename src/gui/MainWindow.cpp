@@ -2,9 +2,10 @@
 #include "ui_MainWindow.h"
 #include <QDebug>
 
-MainWindow::MainWindow(QWidget *parent)
+MainWindow::MainWindow(QWidget *parent, EventQueue<EventVariant>& eventQueue)
     : QMainWindow(parent),
-      ui(new Ui::MainWindow)
+      ui(new Ui::MainWindow),
+      eventQueue_(eventQueue)
 {
     ui->setupUi(this);
 
@@ -30,8 +31,13 @@ void MainWindow::on_stopButton_clicked() {
 
 void MainWindow::on_settingsButton_clicked() {
     // Your logic for showing the settings window
+   
 }
 
 void MainWindow::on_clearMessageAreaButton_clicked() {
     ui->messageArea->clear();
+}
+
+void MainWindow::on_testButton_clicked() {
+    eventQueue_.push(GuiEvent{GuiEventType::SendMessage, "Test message", "communication1"});
 }

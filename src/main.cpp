@@ -50,8 +50,7 @@ int main(int argc, char* argv[]) {
 
     // 1. GUI Initialization
     QApplication app(argc, argv);
-    // MainWindow mainWindow(nullptr, eventQueue);  // Pass pointer to the event queue
-    MainWindow mainWindow(nullptr);  // Pass pointer to the event queue
+    MainWindow mainWindow(nullptr, eventQueue);  // Pass reference to the event queue
     mainWindow.show();
     
     // 2. Logic Setup

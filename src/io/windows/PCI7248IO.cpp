@@ -8,18 +8,18 @@
 
 // Define DASK constants if not implicitly included via dask64.h in IOChannel.h or elsewhere
 // (Example, actual values might differ slightly based on dask64.h version)
-#ifndef Channel_P1A
-#define Channel_P1A 0
-#endif
-#ifndef Channel_P1B
-#define Channel_P1B 1
-#endif
-#ifndef Channel_P1CL
-#define Channel_P1CL 2
-#endif
-#ifndef Channel_P1CH
-#define Channel_P1CH 3
-#endif
+// #ifndef Channel_P1A
+// #define Channel_P1A 0
+// #endif
+// #ifndef Channel_P1B
+// #define Channel_P1B 1
+// #endif
+// #ifndef Channel_P1CL
+// #define Channel_P1CL 2
+// #endif
+// #ifndef Channel_P1CH
+// #define Channel_P1CH 3
+// #endif
 
 
 PCI7248IO::PCI7248IO(EventQueue<EventVariant>& eventQueue, const Config& config)
@@ -55,8 +55,7 @@ PCI7248IO::~PCI7248IO() {
         timer_ = nullptr;
     }
     
-    // End high-resolution timer period
-    timeEndPeriod(1);
+    // Timer resolution is managed in main.cpp
 
     // Ensure outputs are in a safe state before releasing the card
     resetConfiguredOutputPorts();
@@ -138,14 +137,7 @@ bool PCI7248IO::initialize() {
 
     getLogger()->info("Timer capabilities - Min: {}ms, Max: {}ms", tc_.wPeriodMin, tc_.wPeriodMax);
     
-    // Request 1ms timer resolution
-    MMRESULT result = timeBeginPeriod(1);
-    if (result != TIMERR_NOERROR) {
-        getLogger()->error("Failed to set 1ms timer resolution. Error: {}", result);
-        Release_Card(card_); card_ = -1;
-        return false;
-    }
-    getLogger()->info("Successfully set timer resolution to 1ms");
+    // Timer resolution (1ms) is already set in main.cpp
 
     // Create high-resolution timer
     timer_ = CreateWaitableTimerEx(
@@ -157,7 +149,6 @@ bool PCI7248IO::initialize() {
     
     if (timer_ == nullptr) {
         getLogger()->error("Failed to create high-resolution timer. Error: {}", GetLastError());
-        timeEndPeriod(1);
         Release_Card(card_); card_ = -1;
         return false;
     }
@@ -165,12 +156,12 @@ bool PCI7248IO::initialize() {
     // Start timer thread with real-time priority
     timerRunning_ = true;
     std::thread timerThread([this]() {
-        // Set thread to real-time priority
+        // Set thread to high priority
         HANDLE threadHandle = GetCurrentThread();
         if (!SetThreadPriority(threadHandle, THREAD_PRIORITY_TIME_CRITICAL)) {
-            getLogger()->warn("Failed to set timer thread to real-time priority. Error: {}", GetLastError());
+            getLogger()->warn("Failed to set timer thread to high priority. Error: {}", GetLastError());
         } else {
-            getLogger()->info("Timer thread set to real-time priority.");
+            getLogger()->info("Polling Timer thread set to high priority.");
         }
         LARGE_INTEGER dueTime;
         dueTime.QuadPart = -20000LL; // 2ms in 100ns units (negative for relative time)

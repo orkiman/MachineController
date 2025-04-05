@@ -27,7 +27,29 @@
         { "pin": 7, "name": "o7", "description": "vacuum control" }
       ]
     },
-    
+    "communication": {
+      "communication1": {
+        "portName": "COM1",
+        "baudRate": 9600,
+        "parity": "N",
+        "dataBits": 8,
+        "stopBits": 1,
+        "stx": 2,
+        "etx": "0x03",
+        "trigger": "t"
+      },
+      "communication2": {
+        "portName": "COM2",
+        "baudRate": 115200,
+        "parity": "N",
+        "dataBits": 8,
+        "stopBits": 1,
+        "stx": "",
+        "etx": 3,
+        "trigger": "t"
+
+      }
+    },
     "timers": {
       "pollInterval": 100,
       "timeout": 5000

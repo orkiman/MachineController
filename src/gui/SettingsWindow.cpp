@@ -164,9 +164,9 @@ void SettingsWindow::fillCommunicationTabFields() {
         }
         
         // Set test message
-        if (comm1.contains("testMessage")) {
-            QString testMessage = QString::fromStdString(comm1["testMessage"]);
-            ui->commuication1TestDataLineEdit->setText(testMessage);
+        if (comm1.contains("trigger")) {
+            QString trigger = QString::fromStdString(comm1["trigger"]);
+            ui->commuication1TriggerLineEdit->setText(trigger);
         }
     }
     
@@ -224,9 +224,9 @@ void SettingsWindow::fillCommunicationTabFields() {
         }
         
         // Set test message
-        if (comm2.contains("testMessage")) {
-            QString testMessage = QString::fromStdString(comm2["testMessage"]);
-            ui->commuication2TestDataLineEdit->setText(testMessage);
+        if (comm2.contains("trigger")) {
+            QString trigger = QString::fromStdString(comm2["trigger"]);
+            ui->commuication2TriggerLineEdit->setText(trigger);
         }
     }
     
@@ -241,9 +241,9 @@ void SettingsWindow::fillCommunicationTabFields() {
         ui->etx2LineEdit->setText("03"); // Default if not specified
     }
     
-    // Set test message defaults
-    ui->commuication1TestDataLineEdit->setText("Test message 1");
-    ui->commuication2TestDataLineEdit->setText("Test message 2");
+    // Set trigger defaults
+    ui->commuication1TriggerLineEdit->setText("t");
+    ui->commuication2TriggerLineEdit->setText("t");
     
     // Emit a message to the event queue that settings were loaded
     eventQueue_.push(GuiEvent{GuiEventType::GuiMessage, "Communication settings loaded from JSON"});
@@ -292,9 +292,9 @@ void SettingsWindow::fillWithDefaults() {
     ui->stx2LineEdit->setText("02");
     ui->etx2LineEdit->setText("03");
     
-    // Set test message defaults
-    ui->commuication1TestDataLineEdit->setText("Test Message 1");
-    ui->commuication2TestDataLineEdit->setText("Test Message 2");
+        // Set trigger defaults
+    ui->commuication1TriggerLineEdit->setText("t");
+    ui->commuication2TriggerLineEdit->setText("t");
     
     // Notify that default settings were loaded
     eventQueue_.push(GuiEvent{GuiEventType::GuiMessage, "Default communication settings loaded", "settings"});

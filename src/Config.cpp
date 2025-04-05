@@ -3,7 +3,7 @@
 #include <fstream>
 #include <stdexcept>
 #include "Logger.h"
-#include "communication/RS232Communication.h"
+#include "io/IOChannel.h"
 
 Config::Config(const std::string &filePath)
 {
@@ -13,15 +13,20 @@ Config::Config(const std::string &filePath)
         throw std::runtime_error("Unable to open configuration file: " + filePath);
     }
     file >> configJson_;
+    
+    // Ensure default communication settings exist
+    ensureDefaultCommunicationSettings();
 }
 
 std::string Config::getIODevice() const
 {
+    std::lock_guard<std::mutex> lock(configMutex_);
     return configJson_.value("io", nlohmann::json::object()).value("device", "unknown");
 }
 
 std::unordered_map<std::string, std::string> Config::getPci7248IoPortsConfiguration() const
 {
+    std::lock_guard<std::mutex> lock(configMutex_);
     std::unordered_map<std::string, std::string> ports;
     auto portsConfig = configJson_.value("io", nlohmann::json::object())
                            .value("portsConfiguration", nlohmann::json::object());
@@ -32,10 +37,10 @@ std::unordered_map<std::string, std::string> Config::getPci7248IoPortsConfigurat
     return ports;
 }
 
-const std::unordered_map<std::string, IOChannel> &Config::getInputs() const
+std::unordered_map<std::string, IOChannel> Config::getInputs() const
 {
-    static std::unordered_map<std::string, IOChannel> inputs;
-    inputs.clear();
+    std::lock_guard<std::mutex> lock(configMutex_);
+    std::unordered_map<std::string, IOChannel> inputs;
     auto inputsArray = configJson_.value("io", nlohmann::json::object())
                            .value("inputs", nlohmann::json::array());
     for (const auto &item : inputsArray)
@@ -55,10 +60,10 @@ const std::unordered_map<std::string, IOChannel> &Config::getInputs() const
     return inputs;
 }
 
-const std::unordered_map<std::string, IOChannel> &Config::getOutputs() const
+std::unordered_map<std::string, IOChannel> Config::getOutputs() const
 {
-    static std::unordered_map<std::string, IOChannel> outputs;
-    outputs.clear();
+    std::lock_guard<std::mutex> lock(configMutex_);
+    std::unordered_map<std::string, IOChannel> outputs;
     auto outputsArray = configJson_.value("io", nlohmann::json::object())
                             .value("outputs", nlohmann::json::array());
     for (const auto &item : outputsArray)
@@ -78,64 +83,67 @@ const std::unordered_map<std::string, IOChannel> &Config::getOutputs() const
 
 nlohmann::json Config::getCommunicationSettings() const
 {
+    std::lock_guard<std::mutex> lock(configMutex_);
     return configJson_.value("communication", nlohmann::json::object());
 }
 
 nlohmann::json Config::getTimerSettings() const
 {
+    std::lock_guard<std::mutex> lock(configMutex_);
     return configJson_.value("timers", nlohmann::json::object());
 }
 
-// New function to get communication settings for a specific communication object
-// CommunicationSettings Config::getCommunicationSettings(const std::string &communicationName) const
-// {
-//     CommunicationSettings settings;
-//     // Default values
-//     settings.baudRate = 115200;
-//     settings.parity = 'N';
-//     settings.dataBits = 8;
-//     settings.stopBits = 1;
-//     settings.stx = 0x02; // Default STX
-//     settings.etx = 0x03; // Default ETX
-
-//     auto commSettings = configJson_.value("communication", nlohmann::json::object());
-//     if (commSettings.contains(communicationName))
-//     {
-//         auto specificCommSettings = commSettings[communicationName];
-//         settings.portName = specificCommSettings.value("portName", "");
-//         settings.baudRate = specificCommSettings.value("baudRate", settings.baudRate);
-
-//         std::string parityStr = specificCommSettings.value("parity", "N");
-//         if (parityStr == "N" || parityStr == "E" || parityStr == "O")
-//         {
-//             settings.parity = parityStr[0];
-//         }
-//         else
-//         {
-//             getLogger()->warn("Invalid parity setting for {}: {}. Using default 'N'.", communicationName, parityStr);
-//         }
-
-//         settings.dataBits = specificCommSettings.value("dataBits", settings.dataBits);
-//         settings.stopBits = specificCommSettings.value("stopBits", settings.stopBits);
-
-//         // Simplified STX handling
-//         settings.stx = parseCharSetting(specificCommSettings, "stx", settings.stx);
-
-//         // Simplified ETX handling
-//         settings.etx = parseCharSetting(specificCommSettings, "etx", settings.etx);
-//     }
-//     else
-//     {
-//         getLogger()->warn("Communication settings for {} not found in config. Using default values.", communicationName);
-//     }
-
-//     return settings;
-// }
-
+void Config::ensureDefaultCommunicationSettings()
+{
+    try {
+        std::lock_guard<std::mutex> lock(configMutex_);
+        
+        // Create communication object if it doesn't exist
+        if (!configJson_.contains("communication") || !configJson_["communication"].is_object()) {
+            configJson_["communication"] = nlohmann::json::object();
+        }
+        
+        // Ensure trigger field exists
+        if (!configJson_["communication"].contains("trigger")) {
+            configJson_["communication"]["trigger"] = "t";
+        }
+        
+        // Default settings for communication1
+        if (!configJson_["communication"].contains("communication1") || !configJson_["communication"]["communication1"].is_object()) {
+            configJson_["communication"]["communication1"] = {
+                {"portName", "COM1"},
+                {"baudRate", 115200},
+                {"parity", "N"},
+                {"dataBits", 8},
+                {"stopBits", 1},
+                {"stx", 2},
+                {"etx", "0x03"}
+            };
+        }
+        
+        // Default settings for communication2
+        if (!configJson_["communication"].contains("communication2") || !configJson_["communication"]["communication2"].is_object()) {
+            configJson_["communication"]["communication2"] = {
+                {"portName", "COM2"},
+                {"baudRate", 115200},
+                {"parity", "N"},
+                {"dataBits", 8},
+                {"stopBits", 1},
+                {"stx", ""},
+                {"etx", 3}
+            };
+        }
+        
+        getLogger()->info("Default communication settings ensured");
+    } catch (const std::exception& e) {
+        getLogger()->error("Error ensuring default communication settings: {}", e.what());
+    }
+}
 
 
 bool Config::isPci7248ConfigurationValid() const
 {
+    std::lock_guard<std::mutex> lock(configMutex_);
     bool isValid = true;
 
     // Define the expected mapping for PCI7248.

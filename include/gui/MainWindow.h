@@ -5,6 +5,7 @@
 #include "Event.h"
 #include "EventQueue.h"
 #include "gui/SettingsWindow.h"
+#include "Config.h"
 
 namespace Ui {
     class MainWindow;
@@ -14,8 +15,11 @@ class MainWindow : public QMainWindow {
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent, EventQueue<EventVariant>& eventQueue);
+    explicit MainWindow(QWidget *parent, EventQueue<EventVariant>& eventQueue, const Config& config);
     ~MainWindow();
+    
+    // Add a message to the message area
+    void addMessage(const QString& message, const QString& identifier = "");
 
 private slots:
     void on_runButton_clicked();
@@ -28,6 +32,7 @@ private:
     Ui::MainWindow *ui;
     EventQueue<EventVariant> &eventQueue_;
     SettingsWindow *settingsWindow_;
+    const Config* config_;
 
 };
 

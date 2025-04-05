@@ -48,18 +48,20 @@ int main(int argc, char* argv[]) {
 
     EventQueue<EventVariant> eventQueue;
 
-    // 1. GUI Initialization
+    // 1. Config Setup
+    Config config("config/settings.json");
+    
+    // 2. GUI Initialization
     QApplication app(argc, argv);
-    MainWindow mainWindow(nullptr, eventQueue);  // Pass reference to the event queue
+    MainWindow mainWindow(nullptr, eventQueue, config);  // Pass reference to the event queue and config
     mainWindow.show();
     
-    // 2. Logic Setup
-    Config config("config/settings.json");
+    // 3. Logic Setup
     Logic logic(eventQueue, config);
     g_Logic = &logic;
 
-    // QObject::connect(&logic, &Logic::updateGui, &mainWindow, &MainWindow::onUpdateGui);
-
+    // Connect Logic signals to MainWindow slots
+    QObject::connect(&logic, &Logic::guiMessage, &mainWindow, &MainWindow::addMessage);
 
     // 3. Start Logic in a separate thread
     std::thread logicThread([&logic]() {

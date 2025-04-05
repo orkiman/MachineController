@@ -24,6 +24,7 @@ public:
 
 signals:
     void updateGui(const QString &msg);
+    void guiMessage(const QString &msg, const QString &identifier);
     
 private:
     void handleEvent(const IOEvent& event);
@@ -34,7 +35,7 @@ private:
     void blinkLED(std::string channelName);
     
 
-    Config config_;
+    const Config& config_;
     EventQueue<EventVariant> &eventQueue_;
     PCI7248IO io_;
     std::atomic<bool> controllerRunning_;

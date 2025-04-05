@@ -3,7 +3,7 @@
 #include "Logger.h"
 
 Logic::Logic(EventQueue<EventVariant> &eventQueue, const Config &config)
-    : eventQueue_(eventQueue), config_(config), io_(eventQueue_, config_), controllerRunning_(true),
+    : eventQueue_(eventQueue), config_(config), io_(eventQueue_, config), controllerRunning_(true),
       communication1_(eventQueue, "communication1", config),
       communication2_(eventQueue, "communication2", config)
 {
@@ -139,7 +139,11 @@ void Logic::handleEvent(const GuiEvent &event)
     case GuiEventType::ErrorMessage:
         std::cerr << "[GUI Event] Error: " << event.data << std::endl;
         break;
-    case GuiEventType::SendMessage:
+    case GuiEventType::GuiMessage:
+        // Emit a signal that will be connected to MainWindow to display the message
+        emit guiMessage(QString::fromStdString(event.data), QString::fromStdString(event.identifier));
+        break;
+    case GuiEventType::SendCommunicationMessage:
         if (event.identifier == "communication1")
         {
             if (!communication1_.send(event.data))

@@ -85,7 +85,7 @@ private:
 
     // Dependencies & Configuration
     EventQueue<EventVariant>& eventQueue_; // Reference to the outgoing event queue
-    Config config_;                        // Copy of the system configuration
+    const Config& config_;                // Reference to the system configuration
 
     // Hardware & State Representation
     int card_; // DASK card handle (consider using I16 if defined by dask64.h)

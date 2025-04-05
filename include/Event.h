@@ -28,7 +28,8 @@ enum class GuiEventType {
     StatusRequest,
     StatusUpdate,
     ErrorMessage,
-    SendMessage
+    SendCommunicationMessage,
+    GuiMessage
 };
 
 struct GuiEvent {

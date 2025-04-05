@@ -39,6 +39,9 @@ private:
     
     // Helper function to parse char settings (STX, ETX) similar to RS232Communication::parseCharSetting
     int parseCharSetting(const nlohmann::json &settings, const std::string &key, int defaultValue);
+    
+    // Save settings from UI to Config
+    bool saveSettingsToConfig();
 
     Ui::SettingsWindow *ui;
     EventQueue<EventVariant>& eventQueue_;

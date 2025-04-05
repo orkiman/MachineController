@@ -241,9 +241,14 @@ void SettingsWindow::fillCommunicationTabFields() {
         ui->etx2LineEdit->setText("03"); // Default if not specified
     }
     
-    // Set trigger defaults
-    ui->commuication1TriggerLineEdit->setText("t");
-    ui->commuication2TriggerLineEdit->setText("t");
+    // Set trigger defaults only if they're not already set
+    if (ui->commuication1TriggerLineEdit->text().isEmpty()) {
+        ui->commuication1TriggerLineEdit->setText("t");
+    }
+    
+    if (ui->commuication2TriggerLineEdit->text().isEmpty()) {
+        ui->commuication2TriggerLineEdit->setText("t");
+    }
     
     // Emit a message to the event queue that settings were loaded
     eventQueue_.push(GuiEvent{GuiEventType::GuiMessage, "Communication settings loaded from JSON"});
@@ -259,8 +264,14 @@ void SettingsWindow::on_overrideOutputsCheckBox_stateChanged(int state) {
 
 void SettingsWindow::on_applyButton_clicked() {
     qDebug() << "Apply button clicked";
-    // Send a message through the event queue to notify about settings changes
-    eventQueue_.push(GuiEvent{GuiEventType::GuiMessage, "Settings applied"});
+    
+    // Save settings to Config
+    if (saveSettingsToConfig()) {
+        // Send a message through the event queue to notify about settings changes
+        eventQueue_.push(GuiEvent{GuiEventType::GuiMessage, "Settings applied and saved to configuration"});
+    } else {
+        eventQueue_.push(GuiEvent{GuiEventType::GuiMessage, "Failed to save settings", "error"});
+    }
 }
 
 void SettingsWindow::on_cancelButton_clicked() {
@@ -330,5 +341,151 @@ int SettingsWindow::parseCharSetting(const nlohmann::json &settings, const std::
     else {
         qDebug() << "Invalid type for " << QString::fromStdString(key) << " setting. Using default value.";
         return defaultValue;
+    }
+}
+
+bool SettingsWindow::saveSettingsToConfig() {
+    if (!config_) {
+        qDebug() << "Config object is null. Cannot save settings.";
+        return false;
+    }
+    
+    // We need to cast away the const-ness of config_ to modify it
+    // This is safe because we know the Config object is owned by MainWindow and outlives SettingsWindow
+    Config* mutableConfig = const_cast<Config*>(config_);
+    
+    // Create a new JSON object for communication settings
+    nlohmann::json commSettings = nlohmann::json::object();
+    
+    // Update communication1 settings
+    nlohmann::json comm1 = nlohmann::json::object();
+    comm1["portName"] = ui->portName1ComboBox->currentText().toStdString();
+    comm1["baudRate"] = ui->baudRate1ComboBox->currentText().toInt();
+    
+    // Convert parity from full word to single letter
+    QString parity1 = ui->parity1ComboBox->currentText();
+    if (parity1 == "None") comm1["parity"] = "N";
+    else if (parity1 == "Even") comm1["parity"] = "E";
+    else if (parity1 == "Odd") comm1["parity"] = "O";
+    else if (parity1 == "Mark") comm1["parity"] = "M";
+    else if (parity1 == "Space") comm1["parity"] = "S";
+    else comm1["parity"] = parity1.toStdString();
+    
+    comm1["dataBits"] = ui->dataBits1ComboBox->currentText().toInt();
+    comm1["stopBits"] = ui->stopBits1ComboBox->currentText().toDouble();
+    
+    // Handle STX/ETX values - convert from hex string to appropriate format
+    QString stx1Text = ui->stx1LineEdit->text().trimmed();
+    if (!stx1Text.isEmpty()) {
+        bool ok;
+        int stxValue = stx1Text.toInt(&ok, 16);
+        if (ok) {
+            // For small values (0-9), store as integers
+            if (stxValue <= 9) {
+                comm1["stx"] = stxValue;
+            } else {
+                // For larger values, store as hex strings
+                comm1["stx"] = "0x" + QString::number(stxValue, 16).rightJustified(2, '0').toStdString();
+            }
+        }
+    } else {
+        comm1["stx"] = "";
+    }
+    
+    QString etx1Text = ui->etx1LineEdit->text().trimmed();
+    if (!etx1Text.isEmpty()) {
+        bool ok;
+        int etxValue = etx1Text.toInt(&ok, 16);
+        if (ok) {
+            // For small values (0-9), store as integers
+            if (etxValue <= 9) {
+                comm1["etx"] = etxValue;
+            } else {
+                // For larger values, store as hex strings
+                comm1["etx"] = "0x" + QString::number(etxValue, 16).rightJustified(2, '0').toStdString();
+            }
+        }
+    } else {
+        comm1["etx"] = "";
+    }
+    
+    // Save trigger
+    comm1["trigger"] = ui->commuication1TriggerLineEdit->text().toStdString();
+    
+    // Update communication2 settings
+    nlohmann::json comm2 = nlohmann::json::object();
+    comm2["portName"] = ui->portName2ComboBox->currentText().toStdString();
+    comm2["baudRate"] = ui->baudRate2ComboBox->currentText().toInt();
+    
+    // Convert parity from full word to single letter
+    QString parity2 = ui->parity2ComboBox->currentText();
+    if (parity2 == "None") comm2["parity"] = "N";
+    else if (parity2 == "Even") comm2["parity"] = "E";
+    else if (parity2 == "Odd") comm2["parity"] = "O";
+    else if (parity2 == "Mark") comm2["parity"] = "M";
+    else if (parity2 == "Space") comm2["parity"] = "S";
+    else comm2["parity"] = parity2.toStdString();
+    
+    comm2["dataBits"] = ui->dataBits2ComboBox->currentText().toInt();
+    comm2["stopBits"] = ui->stopBits2ComboBox->currentText().toDouble();
+    
+    // Handle STX/ETX values - convert from hex string to appropriate format
+    QString stx2Text = ui->stx2LineEdit->text().trimmed();
+    if (!stx2Text.isEmpty()) {
+        bool ok;
+        int stxValue = stx2Text.toInt(&ok, 16);
+        if (ok) {
+            // For small values (0-9), store as integers
+            if (stxValue <= 9) {
+                comm2["stx"] = stxValue;
+            } else {
+                // For larger values, store as hex strings
+                comm2["stx"] = "0x" + QString::number(stxValue, 16).rightJustified(2, '0').toStdString();
+            }
+        }
+    } else {
+        comm2["stx"] = "";
+    }
+    
+    QString etx2Text = ui->etx2LineEdit->text().trimmed();
+    if (!etx2Text.isEmpty()) {
+        bool ok;
+        int etxValue = etx2Text.toInt(&ok, 16);
+        if (ok) {
+            // For small values (0-9), store as integers
+            if (etxValue <= 9) {
+                comm2["etx"] = etxValue;
+            } else {
+                // For larger values, store as hex strings
+                comm2["etx"] = "0x" + QString::number(etxValue, 16).rightJustified(2, '0').toStdString();
+            }
+        }
+    } else {
+        comm2["etx"] = "";
+    }
+    
+    // Save trigger
+    comm2["trigger"] = ui->commuication2TriggerLineEdit->text().toStdString();
+    
+    // Update the communication settings in the commSettings object
+    commSettings["communication1"] = comm1;
+    commSettings["communication2"] = comm2;
+    
+    // Update the Config object with the new communication settings
+    try {
+        // Update the communication settings
+        mutableConfig->updateCommunicationSettings(commSettings);
+        
+        // Save the configuration to file
+        if (mutableConfig->saveToFile()) {
+            qDebug() << "Settings saved to configuration file";
+            return true;
+        } else {
+            qDebug() << "Failed to save settings to configuration file";
+            return false;
+        }
+    } catch (const std::exception& e) {
+        qDebug() << "Exception while saving settings: " << e.what();
+        return false;
     }
 }

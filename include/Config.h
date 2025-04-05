@@ -28,10 +28,17 @@ public:
     
     // Ensures default communication settings exist in the config
     void ensureDefaultCommunicationSettings();
+    
+    // Updates communication settings with new values
+    void updateCommunicationSettings(const nlohmann::json& commSettings);
+    
+    // Saves the current configuration to a file
+    bool saveToFile(const std::string& filePath = "") const;
 
 private:
     nlohmann::json configJson_;
     mutable std::mutex configMutex_; // Mutex to protect concurrent access
+    std::string filePath_; // Store the original file path
 };
 
 #endif // CONFIG_H

@@ -1,58 +1,116 @@
 {
-    "io": {
-      "device": "PCI7248",
-      "portsConfiguration": {
-        "A": "output",
-        "B": "input",
-        "CL": "output",
-        "CH": "input"
-      },
-      "inputs": [
-        { "pin": 8, "name": "i8", "description": "i8 description" },
-        { "pin": 9, "name": "i9", "description": "i9 description" },
-        { "pin": 10, "name": "i10", "description": "10 description" },
-        { "pin": 11, "name": "i11", "description": "11 description" },
-        { "pin": 12, "name": "i12", "description": "12 description" },
-        { "pin": 13, "name": "i13", "description": "13 description" },
-        { "pin": 14, "name": "i14", "description": "14 description" },
-        { "pin": 15, "name": "i15", "description": "15 description" },
-        { "pin": 20, "name": "i20", "description": "20 description" },
-        { "pin": 21, "name": "i21", "description": "21 description" },
-        { "pin": 22, "name": "i22", "description": "22 description" },
-        { "pin": 23, "name": "i23", "description": "23 description" }
-      ],
-      "outputs": [
-        { "pin": 0, "name": "o0", "description": "main motor" },
-        { "pin": 1, "name": "o1", "description": "o1 description" },
-        { "pin": 7, "name": "o7", "description": "vacuum control" }
-      ]
+  "communication": {
+    "communication1": {
+      "baudRate": 115200,
+      "dataBits": 8,
+      "etx": 3,
+      "parity": "N",
+      "portName": "COM4",
+      "stopBits": 1.0,
+      "stx": 2,
+      "trigger": "t"
     },
-    "communication": {
-      "communication1": {
-        "portName": "COM1",
-        "baudRate": 9600,
-        "parity": "N",
-        "dataBits": 8,
-        "stopBits": 1,
-        "stx": 2,
-        "etx": "0x03",
-        "trigger": "t"
-      },
-      "communication2": {
-        "portName": "COM2",
-        "baudRate": 115200,
-        "parity": "N",
-        "dataBits": 8,
-        "stopBits": 1,
-        "stx": "",
-        "etx": 3,
-        "trigger": "t"
-
-      }
-    },
-    "timers": {
-      "pollInterval": 100,
-      "timeout": 5000
+    "communication2": {
+      "baudRate": 115200,
+      "dataBits": 8,
+      "etx": 3,
+      "parity": "N",
+      "portName": "COM2",
+      "stopBits": 1.0,
+      "stx": 2,
+      "trigger": "t"
     }
+  },
+  "io": {
+    "device": "PCI7248",
+    "inputs": [
+      {
+        "description": "i8 description",
+        "name": "i8",
+        "pin": 8
+      },
+      {
+        "description": "i9 description",
+        "name": "i9",
+        "pin": 9
+      },
+      {
+        "description": "10 description",
+        "name": "i10",
+        "pin": 10
+      },
+      {
+        "description": "11 description",
+        "name": "i11",
+        "pin": 11
+      },
+      {
+        "description": "12 description",
+        "name": "i12",
+        "pin": 12
+      },
+      {
+        "description": "13 description",
+        "name": "i13",
+        "pin": 13
+      },
+      {
+        "description": "14 description",
+        "name": "i14",
+        "pin": 14
+      },
+      {
+        "description": "15 description",
+        "name": "i15",
+        "pin": 15
+      },
+      {
+        "description": "20 description",
+        "name": "i20",
+        "pin": 20
+      },
+      {
+        "description": "21 description",
+        "name": "i21",
+        "pin": 21
+      },
+      {
+        "description": "22 description",
+        "name": "i22",
+        "pin": 22
+      },
+      {
+        "description": "23 description",
+        "name": "i23",
+        "pin": 23
+      }
+    ],
+    "outputs": [
+      {
+        "description": "main motor",
+        "name": "o0",
+        "pin": 0
+      },
+      {
+        "description": "o1 description",
+        "name": "o1",
+        "pin": 1
+      },
+      {
+        "description": "vacuum control",
+        "name": "o7",
+        "pin": 7
+      }
+    ],
+    "portsConfiguration": {
+      "A": "output",
+      "B": "input",
+      "CH": "input",
+      "CL": "output"
+    }
+  },
+  "timers": {
+    "pollInterval": 100,
+    "timeout": 5000
   }
-  
+}

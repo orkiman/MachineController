@@ -1,12 +1,14 @@
 // Config.cpp
 #include "Config.h"
 #include <fstream>
+#include <iomanip>
 #include <stdexcept>
 #include "Logger.h"
 #include "io/IOChannel.h"
 
 Config::Config(const std::string &filePath)
 {
+    filePath_ = filePath;
     std::ifstream file(filePath);
     if (!file)
     {
@@ -93,6 +95,23 @@ nlohmann::json Config::getTimerSettings() const
     return configJson_.value("timers", nlohmann::json::object());
 }
 
+void Config::updateCommunicationSettings(const nlohmann::json& commSettings)
+{
+    try {
+        std::lock_guard<std::mutex> lock(configMutex_);
+        
+        // Update communication settings
+        if (commSettings.is_object()) {
+            configJson_["communication"] = commSettings;
+            getLogger()->info("Communication settings updated");
+        } else {
+            getLogger()->error("Invalid communication settings format");
+        }
+    } catch (const std::exception& e) {
+        getLogger()->error("Error updating communication settings: {}", e.what());
+    }
+}
+
 void Config::ensureDefaultCommunicationSettings()
 {
     try {
@@ -140,6 +159,42 @@ void Config::ensureDefaultCommunicationSettings()
     }
 }
 
+
+bool Config::saveToFile(const std::string& filePath) const
+{
+    try {
+        std::lock_guard<std::mutex> lock(configMutex_);
+        
+        // Use provided path or original path if empty
+        std::string targetPath = filePath.empty() ? filePath_ : filePath;
+        
+        if (targetPath.empty()) {
+            getLogger()->error("Cannot save configuration: No file path specified");
+            return false;
+        }
+        
+        // Create output file stream
+        std::ofstream file(targetPath, std::ios::out | std::ios::trunc);
+        if (!file) {
+            getLogger()->error("Failed to open file for writing: {}", targetPath);
+            return false;
+        }
+        
+        // Write formatted JSON to file with indentation
+        file << std::setw(2) << configJson_ << std::endl;
+        
+        if (file.bad()) {
+            getLogger()->error("Error writing to file: {}", targetPath);
+            return false;
+        }
+        
+        getLogger()->info("Configuration successfully saved to: {}", targetPath);
+        return true;
+    } catch (const std::exception& e) {
+        getLogger()->error("Exception while saving configuration: {}", e.what());
+        return false;
+    }
+}
 
 bool Config::isPci7248ConfigurationValid() const
 {

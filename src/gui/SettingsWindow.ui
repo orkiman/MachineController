@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>626</width>
-    <height>431</height>
+    <width>662</width>
+    <height>774</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -306,13 +306,18 @@ QDialog[overrideOutputs=&quot;true&quot;] {
            <string>Duration (ms)</string>
           </property>
          </column>
+         <column>
+          <property name="text">
+           <string>Description</string>
+          </property>
+         </column>
         </widget>
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="diagnosticsTab">
+     <widget class="QWidget" name="IOTab">
       <attribute name="title">
-       <string>Diagnostics</string>
+       <string>IO</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
@@ -398,21 +403,9 @@ QCheckBox {
          </column>
          <column>
           <property name="text">
-           <string>Override</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
            <string>State</string>
           </property>
          </column>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="refreshButton">
-         <property name="text">
-          <string>Refresh</string>
-         </property>
         </widget>
        </item>
       </layout>

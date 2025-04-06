@@ -29,8 +29,14 @@ public:
     // Ensures default communication settings exist in the config
     void ensureDefaultCommunicationSettings();
     
+    // Ensures default timer settings exist in the config
+    void ensureDefaultTimerSettings();
+    
     // Updates communication settings with new values
     void updateCommunicationSettings(const nlohmann::json& commSettings);
+    
+    // Updates timer settings with new values
+    void updateTimerSettings(const nlohmann::json& timerSettings);
     
     // Saves the current configuration to a file
     bool saveToFile(const std::string& filePath = "") const;

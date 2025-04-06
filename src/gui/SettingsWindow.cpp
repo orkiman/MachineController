@@ -4,6 +4,7 @@
 #include <QDebug>
 #include <QFile>
 #include <QDir>
+#include <QTimer>
 
 SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQueue, const Config& config)
     : QDialog(parent),
@@ -15,6 +16,15 @@ SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQ
     
     // Fill the communication tab fields with default values
     fillCommunicationTabFields();
+    
+    // Fill the timers tab fields with values from config
+    fillTimersTabFields();
+    
+    // Fill the IO tab with inputs and outputs from config
+    fillIOTabFields();
+    
+    // Connect change events for all editable fields
+    connectChangeEvents();
 }
 
 SettingsWindow::~SettingsWindow() {
@@ -49,6 +59,10 @@ bool SettingsWindow::loadSettingsFromJson(const QString& filePath) {
     }
     
     file.close();
+    
+    // Load timer settings
+    fillTimersTabFields();
+    
     return true;
 }
 
@@ -262,10 +276,32 @@ void SettingsWindow::fillCommunicationTabFields() {
 
 void SettingsWindow::on_overrideOutputsCheckBox_stateChanged(int state) {
     // Set the dynamic property "overrideOutputs" based on the checkbox state
-    setProperty("overrideOutputs", state == Qt::Checked);
+    bool enableOverrides = (state == Qt::Checked);
+    setProperty("overrideOutputs", enableOverrides);
     style()->unpolish(this);
     style()->polish(this);
     update();
+    
+    // Enable or disable all output state checkboxes based on the override checkbox state
+    for (int row = 0; row < ui->outputOverridesTable->rowCount(); ++row) {
+        QWidget* widget = ui->outputOverridesTable->cellWidget(row, 2);
+        if (widget) {
+            QCheckBox* checkbox = widget->findChild<QCheckBox*>();
+            if (checkbox) {
+                checkbox->setEnabled(enableOverrides);
+                if(!enableOverrides)
+                checkbox->setChecked(false);
+            }
+        }
+    }
+    
+    // Emit signal to notify Logic about the override state change
+    emit outputOverrideStateChanged(enableOverrides);
+    
+    // If override is enabled, also send the current output states
+    if (enableOverrides) {
+        sendCurrentOutputStates();
+    }
 }
 
 void SettingsWindow::on_applyButton_clicked() {
@@ -273,13 +309,23 @@ void SettingsWindow::on_applyButton_clicked() {
     
     // Save settings to Config
     if (saveSettingsToConfig()) {
-        // Send a message through the event queue to notify about settings changes
-        eventQueue_.push(GuiEvent{GuiEventType::GuiMessage, "Settings applied and saved to configuration"});
+        eventQueue_.push(GuiEvent{GuiEventType::GuiMessage, "Settings saved successfully", "info"});
+        
+        // Set the refreshing flag to prevent marking items as changed during refresh
+        isRefreshing_ = true;
+        
+        // Reset all changed field markings after successful save
+        resetChangedFields();
+        
+        // Refresh the timer fields to show the updated values
+        fillTimersTabFields();
+        
+        // Reset the refreshing flag
+        isRefreshing_ = false;
     } else {
         eventQueue_.push(GuiEvent{GuiEventType::GuiMessage, "Failed to save settings", "error"});
     }
 }
-
 void SettingsWindow::on_cancelButton_clicked() {
     qDebug() << "Cancel button clicked";
     close();
@@ -290,7 +336,287 @@ void SettingsWindow::on_defaultsButton_clicked() {
     fillWithDefaults();
 }
 
-void SettingsWindow::fillWithDefaults() {
+
+
+void SettingsWindow::on_refreshButton_clicked()
+{
+    qDebug() << "Refresh button clicked";
+    fillIOTabFields();
+    eventQueue_.push(GuiEvent{GuiEventType::GuiMessage, "IO states refreshed", "info"});
+}
+
+void SettingsWindow::updateInputStates(const std::unordered_map<std::string, IOChannel>& inputs)
+{
+    // Only update the states in the input table, don't recreate the entire table
+    for (int row = 0; row < ui->inputStatesTable->rowCount(); ++row) {
+        // Get the input name from the first column
+        QTableWidgetItem* nameItem = ui->inputStatesTable->item(row, 0);
+        if (nameItem) {
+            std::string name = nameItem->text().toStdString();
+            
+            // Check if this input exists in the provided map
+            auto it = inputs.find(name);
+            if (it != inputs.end()) {
+                // Get the current state in the table
+                QTableWidgetItem* stateItem = ui->inputStatesTable->item(row, 2);
+                if (stateItem) {
+                    int currentState = stateItem->text().toInt();
+                    int newState = it->second.state;
+                    
+                    // Only update and highlight if the state has actually changed
+                    if (currentState != newState) {
+                        stateItem->setText(QString::number(newState));
+                        
+                        // Highlight the row if the state has changed (visual feedback)
+                        stateItem->setBackground(QBrush(QColor(255, 255, 0, 64))); // Light yellow highlight
+                        
+                        // Schedule the highlight to be removed after a short delay
+                        QTimer* timer = new QTimer(this);
+                        timer->setSingleShot(true);
+                        connect(timer, &QTimer::timeout, [stateItem, timer]() {
+                            stateItem->setBackground(QBrush());
+                            timer->deleteLater(); // Clean up the timer
+                        });
+                        timer->start(500); // 500 ms delay
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+void SettingsWindow::fillIOTabFields() {
+    if (!config_) {
+        qDebug() << "Config object is null. Cannot load IO settings.";
+        return;
+    }
+    
+    try {
+        // Clear the input states table
+        ui->inputStatesTable->setRowCount(0);
+        
+        // Get inputs from config
+        auto inputs = config_->getInputs();
+        
+        // Populate input states table
+        for (const auto& input : inputs) {
+            const std::string& name = input.first;
+            const IOChannel& channel = input.second;
+            
+            // Add a new row to the table
+            int row = ui->inputStatesTable->rowCount();
+            ui->inputStatesTable->insertRow(row);
+            
+            // Create and set table items
+            QTableWidgetItem* nameItem = new QTableWidgetItem(QString::fromStdString(name));
+            QTableWidgetItem* descItem = new QTableWidgetItem(QString::fromStdString(channel.description));
+            QTableWidgetItem* stateItem = new QTableWidgetItem(QString::number(channel.state));
+            
+            // Set the items as non-editable
+            nameItem->setFlags(nameItem->flags() & ~Qt::ItemIsEditable);
+            descItem->setFlags(descItem->flags() & ~Qt::ItemIsEditable);
+            stateItem->setFlags(stateItem->flags() & ~Qt::ItemIsEditable);
+            
+            // Add items to the table
+            ui->inputStatesTable->setItem(row, 0, nameItem);
+            ui->inputStatesTable->setItem(row, 1, descItem);
+            ui->inputStatesTable->setItem(row, 2, stateItem);
+        }
+        
+        // Clear the output overrides table
+        ui->outputOverridesTable->setRowCount(0);
+        
+        // Get outputs from config
+        auto outputs = config_->getOutputs();
+        
+        // Populate output overrides table
+        for (const auto& output : outputs) {
+            const std::string& name = output.first;
+            const IOChannel& channel = output.second;
+            
+            // Add a new row to the table
+            int row = ui->outputOverridesTable->rowCount();
+            ui->outputOverridesTable->insertRow(row);
+            
+            // Create and set table items
+            QTableWidgetItem* nameItem = new QTableWidgetItem(QString::fromStdString(name));
+            QTableWidgetItem* descItem = new QTableWidgetItem(QString::fromStdString(channel.description));
+            
+            // Create a checkbox for state
+            QWidget* stateWidget = new QWidget();
+            QCheckBox* stateCheckBox = new QCheckBox();
+            QHBoxLayout* stateLayout = new QHBoxLayout(stateWidget);
+            stateLayout->addWidget(stateCheckBox);
+            stateLayout->setAlignment(Qt::AlignCenter);
+            stateLayout->setContentsMargins(0, 0, 0, 0);
+            stateWidget->setLayout(stateLayout);
+            
+            // Set initial state
+            stateCheckBox->setChecked(channel.state != 0);
+            stateCheckBox->setEnabled(false); // Initially disabled
+            
+            // Store the output name as property for later use when handling state changes
+            stateCheckBox->setProperty("outputName", QString::fromStdString(name));
+            
+            // Set the items as non-editable
+            nameItem->setFlags(nameItem->flags() & ~Qt::ItemIsEditable);
+            descItem->setFlags(descItem->flags() & ~Qt::ItemIsEditable);
+            
+            // Add items to the table
+            ui->outputOverridesTable->setItem(row, 0, nameItem);
+            ui->outputOverridesTable->setItem(row, 1, descItem);
+            ui->outputOverridesTable->setCellWidget(row, 2, stateWidget);
+        }
+        
+        // Adjust column widths
+        ui->inputStatesTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+        ui->outputOverridesTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+        
+        // Disable state checkboxes if override is not enabled
+        bool enableOverrides = ui->overrideOutputsCheckBox->isChecked();
+        for (int row = 0; row < ui->outputOverridesTable->rowCount(); ++row) {
+            QWidget* widget = ui->outputOverridesTable->cellWidget(row, 2);
+            if (widget) {
+                QCheckBox* checkbox = widget->findChild<QCheckBox*>();
+                if (checkbox) {
+                    checkbox->setEnabled(enableOverrides);
+                    
+                    // Disconnect any existing connections to avoid duplicates
+                    disconnect(checkbox, &QCheckBox::stateChanged, nullptr, nullptr);
+                    
+                    // Connect checkbox state change to handle output overrides
+                    // We use a lambda to capture the checkbox for each connection
+                    // Note: Using stateChanged instead of checkStateChanged for compatibility
+                    // with the existing UI connections, despite it being deprecated
+                    connect(checkbox, &QCheckBox::stateChanged, [this, checkbox](int state) {
+                        QString outputName = checkbox->property("outputName").toString();
+                        if (!outputName.isEmpty()) {
+                            // Call the handler method to process the output state change
+                            handleOutputCheckboxStateChanged(outputName, state);
+                        }
+                    });
+                }
+            }
+        }
+        
+    } catch (const std::exception& e) {
+        qDebug() << "Exception while loading IO settings: " << e.what();
+    }
+}
+
+// Collect and send current output states to Logic
+void SettingsWindow::sendCurrentOutputStates() {
+    // Create a map to hold the output states
+    std::unordered_map<std::string, IOChannel> outputs;
+    
+    // Iterate through all rows in the output overrides table
+    for (int row = 0; row < ui->outputOverridesTable->rowCount(); ++row) {
+        // Get the output name from the first column
+        QTableWidgetItem* nameItem = ui->outputOverridesTable->item(row, 0);
+        if (nameItem) {
+            std::string name = nameItem->text().toStdString();
+            
+            // Get the checkbox state from the third column
+            QWidget* widget = ui->outputOverridesTable->cellWidget(row, 2);
+            if (widget) {
+                QCheckBox* checkbox = widget->findChild<QCheckBox*>();
+                if (checkbox) {
+                    // Create an IOChannel with the current state
+                    IOChannel channel;
+                    channel.state = checkbox->isChecked() ? 1 : 0;
+                    
+                    // Get description from the second column
+                    QTableWidgetItem* descItem = ui->outputOverridesTable->item(row, 1);
+                    if (descItem) {
+                        channel.description = descItem->text().toStdString();
+                    }
+                    
+                    // Add to the outputs map
+                    outputs[name] = channel;
+                }
+            }
+        }
+    }
+    
+    // Emit the signal with the collected output states
+    if (!outputs.empty()) {
+        emit outputStateChanged(outputs);
+    }
+}
+
+// Handle individual output checkbox state changes
+void SettingsWindow::handleOutputCheckboxStateChanged(const QString& outputName, int state) {
+    qDebug() << "Output override for " << outputName << ": " << (state == Qt::Checked ? "ON" : "OFF");
+    
+    // Send updated output states to Logic
+    sendCurrentOutputStates();
+}
+
+void SettingsWindow::fillTimersTabFields()
+{
+    // Set the refreshing flag to prevent marking items as changed during loading
+    isRefreshing_ = true;
+    
+    if (!config_) {
+        qDebug() << "Config object is null. Cannot load timer settings.";
+        isRefreshing_ = false; // Reset flag
+        return;
+    }
+    
+    try {
+        // Clear the timers table
+        ui->timersTable->setRowCount(0);
+        
+        // Get timer settings from config
+        nlohmann::json timerSettings = config_->getTimerSettings();
+        
+        // Iterate through all timer entries
+        for (auto it = timerSettings.begin(); it != timerSettings.end(); ++it) {
+            const std::string& timerName = it.key();
+            const nlohmann::json& timerData = it.value();
+            
+            // Skip if not an object
+            if (!timerData.is_object()) {
+                continue;
+            }
+            
+            // Get timer properties
+            int duration = timerData.value("duration", 1000);
+            std::string description = timerData.value("description", "");
+            
+            // Add a new row to the table
+            int row = ui->timersTable->rowCount();
+            ui->timersTable->insertRow(row);
+            
+            // Create and set table items
+            QTableWidgetItem* nameItem = new QTableWidgetItem(QString::fromStdString(timerName));
+            QTableWidgetItem* durationItem = new QTableWidgetItem(QString::number(duration));
+            QTableWidgetItem* descriptionItem = new QTableWidgetItem(QString::fromStdString(description));
+            
+            // Disable editing for name and description fields
+            nameItem->setFlags(nameItem->flags() & ~Qt::ItemIsEditable);
+            descriptionItem->setFlags(descriptionItem->flags() & ~Qt::ItemIsEditable);
+            
+            // Add items to the table
+            ui->timersTable->setItem(row, 0, nameItem);
+            ui->timersTable->setItem(row, 1, durationItem);
+            ui->timersTable->setItem(row, 2, descriptionItem);
+            
+            // Set background color for disabled fields to indicate they're not editable
+            nameItem->setBackground(QBrush(QColor(240, 240, 240)));
+            descriptionItem->setBackground(QBrush(QColor(240, 240, 240)));
+        }
+    } catch (const std::exception& e) {
+        qDebug() << "Exception while loading timer settings: " << e.what();
+    }
+    
+    // Reset the refreshing flag
+    isRefreshing_ = false;
+}
+
+void SettingsWindow::fillWithDefaults()
+{
     // Fill Communication 1 Tab with default values
     ui->portName1ComboBox->setCurrentText("COM1");
     ui->baudRate1ComboBox->setCurrentText("115200");
@@ -299,6 +625,7 @@ void SettingsWindow::fillWithDefaults() {
     ui->stopBits1ComboBox->setCurrentText("1");
     ui->stx1LineEdit->setText("02");
     ui->etx1LineEdit->setText("03");
+    ui->commuication1TriggerLineEdit->setText("t");
     
     // Fill Communication 2 Tab with default values
     ui->portName2ComboBox->setCurrentText("COM2");
@@ -308,13 +635,47 @@ void SettingsWindow::fillWithDefaults() {
     ui->stopBits2ComboBox->setCurrentText("1");
     ui->stx2LineEdit->setText("02");
     ui->etx2LineEdit->setText("03");
-    
-        // Set trigger defaults
-    ui->commuication1TriggerLineEdit->setText("t");
     ui->commuication2TriggerLineEdit->setText("t");
+    
+    // Fill Timers Tab with default values
+    ui->timersTable->setRowCount(0);
+    
+    // Add default timers
+    // Timer 1
+    int row = ui->timersTable->rowCount();
+    ui->timersTable->insertRow(row);
+    QTableWidgetItem* nameItem1 = new QTableWidgetItem("timer1");
+    QTableWidgetItem* durationItem1 = new QTableWidgetItem("1000");
+    QTableWidgetItem* descriptionItem1 = new QTableWidgetItem("General purpose timer 1");
+    ui->timersTable->setItem(row, 0, nameItem1);
+    ui->timersTable->setItem(row, 1, durationItem1);
+    ui->timersTable->setItem(row, 2, descriptionItem1);
+    
+    // Timer 2
+    row = ui->timersTable->rowCount();
+    ui->timersTable->insertRow(row);
+    QTableWidgetItem* nameItem2 = new QTableWidgetItem("timer2");
+    QTableWidgetItem* durationItem2 = new QTableWidgetItem("2000");
+    QTableWidgetItem* descriptionItem2 = new QTableWidgetItem("General purpose timer 2");
+    ui->timersTable->setItem(row, 0, nameItem2);
+    ui->timersTable->setItem(row, 1, durationItem2);
+    ui->timersTable->setItem(row, 2, descriptionItem2);
+    
+    // Timer 3
+    row = ui->timersTable->rowCount();
+    ui->timersTable->insertRow(row);
+    QTableWidgetItem* nameItem3 = new QTableWidgetItem("timer3");
+    QTableWidgetItem* durationItem3 = new QTableWidgetItem("5000");
+    QTableWidgetItem* descriptionItem3 = new QTableWidgetItem("General purpose timer 3");
+    ui->timersTable->setItem(row, 0, nameItem3);
+    ui->timersTable->setItem(row, 1, durationItem3);
+    ui->timersTable->setItem(row, 2, descriptionItem3);
     
     // Notify that default settings were loaded
     eventQueue_.push(GuiEvent{GuiEventType::GuiMessage, "Default communication settings loaded", "settings"});
+    
+    // Prevent marking items as changed during refresh
+    isRefreshing_ = true;
 }
 
 // Helper function to parse char settings (STX, ETX) similar to RS232Communication::parseCharSetting
@@ -479,10 +840,37 @@ bool SettingsWindow::saveSettingsToConfig() {
     commSettings["communication1"] = comm1;
     commSettings["communication2"] = comm2;
     
-    // Update the Config object with the new communication settings
+    // Create a new JSON object for timer settings
+    nlohmann::json timerSettings = nlohmann::json::object();
+    
+    // Get timer settings from the table
+    for (int row = 0; row < ui->timersTable->rowCount(); ++row) {
+        QTableWidgetItem* nameItem = ui->timersTable->item(row, 0);
+        QTableWidgetItem* durationItem = ui->timersTable->item(row, 1);
+        QTableWidgetItem* descriptionItem = ui->timersTable->item(row, 2);
+        
+        if (nameItem && durationItem && descriptionItem) {
+            std::string timerName = nameItem->text().toStdString();
+            int duration = durationItem->text().toInt();
+            std::string description = descriptionItem->text().toStdString();
+            
+            // Create timer object
+            nlohmann::json timerObject = nlohmann::json::object();
+            timerObject["duration"] = duration;
+            timerObject["description"] = description;
+            
+            // Add to timer settings
+            timerSettings[timerName] = timerObject;
+        }
+    }
+    
+    // Update the Config object with the new settings
     try {
         // Update the communication settings
         mutableConfig->updateCommunicationSettings(commSettings);
+        
+        // Update the timer settings
+        mutableConfig->updateTimerSettings(timerSettings);
         
         // Save the configuration to file
         if (mutableConfig->saveToFile()) {
@@ -496,4 +884,61 @@ bool SettingsWindow::saveSettingsToConfig() {
         qDebug() << "Exception while saving settings: " << e.what();
         return false;
     }
+}
+
+void SettingsWindow::markAsChanged(QWidget* widget) {
+    // Set light red background to indicate a changed value
+    QPalette palette = widget->palette();
+    palette.setColor(QPalette::Base, QColor(255, 200, 200)); // Light red
+    widget->setPalette(palette);
+}
+
+void SettingsWindow::resetChangedFields() {
+    // Reset background color for all editable fields
+    
+    // Communication tab fields
+    QList<QComboBox*> comboBoxes = findChildren<QComboBox*>();
+    for (QComboBox* comboBox : comboBoxes) {
+        comboBox->setPalette(QPalette());
+    }
+    
+    QList<QLineEdit*> lineEdits = findChildren<QLineEdit*>();
+    for (QLineEdit* lineEdit : lineEdits) {
+        lineEdit->setPalette(QPalette());
+    }
+    
+    // Timer table cells
+    for (int row = 0; row < ui->timersTable->rowCount(); ++row) {
+        QTableWidgetItem* durationItem = ui->timersTable->item(row, 1);
+        if (durationItem) {
+            // Clear the background color completely
+            durationItem->setBackground(QBrush(Qt::transparent));
+        }
+    }
+}
+
+void SettingsWindow::connectChangeEvents() {
+    // Connect change events for ComboBoxes
+    QList<QComboBox*> comboBoxes = findChildren<QComboBox*>();
+    for (QComboBox* comboBox : comboBoxes) {
+        connect(comboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), [this, comboBox](int) {
+            markAsChanged(comboBox);
+        });
+    }
+    
+    // Connect change events for LineEdits
+    QList<QLineEdit*> lineEdits = findChildren<QLineEdit*>();
+    for (QLineEdit* lineEdit : lineEdits) {
+        connect(lineEdit, &QLineEdit::textChanged, [this, lineEdit](const QString&) {
+            markAsChanged(lineEdit);
+        });
+    }
+    
+    // Connect change events for timer duration cells
+    connect(ui->timersTable, &QTableWidget::itemChanged, [this](QTableWidgetItem* item) {
+        // Only mark duration column (column 1) as changed and only if not refreshing
+        if (item && item->column() == 1 && !isRefreshing_) {
+            item->setBackground(QBrush(QColor(255, 200, 200))); // Light red
+        }
+    });
 }

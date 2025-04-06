@@ -18,6 +18,9 @@ public:
     explicit MainWindow(QWidget *parent, EventQueue<EventVariant>& eventQueue, const Config& config);
     ~MainWindow();
     
+    // Getter for the SettingsWindow
+    SettingsWindow* getSettingsWindow() const { return settingsWindow_; }
+    
     // Add a message to the message area
     void addMessage(const QString& message, const QString& identifier = "");
 

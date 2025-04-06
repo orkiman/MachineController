@@ -24,14 +24,32 @@ public:
     // Fill communication tab fields with values from settings.json
     void fillCommunicationTabFields();
     
+    // Fill timers tab fields with values from settings.json
+    void fillTimersTabFields();
+    
+    // Fill IO tab with inputs and outputs from config
+    void fillIOTabFields();
+    
+ public slots:
+    // Update input states in the IO tab
+    void updateInputStates(const std::unordered_map<std::string, IOChannel>& inputs);
+    
     // Load settings from JSON file
     bool loadSettingsFromJson(const QString& filePath = "config/settings.json");
+
+signals:
+    // Signal emitted when output override is enabled/disabled
+    void outputOverrideStateChanged(bool enabled);
+    
+    // Signal emitted when an output state is changed via the UI
+    void outputStateChanged(const std::unordered_map<std::string, IOChannel>& outputs);
 
 private slots:
     void on_overrideOutputsCheckBox_stateChanged(int state);
     void on_applyButton_clicked();
     void on_cancelButton_clicked();
     void on_defaultsButton_clicked();
+    void on_refreshButton_clicked();
 
 private:
     // Helper function to fill fields with default values
@@ -42,10 +60,26 @@ private:
     
     // Save settings from UI to Config
     bool saveSettingsToConfig();
+    
+    // Collect and send current output states to Logic
+    void sendCurrentOutputStates();
+    
+    // Handle output checkbox state change
+    void handleOutputCheckboxStateChanged(const QString& outputName, int state);
+    
+    // Mark a field as changed (with light red background)
+    void markAsChanged(QWidget* widget);
+    
+    // Reset all changed field markings
+    void resetChangedFields();
+    
+    // Connect change events for all editable fields
+    void connectChangeEvents();
 
     Ui::SettingsWindow *ui;
     EventQueue<EventVariant>& eventQueue_;
     const Config* config_; // Pointer to Config object
+    bool isRefreshing_ = false; // Flag to prevent marking items as changed during refresh
 };
 
 #endif // SETTINGSWINDOW_H

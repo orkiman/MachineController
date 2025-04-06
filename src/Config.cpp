@@ -18,6 +18,9 @@ Config::Config(const std::string &filePath)
     
     // Ensure default communication settings exist
     ensureDefaultCommunicationSettings();
+    
+    // Ensure default timer settings exist
+    ensureDefaultTimerSettings();
 }
 
 std::string Config::getIODevice() const
@@ -112,48 +115,64 @@ void Config::updateCommunicationSettings(const nlohmann::json& commSettings)
     }
 }
 
+void Config::updateTimerSettings(const nlohmann::json& timerSettings)
+{
+    try {
+        std::lock_guard<std::mutex> lock(configMutex_);
+        
+        // Update timer settings
+        if (timerSettings.is_object()) {
+            configJson_["timers"] = timerSettings;
+            getLogger()->info("Timer settings updated");
+        } else {
+            getLogger()->error("Invalid timer settings format");
+        }
+    } catch (const std::exception& e) {
+        getLogger()->error("Error updating timer settings: {}", e.what());
+    }
+}
+
 void Config::ensureDefaultCommunicationSettings()
 {
     try {
         std::lock_guard<std::mutex> lock(configMutex_);
         
-        // Create communication object if it doesn't exist
+        // Check if communication section exists, if not create it
         if (!configJson_.contains("communication") || !configJson_["communication"].is_object()) {
             configJson_["communication"] = nlohmann::json::object();
         }
         
-        // Ensure trigger field exists
-        if (!configJson_["communication"].contains("trigger")) {
-            configJson_["communication"]["trigger"] = "t";
-        }
-        
-        // Default settings for communication1
+        // Ensure communication1 settings exist with defaults
         if (!configJson_["communication"].contains("communication1") || !configJson_["communication"]["communication1"].is_object()) {
-            configJson_["communication"]["communication1"] = {
-                {"port", "COM1"},
-                {"description", "reader1"},
-                {"baudRate", 115200},
-                {"parity", "N"},
-                {"dataBits", 8},
-                {"stopBits", 1},
-                {"stx", 2},
-                {"etx", "0x03"}
-            };
+            configJson_["communication"]["communication1"] = nlohmann::json::object();
         }
         
-        // Default settings for communication2
+        auto& comm1 = configJson_["communication"]["communication1"];
+        if (!comm1.contains("port")) comm1["port"] = "COM1";
+        if (!comm1.contains("description")) comm1["description"] = "reader1";
+        if (!comm1.contains("baudRate")) comm1["baudRate"] = 115200;
+        if (!comm1.contains("parity")) comm1["parity"] = "N";
+        if (!comm1.contains("dataBits")) comm1["dataBits"] = 8;
+        if (!comm1.contains("stopBits")) comm1["stopBits"] = 1.0;
+        if (!comm1.contains("stx")) comm1["stx"] = 2;
+        if (!comm1.contains("etx")) comm1["etx"] = 3;
+        if (!comm1.contains("trigger")) comm1["trigger"] = "t";
+        
+        // Ensure communication2 settings exist with defaults
         if (!configJson_["communication"].contains("communication2") || !configJson_["communication"]["communication2"].is_object()) {
-            configJson_["communication"]["communication2"] = {
-                {"port", "COM2"},
-                {"description", "reader2"},
-                {"baudRate", 115200},
-                {"parity", "N"},
-                {"dataBits", 8},
-                {"stopBits", 1},
-                {"stx", ""},
-                {"etx", 3}
-            };
+            configJson_["communication"]["communication2"] = nlohmann::json::object();
         }
+        
+        auto& comm2 = configJson_["communication"]["communication2"];
+        if (!comm2.contains("port")) comm2["port"] = "COM2";
+        if (!comm2.contains("description")) comm2["description"] = "reader2";
+        if (!comm2.contains("baudRate")) comm2["baudRate"] = 115200;
+        if (!comm2.contains("parity")) comm2["parity"] = "N";
+        if (!comm2.contains("dataBits")) comm2["dataBits"] = 8;
+        if (!comm2.contains("stopBits")) comm2["stopBits"] = 1.0;
+        if (!comm2.contains("stx")) comm2["stx"] = 2;
+        if (!comm2.contains("etx")) comm2["etx"] = 3;
+        if (!comm2.contains("trigger")) comm2["trigger"] = "t";
         
         getLogger()->info("Default communication settings ensured");
     } catch (const std::exception& e) {
@@ -161,6 +180,42 @@ void Config::ensureDefaultCommunicationSettings()
     }
 }
 
+void Config::ensureDefaultTimerSettings()
+{
+    try {
+        std::lock_guard<std::mutex> lock(configMutex_);
+        
+        // Check if timers section exists, if not create it
+        if (!configJson_.contains("timers") || !configJson_["timers"].is_object()) {
+            configJson_["timers"] = nlohmann::json::object();
+        }
+        
+        // Ensure timer1 settings exist with defaults
+        if (!configJson_["timers"].contains("timer1") || !configJson_["timers"]["timer1"].is_object()) {
+            configJson_["timers"]["timer1"] = nlohmann::json::object();
+            configJson_["timers"]["timer1"]["duration"] = 1000;
+            configJson_["timers"]["timer1"]["description"] = "General purpose timer 1";
+        }
+        
+        // Ensure timer2 settings exist with defaults
+        if (!configJson_["timers"].contains("timer2") || !configJson_["timers"]["timer2"].is_object()) {
+            configJson_["timers"]["timer2"] = nlohmann::json::object();
+            configJson_["timers"]["timer2"]["duration"] = 2000;
+            configJson_["timers"]["timer2"]["description"] = "General purpose timer 2";
+        }
+        
+        // Ensure timer3 settings exist with defaults
+        if (!configJson_["timers"].contains("timer3") || !configJson_["timers"]["timer3"].is_object()) {
+            configJson_["timers"]["timer3"] = nlohmann::json::object();
+            configJson_["timers"]["timer3"]["duration"] = 5000;
+            configJson_["timers"]["timer3"]["description"] = "General purpose timer 3";
+        }
+        
+        getLogger()->info("Default timer settings ensured");
+    } catch (const std::exception& e) {
+        getLogger()->error("Error ensuring default timer settings: {}", e.what());
+    }
+}
 
 bool Config::saveToFile(const std::string& filePath) const
 {

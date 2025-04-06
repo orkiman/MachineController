@@ -6,20 +6,6 @@
 #include <limits>
 #include <stdexcept>
 
-// Define DASK constants if not implicitly included via dask64.h
-#ifndef Channel_P1A
-#define Channel_P1A 0
-#endif
-#ifndef Channel_P1B
-#define Channel_P1B 1
-#endif
-#ifndef Channel_P1CL
-#define Channel_P1CL 2
-#endif
-#ifndef Channel_P1CH
-#define Channel_P1CH 3
-#endif
-
 PCI7248IO::PCI7248IO(EventQueue<EventVariant>& eventQueue, const Config& config)
     : eventQueue_(eventQueue),
       config_(config),

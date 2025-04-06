@@ -25,6 +25,14 @@ public:
 signals:
     void updateGui(const QString &msg);
     void guiMessage(const QString &msg, const QString &identifier);
+    void inputStatesChanged(const std::unordered_map<std::string, IOChannel>& inputs);
+    
+public slots:
+    // Handle output override state changes from SettingsWindow
+    void handleOutputOverrideStateChanged(bool enabled);
+    
+    // Handle output state changes from SettingsWindow
+    void handleOutputStateChanged(const std::unordered_map<std::string, IOChannel>& outputs);
     
 private:
     void handleEvent(const IOEvent& event);
@@ -35,10 +43,18 @@ private:
     void blinkLED(std::string channelName);
     
 
+    // Controller state enum to replace the simple boolean flag
+    enum class ControllerState {
+        Running,      // Normal operation
+        Stopped,      // Stopped due to error or user request
+        OutputOverride // Outputs being controlled by SettingsWindow
+    };
+    
     const Config& config_;
     EventQueue<EventVariant> &eventQueue_;
     PCI7248IO io_;
-    std::atomic<bool> controllerRunning_;
+    std::atomic<ControllerState> controllerState_; // Current controller state
+    ControllerState previousState_; // Previous state before output override
     std::thread blinkThread_;
     std::unordered_map<std::string, IOChannel> outputChannels_;
     Timer t1_, t2_;

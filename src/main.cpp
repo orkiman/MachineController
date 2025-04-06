@@ -62,6 +62,16 @@ int main(int argc, char* argv[]) {
 
     // Connect Logic signals to MainWindow slots
     QObject::connect(&logic, &Logic::guiMessage, &mainWindow, &MainWindow::addMessage);
+    
+    // Connect Logic's inputStatesChanged signal to SettingsWindow's updateInputStates slot
+    QObject::connect(&logic, SIGNAL(inputStatesChanged(const std::unordered_map<std::string, IOChannel>&)), 
+                     mainWindow.getSettingsWindow(), SLOT(updateInputStates(const std::unordered_map<std::string, IOChannel>&)));
+    
+    // Connect SettingsWindow's output override signals to Logic's slots
+    QObject::connect(mainWindow.getSettingsWindow(), SIGNAL(outputOverrideStateChanged(bool)), 
+                     &logic, SLOT(handleOutputOverrideStateChanged(bool)));
+    QObject::connect(mainWindow.getSettingsWindow(), SIGNAL(outputStateChanged(const std::unordered_map<std::string, IOChannel>&)), 
+                     &logic, SLOT(handleOutputStateChanged(const std::unordered_map<std::string, IOChannel>&)));
 
     // 3. Start Logic in a separate thread
     std::thread logicThread([&logic]() {

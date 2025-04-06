@@ -31,10 +31,114 @@ QDialog[overrideOutputs=&quot;true&quot;] {
        <string>Communication 1</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout">
+       <item row="0" column="0">
+        <widget class="QLabel" name="descriptionLabel1">
+         <property name="text">
+          <string>Description:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLineEdit" name="description1LineEdit">
+         <property name="text">
+          <string>reader1</string>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Port:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QComboBox" name="portName1ComboBox"/>
+       </item>
+       <item row="1" column="2" rowspan="8">
+        <widget class="QTextEdit" name="textEdit"/>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Baud Rate:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QComboBox" name="baudRate1ComboBox"/>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_3">
+         <property name="text">
+          <string>Parity:</string>
+         </property>
+        </widget>
+       </item>
        <item row="3" column="1">
+        <widget class="QComboBox" name="parity1ComboBox"/>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>Data Bits:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
         <widget class="QComboBox" name="dataBits1ComboBox"/>
        </item>
+       <item row="5" column="0">
+        <widget class="QLabel" name="label_5">
+         <property name="text">
+          <string>Stop Bits:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="QComboBox" name="stopBits1ComboBox"/>
+       </item>
+       <item row="6" column="0">
+        <widget class="QLabel" name="label_6">
+         <property name="text">
+          <string>STX:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="1">
+        <widget class="QLineEdit" name="stx1LineEdit"/>
+       </item>
+       <item row="7" column="0">
+        <widget class="QLabel" name="label_7">
+         <property name="text">
+          <string>ETX:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="1">
+        <widget class="QLineEdit" name="etx1LineEdit"/>
+       </item>
+       <item row="8" column="0">
+        <widget class="QLabel" name="label_15">
+         <property name="text">
+          <string>Trigger:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="1">
+        <widget class="QLineEdit" name="commuication1TriggerLineEdit"/>
+       </item>
        <item row="9" column="1">
+        <widget class="QPushButton" name="communication1SendPushButton">
+         <property name="text">
+          <string>Send</string>
+         </property>
+        </widget>
+       </item>
+       <item row="10" column="1">
         <spacer name="verticalSpacer">
          <property name="orientation">
           <enum>Qt::Orientation::Vertical</enum>
@@ -47,93 +151,6 @@ QDialog[overrideOutputs=&quot;true&quot;] {
          </property>
         </spacer>
        </item>
-       <item row="2" column="1">
-        <widget class="QComboBox" name="parity1ComboBox"/>
-       </item>
-       <item row="6" column="0">
-        <widget class="QLabel" name="label_7">
-         <property name="text">
-          <string>ETX:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QComboBox" name="baudRate1ComboBox"/>
-       </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="label_5">
-         <property name="text">
-          <string>Stop Bits:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="0">
-        <widget class="QLabel" name="label_15">
-         <property name="text">
-          <string>trigger</string>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="1">
-        <widget class="QLineEdit" name="commuication1TriggerLineEdit"/>
-       </item>
-       <item row="0" column="2" rowspan="10">
-        <widget class="QTextEdit" name="textEdit"/>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_2">
-         <property name="text">
-          <string>Baud Rate:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="0">
-        <widget class="QLabel" name="label_6">
-         <property name="text">
-          <string>STX:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="1">
-        <widget class="QLineEdit" name="stx1LineEdit"/>
-       </item>
-       <item row="0" column="1">
-        <widget class="QComboBox" name="portName1ComboBox"/>
-       </item>
-       <item row="6" column="1">
-        <widget class="QLineEdit" name="etx1LineEdit"/>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_4">
-         <property name="text">
-          <string>Data Bits:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string>Port Name:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_3">
-         <property name="text">
-          <string>Parity:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1">
-        <widget class="QComboBox" name="stopBits1ComboBox"/>
-       </item>
-       <item row="8" column="1">
-        <widget class="QPushButton" name="communication1SendPushButton">
-         <property name="text">
-          <string>send</string>
-         </property>
-        </widget>
-       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="communicationTab2">
@@ -141,21 +158,114 @@ QDialog[overrideOutputs=&quot;true&quot;] {
        <string>Communication 2</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_2">
-       <item row="5" column="0">
-        <widget class="QLabel" name="label_13">
+       <item row="0" column="0">
+        <widget class="QLabel" name="descriptionLabel2">
          <property name="text">
-          <string>STX:</string>
+          <string>Description:</string>
          </property>
         </widget>
        </item>
+       <item row="0" column="1">
+        <widget class="QLineEdit" name="description2LineEdit">
+         <property name="text">
+          <string>reader2</string>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_8">
+         <property name="text">
+          <string>Port:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QComboBox" name="portName2ComboBox"/>
+       </item>
+       <item row="1" column="2" rowspan="8">
+        <widget class="QTextEdit" name="communication2TextEdit"/>
+       </item>
        <item row="2" column="0">
+        <widget class="QLabel" name="label_9">
+         <property name="text">
+          <string>Baud Rate:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QComboBox" name="baudRate2ComboBox"/>
+       </item>
+       <item row="3" column="0">
         <widget class="QLabel" name="label_10">
          <property name="text">
           <string>Parity:</string>
          </property>
         </widget>
        </item>
+       <item row="3" column="1">
+        <widget class="QComboBox" name="parity2ComboBox"/>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_11">
+         <property name="text">
+          <string>Data Bits:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QComboBox" name="dataBits2ComboBox"/>
+       </item>
+       <item row="5" column="0">
+        <widget class="QLabel" name="label_12">
+         <property name="text">
+          <string>Stop Bits:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="QComboBox" name="stopBits2ComboBox"/>
+       </item>
+       <item row="6" column="0">
+        <widget class="QLabel" name="label_13">
+         <property name="text">
+          <string>STX:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="1">
+        <widget class="QLineEdit" name="stx2LineEdit"/>
+       </item>
+       <item row="7" column="0">
+        <widget class="QLabel" name="label_14">
+         <property name="text">
+          <string>ETX:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="1">
+        <widget class="QLineEdit" name="etx2LineEdit"/>
+       </item>
+       <item row="8" column="0">
+        <widget class="QLabel" name="label_16">
+         <property name="text">
+          <string>Trigger:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="1">
+        <widget class="QLineEdit" name="commuication2TriggerLineEdit"/>
+       </item>
        <item row="9" column="1">
+        <widget class="QPushButton" name="communication2SendTestPushButton_2">
+         <property name="text">
+          <string>Send</string>
+         </property>
+        </widget>
+       </item>
+       <item row="10" column="1">
         <spacer name="verticalSpacer_2">
          <property name="orientation">
           <enum>Qt::Orientation::Vertical</enum>
@@ -168,82 +278,6 @@ QDialog[overrideOutputs=&quot;true&quot;] {
          </property>
         </spacer>
        </item>
-       <item row="7" column="1">
-        <widget class="QLineEdit" name="commuication2TriggerLineEdit"/>
-       </item>
-       <item row="5" column="1">
-        <widget class="QLineEdit" name="stx2LineEdit"/>
-       </item>
-       <item row="0" column="1">
-        <widget class="QComboBox" name="portName2ComboBox"/>
-       </item>
-       <item row="3" column="1">
-        <widget class="QComboBox" name="dataBits2ComboBox"/>
-       </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="label_12">
-         <property name="text">
-          <string>Stop Bits:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="0">
-        <widget class="QLabel" name="label_14">
-         <property name="text">
-          <string>ETX:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1">
-        <widget class="QComboBox" name="stopBits2ComboBox"/>
-       </item>
-       <item row="8" column="1">
-        <widget class="QPushButton" name="communication2SendTestPushButton_2">
-         <property name="text">
-          <string>send</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QComboBox" name="parity2ComboBox"/>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_11">
-         <property name="text">
-          <string>Data Bits:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="1">
-        <widget class="QLineEdit" name="etx2LineEdit"/>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_9">
-         <property name="text">
-          <string>Baud Rate:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QComboBox" name="baudRate2ComboBox"/>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_8">
-         <property name="text">
-          <string>Port Name:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="0">
-        <widget class="QLabel" name="label_16">
-         <property name="text">
-          <string>trigger</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="2" rowspan="10">
-        <widget class="QTextEdit" name="communication2TextEdit"/>
-       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="timersTab">
@@ -254,10 +288,13 @@ QDialog[overrideOutputs=&quot;true&quot;] {
        <item>
         <widget class="QTableWidget" name="timersTable">
          <property name="editTriggers">
-          <set>QAbstractItemView::EditTrigger::AllEditTriggers</set>
+          <set>QAbstractItemView::EditTrigger::DoubleClicked|QAbstractItemView::EditTrigger::EditKeyPressed</set>
          </property>
          <property name="selectionMode">
           <enum>QAbstractItemView::SelectionMode::SingleSelection</enum>
+         </property>
+         <property name="selectionBehavior">
+          <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
          </property>
          <column>
           <property name="text">

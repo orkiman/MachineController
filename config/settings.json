@@ -3,9 +3,10 @@
     "communication1": {
       "baudRate": 115200,
       "dataBits": 8,
+      "description": "reader1",
       "etx": 3,
       "parity": "N",
-      "portName": "COM4",
+      "port": "COM1",
       "stopBits": 1.0,
       "stx": 2,
       "trigger": "t"
@@ -13,9 +14,10 @@
     "communication2": {
       "baudRate": 115200,
       "dataBits": 8,
+      "description": "reader2",
       "etx": 3,
       "parity": "N",
-      "portName": "COM2",
+      "port": "COM2",
       "stopBits": 1.0,
       "stx": 2,
       "trigger": "t"

@@ -130,7 +130,8 @@ void Config::ensureDefaultCommunicationSettings()
         // Default settings for communication1
         if (!configJson_["communication"].contains("communication1") || !configJson_["communication"]["communication1"].is_object()) {
             configJson_["communication"]["communication1"] = {
-                {"portName", "COM1"},
+                {"port", "COM1"},
+                {"description", "reader1"},
                 {"baudRate", 115200},
                 {"parity", "N"},
                 {"dataBits", 8},
@@ -143,7 +144,8 @@ void Config::ensureDefaultCommunicationSettings()
         // Default settings for communication2
         if (!configJson_["communication"].contains("communication2") || !configJson_["communication"]["communication2"].is_object()) {
             configJson_["communication"]["communication2"] = {
-                {"portName", "COM2"},
+                {"port", "COM2"},
+                {"description", "reader2"},
                 {"baudRate", 115200},
                 {"parity", "N"},
                 {"dataBits", 8},

@@ -113,8 +113,11 @@ void SettingsWindow::fillCommunicationTabFields() {
     if (commSettings.contains("communication1")) {
         auto comm1 = commSettings["communication1"];
         
-        // Port name
-        if (comm1.contains("portName")) {
+        // Port
+        if (comm1.contains("port")) {
+            QString port = QString::fromStdString(comm1["port"]);
+            ui->portName1ComboBox->setCurrentText(port);
+        } else if (comm1.contains("portName")) { // For backward compatibility
             QString portName = QString::fromStdString(comm1["portName"]);
             ui->portName1ComboBox->setCurrentText(portName);
         }
@@ -174,8 +177,11 @@ void SettingsWindow::fillCommunicationTabFields() {
     if (commSettings.contains("communication2")) {
         auto comm2 = commSettings["communication2"];
         
-        // Port name
-        if (comm2.contains("portName")) {
+        // Port
+        if (comm2.contains("port")) {
+            QString port = QString::fromStdString(comm2["port"]);
+            ui->portName2ComboBox->setCurrentText(port);
+        } else if (comm2.contains("portName")) { // For backward compatibility
             QString portName = QString::fromStdString(comm2["portName"]);
             ui->portName2ComboBox->setCurrentText(portName);
         }
@@ -359,7 +365,8 @@ bool SettingsWindow::saveSettingsToConfig() {
     
     // Update communication1 settings
     nlohmann::json comm1 = nlohmann::json::object();
-    comm1["portName"] = ui->portName1ComboBox->currentText().toStdString();
+    comm1["port"] = ui->portName1ComboBox->currentText().toStdString();
+    comm1["description"] = "reader1"; // Default description
     comm1["baudRate"] = ui->baudRate1ComboBox->currentText().toInt();
     
     // Convert parity from full word to single letter
@@ -414,7 +421,8 @@ bool SettingsWindow::saveSettingsToConfig() {
     
     // Update communication2 settings
     nlohmann::json comm2 = nlohmann::json::object();
-    comm2["portName"] = ui->portName2ComboBox->currentText().toStdString();
+    comm2["port"] = ui->portName2ComboBox->currentText().toStdString();
+    comm2["description"] = "reader2"; // Default description
     comm2["baudRate"] = ui->baudRate2ComboBox->currentText().toInt();
     
     // Convert parity from full word to single letter

@@ -19,7 +19,7 @@ RS232Communication::RS232Communication(RS232Communication&& other) noexcept
       receiving_(other.receiving_.load()),
       hSerial_(other.hSerial_),
       config_(other.config_),
-      portName_(std::move(other.portName_)),
+      port_(std::move(other.port_)),
       baudRate_(other.baudRate_)
 {
     other.hSerial_ = INVALID_HANDLE_VALUE;
@@ -37,7 +37,7 @@ RS232Communication& RS232Communication::operator=(RS232Communication&& other) no
         receiving_ = other.receiving_.load();
         hSerial_ = other.hSerial_;
         config_ = other.config_;
-        portName_ = std::move(other.portName_);
+        port_ = std::move(other.port_);
         baudRate_ = other.baudRate_;
         
         other.hSerial_ = INVALID_HANDLE_VALUE;
@@ -58,7 +58,12 @@ bool RS232Communication::initialize()
     if (commSettings.contains(communicationName_))
     {
         auto specificCommSettings = commSettings[communicationName_];
-        portName_ = specificCommSettings.value("portName", "");
+        // Try to get port first, fall back to portName for backward compatibility
+        if (specificCommSettings.contains("port")) {
+            port_ = specificCommSettings.value("port", "");
+        } else {
+            port_ = specificCommSettings.value("portName", "");
+        }
         baudRate_ = specificCommSettings.value("baudRate", 115200);
         
         // First get parity as string and then convert to char.
@@ -83,7 +88,7 @@ bool RS232Communication::initialize()
     }
 
     // Open the serial port.
-    hSerial_ = CreateFileA(portName_.c_str(),
+    hSerial_ = CreateFileA(port_.c_str(),
                            GENERIC_READ | GENERIC_WRITE,
                            0, // exclusive access
                            NULL,
@@ -92,7 +97,7 @@ bool RS232Communication::initialize()
                            NULL);
     if (hSerial_ == INVALID_HANDLE_VALUE)
     {
-        std::cerr << "Error opening serial port: " << portName_ << std::endl;
+        std::cerr << "Error opening serial port: " << port_ << std::endl;
         return false;
     }
 
@@ -167,7 +172,7 @@ bool RS232Communication::initialize()
 bool RS232Communication::validateSettings()
 {
     bool valid = true;
-    if (portName_.empty())
+    if (port_.empty())
     {
         getLogger()->warn("Port name is empty. Please specify a valid port.");
         valid = false;
@@ -376,7 +381,7 @@ void RS232Communication::receiveLoop()
             {
                 // Create a CommEvent with port and message.
                 CommEvent event;
-                event.port = portName_; // Assuming portName_ holds the identifier.
+                event.port = port_; // Port identifier
                 event.message = msg;
                 eventQueue_->push(event); // eventQueue_ should be thread-safe.
             }

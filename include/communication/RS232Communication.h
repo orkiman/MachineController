@@ -36,7 +36,7 @@ public:
 
 private:
     std::string communicationName_;
-    std::string portName_;
+    std::string port_; // Previously portName_
     unsigned long baudRate_;
     char parity_; // 'N', 'E', 'O' for None, Even, Odd
     int dataBits_;

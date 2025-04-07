@@ -34,6 +34,10 @@ public slots:
     // Handle output state changes from SettingsWindow
     void handleOutputStateChanged(const std::unordered_map<std::string, IOChannel>& outputs);
     
+    // Initialize or reinitialize communication ports
+    // Returns empty string on success, error message on failure
+    QString initializeCommunicationPorts();
+    
 private:
     void handleEvent(const IOEvent& event);
     void handleEvent(const CommEvent& event);

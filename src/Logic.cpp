@@ -22,16 +22,16 @@ Logic::Logic(EventQueue<EventVariant> &eventQueue, const Config &config)
         std::cout << "Initial input states sent to SettingsWindow." << std::endl;
     }
 
-    RS232Communication communication (eventQueue_, "communication1", config_);
-    if (!communication.initialize())
+    // Initialize communication ports
+    QString commError = initializeCommunicationPorts();
+    if (!commError.isEmpty())
     {
-        std::cerr << "Failed to initialize RS232Communication." << std::endl;
+        std::cerr << "Failed to initialize communication ports: " << commError.toStdString() << std::endl;
         controllerRunning_ = false;
     }
     else
     {
-        communication1_ = std::move(communication);
-        std::cout << "RS232Communication initialized successfully." << std::endl;
+        std::cout << "Communication ports initialized successfully." << std::endl;
     }
     
 }
@@ -246,6 +246,34 @@ void Logic::blinkLED(std::string channelName)
 void Logic::emergencyShutdown()
 {
     io_.resetConfiguredOutputPorts();
+}
+
+QString Logic::initializeCommunicationPorts()
+{
+    try {
+        // Close existing communication ports if they're open
+        communication1_.close();
+        communication2_.close();
+        
+        // Initialize communication1
+        RS232Communication comm1(eventQueue_, "communication1", config_);
+        if (!comm1.initialize()) {
+            return QString("Failed to initialize communication port 1. Check port settings and availability.");
+        }
+        communication1_ = std::move(comm1);
+        
+        // Initialize communication2
+        RS232Communication comm2(eventQueue_, "communication2", config_);
+        if (!comm2.initialize()) {
+            return QString("Failed to initialize communication port 2. Check port settings and availability.");
+        }
+        communication2_ = std::move(comm2);
+        
+        emit guiMessage("Communication ports initialized successfully", "info");
+        return QString(); // Empty string indicates success
+    } catch (const std::exception& e) {
+        return QString("Error initializing communication ports: %1").arg(e.what());
+    }
 }
 
 #include "moc_Logic.cpp"

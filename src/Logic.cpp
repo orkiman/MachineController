@@ -3,16 +3,14 @@
 #include "Logger.h"
 
 Logic::Logic(EventQueue<EventVariant> &eventQueue, const Config &config)
-    : eventQueue_(eventQueue), config_(config), io_(eventQueue_, config), 
-      controllerState_(Logic::ControllerState::Running),
-      previousState_(Logic::ControllerState::Running),
+    : eventQueue_(eventQueue), config_(config), io_(eventQueue_, config),
       communication1_(eventQueue, "communication1", config),
       communication2_(eventQueue, "communication2", config)
 {
     if (!io_.initialize())
     {
         std::cerr << "Failed to initialize PCI7248IO." << std::endl;
-        controllerState_ = Logic::ControllerState::Stopped;
+        controllerRunning_ = false;
     }
     else
     {
@@ -28,7 +26,7 @@ Logic::Logic(EventQueue<EventVariant> &eventQueue, const Config &config)
     if (!communication.initialize())
     {
         std::cerr << "Failed to initialize RS232Communication." << std::endl;
-        controllerState_ = Logic::ControllerState::Stopped;
+        controllerRunning_ = false;
     }
     else
     {
@@ -40,7 +38,7 @@ Logic::Logic(EventQueue<EventVariant> &eventQueue, const Config &config)
 
 Logic::~Logic()
 {
-    controllerState_ = Logic::ControllerState::Stopped;
+    controllerRunning_ = false;
     if (blinkThread_.joinable())
     {
         blinkThread_.join();
@@ -50,14 +48,11 @@ Logic::~Logic()
 
 void Logic::run()
 {
-    if (controllerState_ == Logic::ControllerState::Running)
-    {
-        outputChannels_ = io_.getOutputChannels();
-        blinkThread_ = std::thread([this]()
-                                   { blinkLED("o0"); });
-    }
+    outputChannels_ = io_.getOutputChannels();
+    blinkThread_ = std::thread([this]()
+                               { blinkLED("o0"); });
 
-    while (controllerState_ != Logic::ControllerState::Stopped)
+    while (controllerRunning_)
     {
         EventVariant event;
         eventQueue_.wait_and_pop(event);
@@ -133,7 +128,7 @@ void Logic::handleEvent(const GuiEvent &event)
         std::cout << "[GUI Event] Set output " << event.identifier << " to "
                   << (event.intValue == 0 ? "OFF" : "ON") << std::endl;
         outputChannels_[event.identifier].state = event.intValue;
-        io_.writeOutputs(outputChannels_);
+        writeOutputs();
         // Call a function to set the output accordingly, e.g.:
         // setOutput(event.outputId, event.boolValue);
         break;
@@ -197,32 +192,9 @@ void Logic::handleEvent(const TimerEvent &event)
 }
 
 void Logic::handleOutputOverrideStateChanged(bool enabled) {
-    if (enabled) {
-        // When override is enabled, save current state and switch to OutputOverride state
-        if (controllerState_ != Logic::ControllerState::OutputOverride) {
-            previousState_ = controllerState_;
-            controllerState_ = Logic::ControllerState::OutputOverride;
-            
-            std::cout << "Output override enabled. Previous controller state saved." << std::endl;
-        }
-    } else {
-        // When override is disabled, restore the previous state
-        if (controllerState_ == Logic::ControllerState::OutputOverride) {
-            controllerState_ = previousState_;
-            
-            std::cout << "Output override disabled. Controller state restored to previous state." << std::endl;
-        }
-    }
+    overrideOutputs_ = enabled;
     
-    // Log the current state
-    std::string stateStr;
-    switch (controllerState_) {
-        case Logic::ControllerState::Running: stateStr = "Running"; break;
-        case Logic::ControllerState::Stopped: stateStr = "Stopped"; break;
-        case Logic::ControllerState::OutputOverride: stateStr = "OutputOverride"; break;
-    }
-    
-    std::cout << "Current controller state: " << stateStr << std::endl;
+    std::cout << "Output override " << (enabled ? "enabled" : "disabled") << std::endl;
     
     // Emit a message to the GUI
     emit guiMessage(QString("Output override %1").arg(enabled ? "enabled" : "disabled"), 
@@ -230,8 +202,8 @@ void Logic::handleOutputOverrideStateChanged(bool enabled) {
 }
 
 void Logic::handleOutputStateChanged(const std::unordered_map<std::string, IOChannel>& outputs) {
-    // Only process output changes if controller is in OutputOverride state
-    if (controllerState_ == Logic::ControllerState::OutputOverride) {
+    // Only process output changes if override is enabled
+    if (overrideOutputs_) {
         // Forward the output states to the IO module
         if (io_.writeOutputs(outputs)) {
             std::cout << "Output states updated successfully" << std::endl;
@@ -240,7 +212,7 @@ void Logic::handleOutputStateChanged(const std::unordered_map<std::string, IOCha
             emit guiMessage("Failed to update output states", "error");
         }
     } else {
-        std::cout << "Ignoring output state change request - controller not in override mode" << std::endl;
+        std::cout << "Ignoring output state change request - override not enabled" << std::endl;
     }
 }
 
@@ -250,13 +222,23 @@ void Logic::handleEvent(const TerminationEvent &event)
     getLogger()->info("TerminationEvent received; shutting down logic thread.");
 }
 
+void Logic::writeOutputs() {
+    if(overrideOutputs_) return;
+    io_.writeOutputs(outputChannels_);
+}
+
+void Logic::writeGUIOoutputs() {
+    // Direct hardware access logic here - bypasses override check
+    io_.writeOutputs(outputChannels_);
+}
+
 void Logic::blinkLED(std::string channelName)
 {
     std::cout << "Blink thread started." << std::endl;
     while (controllerRunning_)
     {
         outputChannels_[channelName].state = !outputChannels_[channelName].state;
-        io_.writeOutputs(outputChannels_);
+        writeOutputs();
         std::this_thread::sleep_for(std::chrono::milliseconds(300));
     }
 }

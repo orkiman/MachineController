@@ -25,6 +25,10 @@ SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQ
     
     // Connect change events for all editable fields
     connectChangeEvents();
+    
+    // Connect send button slots
+    // connect(ui->communication1SendPushButton, &QPushButton::clicked, this, &SettingsWindow::on_communication1SendPushButton_clicked);
+    // connect(ui->communication2SendPushButton, &QPushButton::clicked, this, &SettingsWindow::on_communication2SendPushButton_clicked);
 }
 
 SettingsWindow::~SettingsWindow() {
@@ -73,7 +77,7 @@ void SettingsWindow::fillCommunicationTabFields() {
     // Communication 1 Tab setup
     // Port names - populate with available serial ports
     ui->portName1ComboBox->clear();
-    ui->portName1ComboBox->addItems({"COM1", "COM2", "COM3", "COM4"});
+    ui->portName1ComboBox->addItems({"COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "COM10", "COM11", "COM12", "COM13", "COM14", "COM15", "COM16"});
     
     // Baud rates
     ui->baudRate1ComboBox->clear();
@@ -94,7 +98,7 @@ void SettingsWindow::fillCommunicationTabFields() {
     // Communication 2 Tab setup
     // Port names
     ui->portName2ComboBox->clear();
-    ui->portName2ComboBox->addItems({"COM1", "COM2", "COM3", "COM4"});
+    ui->portName2ComboBox->addItems({"COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "COM10", "COM11", "COM12", "COM13", "COM14", "COM15", "COM16"});
     
     // Baud rates
     ui->baudRate2ComboBox->clear();
@@ -941,4 +945,26 @@ void SettingsWindow::connectChangeEvents() {
             item->setBackground(QBrush(QColor(255, 200, 200))); // Light red
         }
     });
+}
+
+void SettingsWindow::on_communication1SendPushButton_clicked()
+{
+    QString message = ui->commuication1TriggerLineEdit->text();
+    if (!message.isEmpty()) {
+        eventQueue_.push(GuiEvent{GuiEventType::SendCommunicationMessage, message.toStdString(), "communication1"});
+        qDebug() << "Sent message to communication1:" << message;
+    } else {
+        qDebug() << "Cannot send empty message to communication1";
+    }
+}
+
+void SettingsWindow::on_communication2SendPushButton_clicked()
+{
+    QString message = ui->commuication2TriggerLineEdit->text();
+    if (!message.isEmpty()) {
+        eventQueue_.push(GuiEvent{GuiEventType::SendCommunicationMessage, message.toStdString(), "communication2"});
+        qDebug() << "Sent message to communication2:" << message;
+    } else {
+        qDebug() << "Cannot send empty message to communication2";
+    }
 }

@@ -50,6 +50,8 @@ private slots:
     void on_cancelButton_clicked();
     void on_defaultsButton_clicked();
     void on_refreshButton_clicked();
+    void on_communication1SendPushButton_clicked();
+    void on_communication2SendPushButton_clicked();
 
 private:
     // Helper function to fill fields with default values

@@ -41,25 +41,20 @@ private:
     void handleEvent(const TimerEvent& event);
     void handleEvent(const TerminationEvent& event);
     void blinkLED(std::string channelName);
+    void writeOutputs();
+    void writeGUIOoutputs();
     
 
-    // Controller state enum to replace the simple boolean flag
-    enum class ControllerState {
-        Running,      // Normal operation
-        Stopped,      // Stopped due to error or user request
-        OutputOverride // Outputs being controlled by SettingsWindow
-    };
-    
     const Config& config_;
     EventQueue<EventVariant> &eventQueue_;
     PCI7248IO io_;
-    std::atomic<ControllerState> controllerState_; // Current controller state
-    ControllerState previousState_; // Previous state before output override
     std::thread blinkThread_;
     std::unordered_map<std::string, IOChannel> outputChannels_;
     Timer t1_, t2_;
     RS232Communication communication1_;
     RS232Communication communication2_;
+    std::atomic<bool> controllerRunning_{true}; // Flag to control main loop and threads
+    bool overrideOutputs_{false}; // Flag to control output overrides
 
 
 };

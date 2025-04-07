@@ -259,7 +259,7 @@ QDialog[overrideOutputs=&quot;true&quot;] {
         <widget class="QLineEdit" name="commuication2TriggerLineEdit"/>
        </item>
        <item row="9" column="1">
-        <widget class="QPushButton" name="communication2SendTestPushButton_2">
+        <widget class="QPushButton" name="communication2SendPushButton">
          <property name="text">
           <string>Send</string>
          </property>

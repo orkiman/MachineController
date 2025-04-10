@@ -29,6 +29,7 @@ enum class GuiEventType {
     StatusUpdate,
     ErrorMessage,
     SendCommunicationMessage,
+    SendTestMessage,
     GuiMessage
 };
 

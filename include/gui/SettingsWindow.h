@@ -46,12 +46,17 @@ signals:
 
 private slots:
     void on_overrideOutputsCheckBox_stateChanged(int state);
-    void on_applyButton_clicked();
-    void on_cancelButton_clicked();
-    void on_defaultsButton_clicked();
-    void on_refreshButton_clicked();
+    void on_applyPushButton_clicked();
+    void on_cancelPushButton_clicked();
+    void on_okPushButton_clicked();
+    void on_defaultsPushButton_clicked();
     void on_communication1SendPushButton_clicked();
     void on_communication2SendPushButton_clicked();
+    void updateCommunicationTypeVisibility(int index = 0);
+    void on_communication1ActiveCheckBox_stateChanged(int state);
+    void on_communication2ActiveCheckBox_stateChanged(int state);
+    void on_communication3ActiveCheckBox_stateChanged(int state);
+    void on_refreshButton_clicked();
 
 private:
     // Helper function to fill fields with default values

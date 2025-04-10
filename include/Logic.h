@@ -39,11 +39,17 @@ public slots:
     QString initializeCommunicationPorts();
     
 private:
+    // Central logic cycle function - called after state changes from any event
+    void oneLogicCycle();
+    
+    // Event handlers - update state and trigger oneLogicCycle
     void handleEvent(const IOEvent& event);
     void handleEvent(const CommEvent& event);
     void handleEvent(const GuiEvent& event);
     void handleEvent(const TimerEvent& event);
     void handleEvent(const TerminationEvent& event);
+    
+    // Helper functions
     void blinkLED(std::string channelName);
     void writeOutputs();
     void writeGUIOoutputs();
@@ -53,10 +59,26 @@ private:
     EventQueue<EventVariant> &eventQueue_;
     PCI7248IO io_;
     std::thread blinkThread_;
-    std::unordered_map<std::string, IOChannel> outputChannels_;
+    
+    // State tracking
+    std::unordered_map<std::string, IOChannel> inputChannels_;  // Current input states
+    std::unordered_map<std::string, IOChannel> outputChannels_; // Current output states
+    std::unordered_map<std::string, std::string> commData_;     // Communication data by port
+    
+    // Flags for tracking which systems have updates
+    bool inputsUpdated_{false};
+    bool outputsUpdated_{false};
+    bool commUpdated_{false};
+    bool timerUpdated_{false};
+    
+    // Timers
     Timer t1_, t2_;
+    
+    // Communication ports
     RS232Communication communication1_;
     RS232Communication communication2_;
+    
+    // Control flags
     std::atomic<bool> controllerRunning_{true}; // Flag to control main loop and threads
     bool overrideOutputs_{false}; // Flag to control output overrides
 

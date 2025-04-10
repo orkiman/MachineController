@@ -2,6 +2,7 @@
 #include "Config.h"
 #include <fstream>
 #include <iomanip>
+#include <iostream>
 #include <stdexcept>
 #include "Logger.h"
 #include "io/IOChannel.h"
@@ -96,6 +97,26 @@ nlohmann::json Config::getTimerSettings() const
 {
     std::lock_guard<std::mutex> lock(configMutex_);
     return configJson_.value("timers", nlohmann::json::object());
+}
+
+int Config::getTimerDuration(const std::string& timerName) const
+{
+    std::lock_guard<std::mutex> lock(configMutex_);
+    
+    // Get the timers object
+    auto timers = configJson_.value("timers", nlohmann::json::object());
+    
+    // Check if the specified timer exists
+    if (timers.contains(timerName) && timers[timerName].is_object() && 
+        timers[timerName].contains("duration")) {
+        
+        // Return the duration value
+        return timers[timerName]["duration"].get<int>();
+    }
+    
+    // Return default duration (1000ms) if timer not found or no duration specified
+    std::cerr << "Timer '" << timerName << "' not found or missing duration, using default value" << std::endl;
+    return 1000;
 }
 
 void Config::updateCommunicationSettings(const nlohmann::json& commSettings)

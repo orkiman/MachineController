@@ -48,7 +48,7 @@ void MainWindow::on_clearMessageAreaButton_clicked() {
 }
 
 void MainWindow::on_testButton_clicked() {
-    eventQueue_.push(GuiEvent{GuiEventType::SendCommunicationMessage, "Test message", "communication1"});
+    eventQueue_.push(GuiEvent{.type=GuiEventType::SetVariable, .identifier="blinkLed0"});
 }
 
 void MainWindow::addMessage(const QString& message, const QString& identifier) {

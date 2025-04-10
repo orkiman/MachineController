@@ -43,7 +43,7 @@ struct GuiEvent {
 
 // Event for timers
 struct TimerEvent {
-    int timerId;
+    std::string timerName;    
 };
 
 // Event for termination/shutdown signal.

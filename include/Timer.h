@@ -4,9 +4,10 @@
 #include <chrono>
 #include <condition_variable>
 #include <functional>
-#include <mutex>
 #include <thread>
 #include <atomic>
+#include <mutex>
+#include "io/IOChannel.h"
 
 class Timer
 {
@@ -54,18 +55,42 @@ public:
     // Cancel the timer: signals the waiting thread to wake up and exit early.
     void cancel()
     {
-        {
-            std::lock_guard<std::mutex> lock(mutex_);
-            cancelled_.store(true);
-        }
+        cancelled_.store(true);
         cv_.notify_all();
     }
+    
+    // State management methods
+    void setName(const std::string& name) { name_ = name; }
+    std::string getName() const { return name_; }
+    
+    void setDescription(const std::string& description) { description_ = description; }
+    std::string getDescription() const { return description_; }
+    
+    void setDuration(int duration) { duration_ = duration; }
+    int getDuration() const { return duration_; }
+    
+    void setState(int state) { state_ = state; }
+    int getState() const { return state_; }
+    
+    void setEventType(IOEventType eventType) { eventType_ = eventType; }
+    IOEventType getEventType() const { return eventType_; }
+    
+    int state_;                   // Current state: 0 (inactive) or 1 (active)
+    IOEventType eventType_;       // Event trigger type: Rising, Falling, or None
+
+    
 
 private:
-    std::atomic<bool> cancelled_; // Cancellation flag.
-    std::mutex mutex_;            // Protects shared state.
-    std::condition_variable cv_;  // Used to sleep without busy waiting.
+    std::atomic<bool> cancelled_; // Flag to indicate if the timer is cancelled.
+    std::mutex mutex_;            // Mutex for the condition variable.
+    std::condition_variable cv_;  // Condition variable for waiting.
     std::thread worker_;          // The timer's worker thread.
+    
+    // State management variables
+    std::string name_;            // Timer name (e.g., "timer1", "timer2")
+    std::string description_;     // Human-readable description
+    int duration_;                // Duration in milliseconds
+    
 };
 
 /*

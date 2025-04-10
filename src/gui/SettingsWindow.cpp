@@ -645,7 +645,7 @@ void SettingsWindow::on_applyPushButton_clicked() {
     
     // Save settings to Config
     if (saveSettingsToConfig()) {
-        eventQueue_.push(GuiEvent{GuiEventType::GuiMessage, "Settings saved successfully", "info"});
+        // eventQueue_.push(GuiEvent{GuiEventType::GuiMessage, "Settings saved successfully", "info"});
         
         // Set the refreshing flag to prevent marking items as changed during refresh
         isRefreshing_ = true;

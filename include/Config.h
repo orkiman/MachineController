@@ -26,6 +26,9 @@ public:
     nlohmann::json getCommunicationSettings() const;
     nlohmann::json getTimerSettings() const;
     
+    // Get duration for a specific timer (in milliseconds)
+    int getTimerDuration(const std::string& timerName) const;
+    
     // Ensures default communication settings exist in the config
     void ensureDefaultCommunicationSettings();
     

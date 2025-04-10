@@ -3,6 +3,7 @@
 
 #include <thread>
 #include <atomic>
+#include <unordered_map>
 #include "io/PCI7248IO.h"
 #include "EventQueue.h"
 #include "Event.h"
@@ -50,39 +51,39 @@ private:
     void handleEvent(const TerminationEvent& event);
     
     // Helper functions
-    void blinkLED(std::string channelName);
     void writeOutputs();
     void writeGUIOoutputs();
+    
+    // Timer control functions
+    void startTimer(const std::string& timerName);
+    void stopTimer(const std::string& timerName);
+    void initTimers();
     
 
     const Config& config_;
     EventQueue<EventVariant> &eventQueue_;
     PCI7248IO io_;
-    std::thread blinkThread_;
     
     // State tracking
     std::unordered_map<std::string, IOChannel> inputChannels_;  // Current input states
     std::unordered_map<std::string, IOChannel> outputChannels_; // Current output states
     std::unordered_map<std::string, std::string> commData_;     // Communication data by port
+    std::unordered_map<std::string, Timer> timers_; // Current timer states
     
     // Flags for tracking which systems have updates
     bool inputsUpdated_{false};
     bool outputsUpdated_{false};
     bool commUpdated_{false};
     bool timerUpdated_{false};
-    
-    // Timers
-    Timer t1_, t2_;
+
+    bool blinkLed0_{false};
     
     // Communication ports
     RS232Communication communication1_;
     RS232Communication communication2_;
     
     // Control flags
-    std::atomic<bool> controllerRunning_{true}; // Flag to control main loop and threads
     bool overrideOutputs_{false}; // Flag to control output overrides
-
-
 };
 
 #endif // LOGIC_H

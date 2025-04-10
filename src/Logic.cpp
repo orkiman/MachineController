@@ -10,7 +10,7 @@ Logic::Logic(EventQueue<EventVariant> &eventQueue, const Config &config)
     if (!io_.initialize())
     {
         std::cerr << "Failed to initialize PCI7248IO." << std::endl;
-        controllerRunning_ = false;
+        getLogger()->error("Failed to initialize PCI7248IO.");
     }
     else
     {
@@ -27,36 +27,42 @@ Logic::Logic(EventQueue<EventVariant> &eventQueue, const Config &config)
     if (!commError.isEmpty())
     {
         std::cerr << "Failed to initialize communication ports: " << commError.toStdString() << std::endl;
-        controllerRunning_ = false;
+        getLogger()->error("Failed to initialize communication ports: {}", commError.toStdString());
     }
     else
     {
         std::cout << "Communication ports initialized successfully." << std::endl;
     }
     
+    // Initialize timers
+    initTimers();
+    
 }
 
 Logic::~Logic()
 {
-    controllerRunning_ = false;
-    if (blinkThread_.joinable())
-    {
-        blinkThread_.join();
-        getLogger()->info("Blink thread joined.");
-    }
+    // Signal termination to stop the event loop
+    eventQueue_.push(TerminationEvent{});
 }
 
 void Logic::run()
 {
     outputChannels_ = io_.getOutputChannels();
-    blinkThread_ = std::thread([this]()
-                               { blinkLED("o0"); });
 
-    while (controllerRunning_)
+    // Run the event loop indefinitely until a TerminationEvent is received
+    while (true)
     {
         EventVariant event;
         eventQueue_.wait_and_pop(event);
 
+        // Check if this is a termination event
+        if (std::holds_alternative<TerminationEvent>(event))
+        {
+            getLogger()->info("Termination event received, exiting event loop");
+            break;
+        }
+
+        // Process the event
         std::visit([this](auto &&e)
                    { this->handleEvent(e); }, event);
     }
@@ -67,13 +73,38 @@ void Logic::stop()
     static std::once_flag stopFlag;
     std::call_once(stopFlag, [this]()
                    {
+                       // Push termination event to stop the event loop
                        eventQueue_.push(TerminationEvent{});
-                       io_.stopPolling(); });
+                       // Stop IO polling
+                       io_.stopPolling(); 
+                   });
 }
 
 // Central logic cycle function - called after state changes from any event
 void Logic::oneLogicCycle()
 {
+    if (blinkLed0_ && timers_["timer1"].state_ == 1 && timers_["timer1"].eventType_ == IOEventType::Rising)
+    {
+        outputChannels_["o0"].state = !outputChannels_["o0"].state; 
+        timers_["timer1"].state_ = 0;
+        timers_["timer1"].eventType_ = IOEventType::None;
+        timers_["timer1"].start(std::chrono::milliseconds(timers_["timer1"].getDuration()), [this](){
+            // Push the event to the queue
+            eventQueue_.push(TimerEvent{"timer1"});
+        });
+    }
+    else
+    {
+        outputChannels_["o0"].state = 0;
+        timers_["timer1"].state_ = 0;
+        timers_["timer1"].eventType_ = IOEventType::None;
+        timers_["timer1"].start(std::chrono::milliseconds(timers_["timer1"].getDuration()), [this](){
+            // Push the event to the queue
+            eventQueue_.push(TimerEvent{"timer1"});
+        });
+    }
+    writeOutputs();
+    return;
     // Log the start of a logic cycle
     getLogger()->debug("Starting logic cycle");
     
@@ -94,21 +125,7 @@ void Logic::oneLogicCycle()
             }
         }
         
-        // Example of timer control based on input
-        if (inputChannels_.count("i11") > 0)
-        {
-            if (inputChannels_["i11"].eventType == IOEventType::Rising)
-            {
-                emit updateGui("i11 on, t1 is off");
-                t1_.start(std::chrono::milliseconds(2000), [this]()
-                          { emit updateGui("i11 on, t1 is on"); });
-            }
-            else if (inputChannels_["i11"].eventType == IOEventType::Falling)
-            {
-                emit updateGui("i11 off t1 is off");
-                t1_.cancel();
-            }
-        }
+        
         
         inputsUpdated_ = false; // Reset the flag
     }
@@ -222,9 +239,24 @@ void Logic::handleEvent(const GuiEvent &event)
         break;
         
     case GuiEventType::SetVariable:
-        std::cout << "[GUI Event] Set variable: " << event.data
-                  << " Value: " << event.intValue << std::endl;
+        // std::cout << "[GUI Event] Set variable: " << event.data
+        //           << " Value: " << event.intValue << std::endl;
         // setVariable(event.intValue);
+        if (event.identifier == "blinkLed0")
+        {
+            blinkLed0_ = !blinkLed0_;
+            if(blinkLed0_)
+            {
+                timers_["timer1"].start(std::chrono::milliseconds(timers_["timer1"].getDuration()), [this](){   
+                    // Push the event to the queue
+                    eventQueue_.push(TimerEvent{"timer1"});
+                });
+            }
+            else
+            {
+                timers_["timer1"].cancel();
+            }
+        }
         runLogicCycle = true; // Variable change might affect machine state
         break;
         
@@ -232,6 +264,8 @@ void Logic::handleEvent(const GuiEvent &event)
         std::cout << "[GUI Event] Parameter changed: " << event.data
                   << " New value: " << event.intValue << std::endl;
         initializeCommunicationPorts();
+        initTimers();
+
         // adjustParameter(event.intValue);
         runLogicCycle = true; // Parameter change might affect machine state
         break;
@@ -305,11 +339,9 @@ void Logic::handleEvent(const GuiEvent &event)
 
 void Logic::handleEvent(const TimerEvent &event)
 {
-    std::cout << "[Timer Event] Timer ID: " << event.timerId << " triggered." << std::endl;
-    
-    // Set flag to indicate a timer was updated
-    timerUpdated_ = true;
-    
+    getLogger()->debug("[Timer Event] Timer: " + event.timerName + " triggered.");
+    timers_[event.timerName].state_ = 1;
+    timers_[event.timerName].eventType_ = IOEventType::Rising;
     // Run the central logic cycle
     oneLogicCycle();
 }
@@ -317,7 +349,7 @@ void Logic::handleEvent(const TimerEvent &event)
 void Logic::handleOutputOverrideStateChanged(bool enabled) {
     overrideOutputs_ = enabled;
     
-    std::cout << "Output override " << (enabled ? "enabled" : "disabled") << std::endl;
+    getLogger()->debug(std::string("Output override ") + (enabled ? "enabled" : "disabled"));
     
     // Emit a message to the GUI
     emit guiMessage(QString("Output override %1").arg(enabled ? "enabled" : "disabled"), 
@@ -339,30 +371,28 @@ void Logic::handleOutputStateChanged(const std::unordered_map<std::string, IOCha
         
         // Forward the output states to the IO module
         if (io_.writeOutputs(outputs)) {
-            std::cout << "Output states updated successfully" << std::endl;
+            getLogger()->debug("Output states updated successfully");
         } else {
-            std::cerr << "Failed to update output states" << std::endl;
+            getLogger()->error("Failed to update output states");
             emit guiMessage("Failed to update output states", "error");
         }
         
         // Run the central logic cycle
         oneLogicCycle();
     } else {
-        std::cout << "Ignoring output state change request - override not enabled" << std::endl;
+        getLogger()->debug("Ignoring output state change request - override not enabled");
     }
 }
 
 void Logic::handleEvent(const TerminationEvent &event)
 {
-    controllerRunning_ = false;
     getLogger()->info("TerminationEvent received; shutting down logic thread.");
+    // No need to do anything here as the main loop will check for TerminationEvent directly
 }
 
 
 void Logic::writeOutputs() {
-    if (io_.writeOutputs(outputChannels_)) {
-        getLogger()->debug("Output states written successfully");
-    } else {
+    if (!io_.writeOutputs(outputChannels_)) {
         getLogger()->error("Failed to write output states");
     }
 }
@@ -372,16 +402,16 @@ void Logic::writeGUIOoutputs() {
     io_.writeOutputs(outputChannels_);
 }
 
-void Logic::blinkLED(std::string channelName)
-{
-    std::cout << "Blink thread started." << std::endl;
-    while (controllerRunning_)
-    {
-        outputChannels_[channelName].state = !outputChannels_[channelName].state;
-        writeOutputs();
-        std::this_thread::sleep_for(std::chrono::milliseconds(300));
-    }
-}
+// void Logic::blinkLED(std::string channelName)
+// {
+//     std::cout << "Blink thread started." << std::endl;
+//     while (controllerRunning_)
+//     {
+//         outputChannels_[channelName].state = !outputChannels_[channelName].state;
+//         writeOutputs();
+//         std::this_thread::sleep_for(std::chrono::milliseconds(300));
+//     }
+// }
 
 void Logic::emergencyShutdown()
 {
@@ -415,6 +445,37 @@ QString Logic::initializeCommunicationPorts()
         return QString(); // Empty string indicates success
     } catch (const std::exception& e) {
         return QString("Error initializing communication ports: %1").arg(e.what());
+    }
+}
+
+
+
+
+
+void Logic::initTimers() {
+    nlohmann::json timerSettings = config_.getTimerSettings();
+    
+    // Clear existing timers if any
+    timers_.clear();
+        
+    // Iterate through all timer entries
+    for (auto it = timerSettings.begin(); it != timerSettings.end(); ++it) {
+        const std::string& timerName = it.key();
+        const nlohmann::json& timerData = it.value();
+        
+        // Get the duration from the timer settings
+        int duration = timerData["duration"].get<int>();
+        
+        // Create a new Timer object directly in the map
+        auto& timer = timers_[timerName]; // This creates a default-constructed Timer
+        
+        // Configure the timer
+        timer.setName(timerName);
+        timer.setDuration(duration);
+        timer.setState(0); // Initialize as inactive
+        timer.setEventType(IOEventType::None);
+        
+        std::cout << "Initialized timer: " << timerName << " with duration: " << duration << "ms" << std::endl;
     }
 }
 

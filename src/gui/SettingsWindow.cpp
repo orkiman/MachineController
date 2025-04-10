@@ -324,6 +324,10 @@ void SettingsWindow::on_applyButton_clicked() {
         // Refresh the timer fields to show the updated values
         fillTimersTabFields();
         
+        // Ask Logic to initialize communication ports
+        eventQueue_.push(GuiEvent{GuiEventType::ParameterChange});
+
+        
         // Reset the refreshing flag
         isRefreshing_ = false;
     } else {

@@ -140,6 +140,7 @@ void Logic::handleEvent(const GuiEvent &event)
     case GuiEventType::ParameterChange:
         std::cout << "[GUI Event] Parameter changed: " << event.data
                   << " New value: " << event.intValue << std::endl;
+        initializeCommunicationPorts();
         // adjustParameter(event.intValue);
         break;
     case GuiEventType::StatusRequest:
@@ -258,13 +259,15 @@ QString Logic::initializeCommunicationPorts()
         // Initialize communication1
         RS232Communication comm1(eventQueue_, "communication1", config_);
         if (!comm1.initialize()) {
-            return QString("Failed to initialize communication port 1. Check port settings and availability.");
+            emit guiMessage("Failed to initialize communication port 1. Check port settings and availability.", "error");
+            return QString("Failed to initialize communication port 1. Check port settings and availability.");          
         }
         communication1_ = std::move(comm1);
         
         // Initialize communication2
         RS232Communication comm2(eventQueue_, "communication2", config_);
         if (!comm2.initialize()) {
+            emit guiMessage("Failed to initialize communication port 2. Check port settings and availability.", "error");
             return QString("Failed to initialize communication port 2. Check port settings and availability.");
         }
         communication2_ = std::move(comm2);

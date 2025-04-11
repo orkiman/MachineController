@@ -29,6 +29,9 @@ signals:
     void inputStatesChanged(const std::unordered_map<std::string, IOChannel>& inputs);
     
 public slots:
+    // Initialize components that require GUI to be ready
+    void initialize();
+    
     // Handle output override state changes from SettingsWindow
     void handleOutputOverrideStateChanged(bool enabled);
     
@@ -36,8 +39,16 @@ public slots:
     void handleOutputStateChanged(const std::unordered_map<std::string, IOChannel>& outputs);
     
     // Initialize or reinitialize communication ports
-    // Returns empty string on success, error message on failure
-    QString initializeCommunicationPorts();
+    // Returns true on success, false on failure
+    bool initializeCommunicationPorts();
+    
+
+    
+    // Check if a communication port is active
+    bool isCommPortActive(const std::string& portName) const;
+    
+    // Get a reference to the active communication ports map
+    const std::unordered_map<std::string, RS232Communication>& getActiveCommPorts() const;
     
 private:
     // Central logic cycle function - called after state changes from any event
@@ -57,7 +68,7 @@ private:
     // Timer control functions
     void startTimer(const std::string& timerName);
     void stopTimer(const std::string& timerName);
-    void initTimers();
+    bool initTimers();
     
 
     const Config& config_;
@@ -70,6 +81,9 @@ private:
     std::unordered_map<std::string, std::string> commData_;     // Communication data by port
     std::unordered_map<std::string, Timer> timers_; // Current timer states
     
+    // Map of active communication ports (only includes initialized/active ports)
+    std::unordered_map<std::string, RS232Communication> activeCommPorts_;
+    
     // Flags for tracking which systems have updates
     bool inputsUpdated_{false};
     bool outputsUpdated_{false};
@@ -77,10 +91,6 @@ private:
     bool timerUpdated_{false};
 
     bool blinkLed0_{false};
-    
-    // Communication ports
-    RS232Communication communication1_;
-    RS232Communication communication2_;
     
     // Control flags
     bool overrideOutputs_{false}; // Flag to control output overrides

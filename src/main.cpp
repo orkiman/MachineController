@@ -72,6 +72,11 @@ int main(int argc, char* argv[]) {
                      &logic, SLOT(handleOutputOverrideStateChanged(bool)));
     QObject::connect(mainWindow.getSettingsWindow(), SIGNAL(outputStateChanged(const std::unordered_map<std::string, IOChannel>&)), 
                      &logic, SLOT(handleOutputStateChanged(const std::unordered_map<std::string, IOChannel>&)));
+                     
+    // Connect MainWindow's windowReady signal to Logic's initialize method
+    // This ensures that communication ports are initialized only after the GUI is ready
+    QObject::connect(&mainWindow, SIGNAL(windowReady()), 
+                     &logic, SLOT(initialize()));
 
     // 3. Start Logic in a separate thread
     std::thread logicThread([&logic]() {

@@ -21,6 +21,9 @@ MainWindow::MainWindow(QWidget *parent, EventQueue<EventVariant>& eventQueue, co
     // connect(ui->stopButton, &QPushButton::clicked, this, &MainWindow::on_stopButton_clicked);
     // connect(ui->settingsButton, &QPushButton::clicked, this, &MainWindow::on_settingsButton_clicked);
     // connect(ui->clearMessageAreaButton, &QPushButton::clicked, this, &MainWindow::on_clearMessageAreaButton_clicked);
+    
+    // Use Qt::QueuedConnection to ensure this runs after the event loop starts
+    QMetaObject::invokeMethod(this, "emitWindowReady", Qt::QueuedConnection);
 }
 
 MainWindow::~MainWindow() {
@@ -72,4 +75,10 @@ void MainWindow::addMessage(const QString& message, const QString& identifier) {
     
     // Append the formatted message to the message area
     ui->messageArea->append(htmlMessage);
+}
+
+void MainWindow::emitWindowReady() {
+    // This method is called after the window is fully initialized and shown
+    // Emit the signal to notify other components that the window is ready
+    emit windowReady();
 }

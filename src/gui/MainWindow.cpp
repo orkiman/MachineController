@@ -50,8 +50,18 @@ void MainWindow::on_clearMessageAreaButton_clicked() {
     ui->messageArea->clear();
 }
 
+
 void MainWindow::on_testButton_clicked() {
-    eventQueue_.push(GuiEvent{.type=GuiEventType::SetVariable, .identifier="blinkLed0"});
+    // Create a GuiEvent to toggle LED blinking
+    GuiEvent event;
+    event.keyword = "SetVariable";
+    event.target = "blinkLed0";
+    
+    // Push the event to the event queue
+    eventQueue_.push(event);
+    
+    // Add a message to the GUI
+    addMessage("Test button clicked - toggling LED blinking");
 }
 
 void MainWindow::addMessage(const QString& message, const QString& identifier) {

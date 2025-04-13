@@ -104,6 +104,54 @@ void Logic::oneLogicCycle() {
   if(!overrideOutputs_) {
     writeOutputs();
   }
+  
+  // Process communication data if available
+  if (commUpdated_) {
+    // First, populate communicationDataLists_ from communicationLatestInputData_
+    for (const auto& [commName, message] : communicationNewInputData_) {
+      // Only add messages for active communication ports
+      if (activeCommPorts_.find(commName) != activeCommPorts_.end() && 
+          !message.empty() && 
+          commName.find("_sent") == std::string::npos) { // Skip sent messages
+        
+        // Add the message to this channel's data list
+        communicationDataLists_[commName].push_back(message);
+      }
+    }
+    
+    // Now process data from all active communication ports
+    for (auto& [portName, messageList] : communicationDataLists_) {
+      if (!messageList.empty()) {
+        getLogger()->debug("Processing {} messages from {}", messageList.size(), portName);
+        
+        // Machine-specific logic for each port
+        // This is where you would implement custom handling for different ports
+        for (const auto& message : messageList) {
+          // Example of port-specific processing:
+          // if (portName == "COM1") {
+          //   // Handle barcode data
+          //   processBarcode(message);
+          // } else if (portName == "COM2") {
+          //   // Handle sensor data
+          //   processSensorData(message);
+          // } else {
+          //   // Default handling for other ports
+          //   processGenericMessage(portName, message);
+          // }
+          
+          // For now, just log the message
+          getLogger()->debug("Message from {}: {}", portName, message);
+        }
+        
+        // Clear the list after processing
+        messageList.clear();
+      }
+    }
+    
+    // Reset the flag after processing all communication data
+    commUpdated_ = false;
+  }
+  
   return;
   // Log the start of a logic cycle
   getLogger()->debug("Starting logic cycle");
@@ -130,10 +178,16 @@ void Logic::oneLogicCycle() {
     getLogger()->debug("Processing communication updates");
 
     // Example: Process messages from different ports
-    for (const auto &[port, message] : commData_) {
+    for (const auto &[port, messageList] : communicationDataLists_) {
       // Add machine-specific communication handling here
       // Example: Parse commands, update registers, etc.
-      getLogger()->debug("Processing message from {}: {}", port, message);
+      getLogger()->debug("Processing {} messages from {}", messageList.size(), port);
+      
+      // Process each message in the list
+      for (const auto& message : messageList) {
+        getLogger()->debug("Message from {}: {}", port, message);
+        // Add your machine-specific message handling here
+      }
     }
 
     commUpdated_ = false; // Reset the flag
@@ -197,12 +251,14 @@ void Logic::handleEvent(const IOEvent &event) {
 }
 
 void Logic::handleEvent(const CommEvent &event) {
-  std::cout << "[Comm Event] Received from port " << event.port << ": "
+  getLogger()->debug("Received communication from {}: {}", event.communicationName,
+             event.message);
+  std::cout << "[Communication] Received from " << event.communicationName << ": "
             << event.message << std::endl;
 
-  // Store the received message in our communication data map
-  commData_[event.port] = event.message;
-
+  // Store the received message in our latest input data map
+  communicationNewInputData_[event.communicationName] = event.message;
+  
   // Set flag to indicate communication data was updated
   commUpdated_ = true;
 
@@ -210,36 +266,33 @@ void Logic::handleEvent(const CommEvent &event) {
   oneLogicCycle();
 }
 
+
 void Logic::handleEvent(const GuiEvent &event) {
-  bool runLogicCycle =
-      false; // Flag to determine if we should run the logic cycle
+  bool runLogicCycle = false; // Flag to determine if we should run the logic cycle
 
-  switch (event.type) {
-  case GuiEventType::ButtonPress:
-    std::cout << "[GUI Event] Button pressed: " << event.data << std::endl;
-    // For example, if this button press should trigger an output change:
-    // setOutput(...);
-    runLogicCycle = true; // Button press might affect machine state
-    break;
+  // Log the event for debugging
+  getLogger()->debug("[GUI Event] Received: keyword='{}', data='{}', target='{}', intValue={}",
+                    event.keyword, event.data, event.target, event.intValue);
 
-  case GuiEventType::SetOutput:
-    std::cout << "[GUI Event] Set output " << event.identifier << " to "
-              << (event.intValue == 0 ? "OFF" : "ON") << std::endl;
-    outputChannels_[event.identifier].state = event.intValue;
+  // Handle events based on keyword
+  if (event.keyword == "SetOutput") {
+    // Set an output channel state
+    getLogger()->info("Setting output {} to {}", event.target, event.intValue);
+    outputChannels_[event.target].state = event.intValue;
     outputsUpdated_ = true;
     runLogicCycle = true;
-    break;
-
-  case GuiEventType::SetVariable:
-    // std::cout << "[GUI Event] Set variable: " << event.data
-    //           << " Value: " << event.intValue << std::endl;
-    // setVariable(event.intValue);
-    if (event.identifier == "blinkLed0") {
+  }
+  else if (event.keyword == "SetVariable") {
+    // Handle variable setting
+    getLogger()->info("Setting variable {}", event.target);
+    
+    if (event.target == "blinkLed0") {
       blinkLed0_ = !blinkLed0_;
+      getLogger()->info("LED blinking {}", blinkLed0_ ? "enabled" : "disabled");
+      
       if (blinkLed0_) {
         timers_["timer1"].start(
-            std::chrono::milliseconds(timers_["timer1"].getDuration()),
-            [this]() {
+            std::chrono::milliseconds(timers_["timer1"].getDuration()), [this]() {
               // Push the event to the queue
               eventQueue_.push(TimerEvent{"timer1"});
             });
@@ -247,70 +300,51 @@ void Logic::handleEvent(const GuiEvent &event) {
         timers_["timer1"].cancel();
       }
     }
-    runLogicCycle = true; // Variable change might affect machine state
-    break;
-
-  case GuiEventType::ParameterChange:
-    std::cout << "[GUI Event] Parameter changed: " << event.data
-              << " New value: " << event.intValue << std::endl;
+    runLogicCycle = true;
+  }
+  else if (event.keyword == "ParameterChange") {
+    // Reinitialize components after parameter changes
+    getLogger()->info("Parameters changed: {}", event.data);
     initializeCommunicationPorts();
     initTimers();
-
-    // adjustParameter(event.intValue);
-    runLogicCycle = true; // Parameter change might affect machine state
-    break;
-
-  case GuiEventType::StatusRequest:
-    std::cout << "[GUI Event] Status request received." << std::endl;
-    // trigger a status update
-    // No need to run logic cycle for status requests
-    break;
-
-  case GuiEventType::StatusUpdate:
-    std::cout << "[GUI Event] Status update: " << event.data << std::endl;
-    // No need to run logic cycle for status updates
-    break;
-
-  case GuiEventType::ErrorMessage:
-    std::cerr << "[GUI Event] Error: " << event.data << std::endl;
-    // No need to run logic cycle for error messages
-    break;
-
-  case GuiEventType::GuiMessage:
-    // Emit a signal that will be connected to MainWindow to display the message
+    runLogicCycle = true;
+  }  
+  else if (event.keyword == "GuiMessage") {
+    // Display a message in the GUI
     emit guiMessage(QString::fromStdString(event.data),
-                    QString::fromStdString(event.identifier));
-    // No need to run logic cycle for GUI messages
-    break;
-
-  case GuiEventType::SendCommunicationMessage: {
-    auto commPortIt = activeCommPorts_.find(event.identifier);
+                    QString::fromStdString(event.target));
+  }
+  else if (event.keyword == "SendCommunicationMessage") {
+    // Send a message to a communication port
+    auto commPortIt = activeCommPorts_.find(event.target);
     if (commPortIt != activeCommPorts_.end()) {
       if (!commPortIt->second.send(event.data)) {
-        getLogger()->error(
-            "[GUI Event] SendMessage: Failed to send message to {}",
-            event.identifier);
+        getLogger()->error("Failed to send message to {}", event.target);
       } else {
-        getLogger()->info("[GUI Event] SendMessage: Message sent to {}",
-                          event.identifier);
+        getLogger()->info("Message sent to {}: {}", event.target, event.data);
         // Store the sent message in our communication data
-        commData_[event.identifier + "_sent"] = event.data;
+        communicationNewInputData_[event.target + "_sent"] = event.data;
         commUpdated_ = true;
-        runLogicCycle = true; // Sending a message might affect machine state
+        runLogicCycle = true;
       }
     } else {
-      getLogger()->error("[GUI Event] SendMessage: Communication port {} not "
-                         "found or not active",
-                         event.identifier);
+      getLogger()->error("Communication port {} not found or not active", event.target);
       emit guiMessage(QString("Communication port %1 not found or not active")
-                          .arg(QString::fromStdString(event.identifier)),
+                          .arg(QString::fromStdString(event.target)),
                       "error");
     }
-  } break;
-
-  default:
-    std::cout << "[GUI Event] Unknown event: " << event.data << std::endl;
-    break;
+  }
+  else {
+    // Handle custom or machine-specific events
+    getLogger()->info("Custom event: keyword='{}', data='{}'", event.keyword, event.data);
+    
+    // Add your machine-specific event handling here
+    // Example:
+    // if (event.keyword == "CustomMachineCommand") {
+    //   handleCustomMachineCommand(event.data, event.target);
+    // }
+    
+    runLogicCycle = true;
   }
 
   // Run the central logic cycle if needed

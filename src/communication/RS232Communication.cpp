@@ -379,9 +379,9 @@ void RS232Communication::receiveLoop()
             std::string msg = receive();
             if (!msg.empty())
             {
-                // Create a CommEvent with port and message.
+                // Create a CommEvent with communication name and message.
                 CommEvent event;
-                event.port = port_; // Port identifier
+                event.communicationName = communicationName_; // Communication channel identifier
                 event.message = msg;
                 eventQueue_->push(event); // eventQueue_ should be thread-safe.
             }

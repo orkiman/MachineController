@@ -13,31 +13,48 @@ struct IOEvent {
 
 // Event for communication (TCP/IP, RS-232, etc.)
 struct CommEvent {
-    std::string port;    // Identifier for the communication port (e.g., "COM3")
+    std::string communicationName;    // Identifier for the communication channel (e.g., "COM3")
     std::string message; // The received message
 };
 
 // #### GUI START ####
 
-// Event for GUI updates ###
-enum class GuiEventType {
-    ButtonPress,
-    SetOutput,
-    SetVariable,
-    ParameterChange,
-    StatusRequest,
-    StatusUpdate,
-    ErrorMessage,
-    SendCommunicationMessage,
-    SendTestMessage,
-    GuiMessage
-};
-
+/**
+ * Event for GUI updates - simplified to keyword-based approach
+ * 
+ * Usage examples:
+ * 1. Set an output:
+ *    GuiEvent event;
+ *    event.keyword = "SetOutput";
+ *    event.target = "o1";           // Output channel name
+ *    event.intValue = 1;            // 1 = ON, 0 = OFF
+ *    eventQueue.push(event);
+ * 
+ * 2. Toggle LED blinking:
+ *    GuiEvent event;
+ *    event.keyword = "SetVariable";
+ *    event.target = "blinkLed0";
+ *    eventQueue.push(event);
+ * 
+ * 3. Send a message to a communication port:
+ *    GuiEvent event;
+ *    event.keyword = "SendCommunicationMessage";
+ *    event.target = "COM1";         // Communication port name
+ *    event.data = "Hello, world!";  // Message to send
+ *    eventQueue.push(event);
+ * 
+ * 4. Display a message in the GUI:
+ *    GuiEvent event;
+ *    event.keyword = "GuiMessage";
+ *    event.data = "Operation completed successfully";
+ *    event.target = "info";         // Message type (info, warning, error)
+ *    eventQueue.push(event);
+ */
 struct GuiEvent {
-    GuiEventType type;
-    std::string data; // For logging or display
-    std::string identifier;  // Identifier for the output to set (if needed)
-    int intValue = 0;      // For numeric parameters
+    std::string keyword;   // Command keyword (e.g., "SetOutput", "GuiMessage")
+    std::string data;      // Primary data or message content
+    std::string target;    // Target identifier (output name, comm port, message type)
+    int intValue = 0;      // Numeric value when needed
 };
 // #### GUI END ####
 

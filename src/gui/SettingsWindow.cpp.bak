@@ -661,38 +661,25 @@ void SettingsWindow::on_applyPushButton_clicked() {
     
     // Save settings to Config
     if (saveSettingsToConfig()) {
-        GuiEvent successEvent;
-        successEvent.keyword = "GuiMessage";
-        successEvent.data = "Settings saved successfully";
-        successEvent.target = "info";
-        eventQueue_.push(successEvent);
+        // eventQueue_.push(GuiEvent{GuiEventType::GuiMessage, "Settings saved successfully", "info"});
         
         // Set the refreshing flag to prevent marking items as changed during refresh
         isRefreshing_ = true;
         
-        // Refresh the communication fields to show the updated values
-        fillCommunicationTabFields();
-        
-        // Refresh the IO fields to show the updated values
-        fillIOTabFields();
+        // Reset all changed field markings after successful save
+        resetChangedFields();
         
         // Refresh the timer fields to show the updated values
         fillTimersTabFields();
         
         // Ask Logic to initialize communication ports
-        GuiEvent paramEvent;
-        paramEvent.keyword = "ParameterChange";
-        paramEvent.data = "Settings applied";
-        eventQueue_.push(paramEvent);
+        eventQueue_.push(GuiEvent{GuiEventType::ParameterChange});
+
         
         // Reset the refreshing flag
         isRefreshing_ = false;
     } else {
-        GuiEvent errorEvent;
-        errorEvent.keyword = "GuiMessage";
-        errorEvent.data = "Failed to save settings";
-        errorEvent.target = "error";
-        eventQueue_.push(errorEvent);
+        eventQueue_.push(GuiEvent{GuiEventType::GuiMessage, "Failed to save settings", "error"});
     }
 }
 void SettingsWindow::on_cancelPushButton_clicked() {
@@ -710,26 +697,15 @@ void SettingsWindow::on_okPushButton_clicked() {
     
     // Save settings to Config
     if (saveSettingsToConfig()) {
-        GuiEvent successEvent;
-        successEvent.keyword = "GuiMessage";
-        successEvent.data = "Settings saved successfully";
-        successEvent.target = "info";
-        eventQueue_.push(successEvent);
+        eventQueue_.push(GuiEvent{GuiEventType::GuiMessage, "Settings saved successfully", "info"});
         
         // Ask Logic to initialize communication ports
-        GuiEvent paramEvent;
-        paramEvent.keyword = "ParameterChange";
-        paramEvent.data = "Settings applied";
-        eventQueue_.push(paramEvent);
+        eventQueue_.push(GuiEvent{GuiEventType::ParameterChange});
         
         // Close the window
         close();
     } else {
-        GuiEvent errorEvent;
-        errorEvent.keyword = "GuiMessage";
-        errorEvent.data = "Failed to save settings";
-        errorEvent.target = "error";
-        eventQueue_.push(errorEvent);
+        eventQueue_.push(GuiEvent{GuiEventType::GuiMessage, "Failed to save settings", "error"});
     }
 }
 
@@ -739,11 +715,7 @@ void SettingsWindow::on_refreshButton_clicked()
 {
     qDebug() << "Refresh button clicked";
     fillIOTabFields();
-    GuiEvent event;
-event.keyword = "GuiMessage";
-event.data = "IO states refreshed";
-event.target = "info";
-eventQueue_.push(event);
+    eventQueue_.push(GuiEvent{GuiEventType::GuiMessage, "IO states refreshed", "info"});
 }
 
 void SettingsWindow::updateInputStates(const std::unordered_map<std::string, IOChannel>& inputs)
@@ -1083,11 +1055,7 @@ void SettingsWindow::fillWithDefaults()
     ui->timersTable->setItem(row, 2, descriptionItem3);
     
     // Notify that default settings were loaded
-    GuiEvent event;
-event.keyword = "GuiMessage";
-event.data = "Default communication settings loaded";
-event.target = "settings";
-eventQueue_.push(event);
+    eventQueue_.push(GuiEvent{GuiEventType::GuiMessage, "Default communication settings loaded", "settings"});
     
     // Prevent marking items as changed during refresh
     isRefreshing_ = true;
@@ -1477,11 +1445,7 @@ void SettingsWindow::on_communication1SendPushButton_clicked()
 {
     QString message = ui->commuication1TriggerLineEdit->text();
     if (!message.isEmpty()) {
-        GuiEvent event;
-event.keyword = "SendCommunicationMessage";
-event.data = message.toStdString();
-event.target = "communication1";
-eventQueue_.push(event);
+        eventQueue_.push(GuiEvent{GuiEventType::SendCommunicationMessage, message.toStdString(), "communication1"});
         qDebug() << "Sent message to communication1:" << message;
     } else {
         qDebug() << "Cannot send empty message to communication1";
@@ -1492,12 +1456,7 @@ void SettingsWindow::on_communication2SendPushButton_clicked()
 {
     QString message = ui->commuication2TriggerLineEdit->text();
     
-    GuiEvent event;
-event.keyword = "SendCommunicationMessage";
-event.data = message.toStdString();
-event.target = "2";
-event.intValue = 2;
-eventQueue_.push(event);
+    eventQueue_.push(GuiEvent{GuiEventType::SendTestMessage, message.toStdString(), "2", 2});
     
     qDebug() << "Sending test message to communication 2: " << message;
 }
@@ -1589,4 +1548,3 @@ void SettingsWindow::on_communication3ActiveCheckBox_stateChanged(int state) {
     if (ui->rs232Group3) ui->rs232Group3->setEnabled(isActive);
     if (ui->tcpipGroup3) ui->tcpipGroup3->setEnabled(isActive);
 }
-

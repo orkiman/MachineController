@@ -381,9 +381,9 @@ void TCPIPCommunication::receiveLoop()
             std::string msg = receive();
             if (!msg.empty())
             {
-                // Create a CommEvent with IP:port and message
+                // Create a CommEvent with communication name and message
                 CommEvent event;
-                event.port = ipAddress_ + ":" + std::to_string(port_); // IP:port identifier
+                event.communicationName = communicationName_; // Use the existing communication name
                 event.message = msg;
                 eventQueue_->push(event); // eventQueue_ should be thread-safe
             }

@@ -1,0 +1,194 @@
+#include "gui/SettingsWindow.h"
+#include "ui_SettingsWindow.h"
+#include "Config.h"
+#include <QDebug>
+#include <QFile>
+#include <QDir>
+#include <QTimer>
+
+SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQueue, const Config& config)
+    : QDialog(parent),
+      ui(new Ui::SettingsWindow),
+      eventQueue_(eventQueue),
+      config_(&config)
+{
+    ui->setupUi(this);
+    
+    // Fill the communication tab fields with default values
+    fillCommunicationTabFields();
+    
+    // Fill the timers tab fields with values from config
+    fillTimersTabFields();
+    
+    // Fill the IO tab with inputs and outputs from config
+    fillIOTabFields();
+    
+    // Connect change events for all editable fields
+    connectChangeEvents();
+    
+    // Connect send button slots
+    // connect(ui->communication1SendPushButton, &QPushButton::clicked, this, &SettingsWindow::on_communication1SendPushButton_clicked);
+    // connect(ui->communication2SendPushButton, &QPushButton::clicked, this, &SettingsWindow::on_communication2SendPushButton_clicked);
+}
+
+SettingsWindow::~SettingsWindow() {
+    delete ui;
+}
+
+bool SettingsWindow::loadSettingsFromJson(const QString& filePath) {
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        qDebug() << "Could not open settings file:" << filePath;
+        GuiEvent event;
+        event.keyword = "GuiMessage";
+        event.data = "Failed to load settings from " + filePath.toStdString();
+        event.target = "error";
+        eventQueue_.push(event);
+        return false;
+    }
+    
+    QByteArray saveData = file.readAll();
+    QJsonDocument loadDoc = QJsonDocument::fromJson(saveData);
+    
+    if (loadDoc.isNull() || !loadDoc.isObject()) {
+        qDebug() << "Invalid JSON format in settings file";
+        GuiEvent event;
+        event.keyword = "GuiMessage";
+        event.data = "Invalid JSON format in settings file";
+        event.target = "error";
+        eventQueue_.push(event);
+        file.close();
+        return false;
+    }
+    
+    QJsonObject json = loadDoc.object();
+    
+    // Check if communication settings exist
+    if (!json.contains("communication") || !json["communication"].isObject()) {
+        qDebug() << "No communication settings found in JSON";
+        file.close();
+        return false;
+    }
+    
+    file.close();
+    
+    // Load timer settings
+    fillTimersTabFields();
+    
+    return true;
+}
+
+// Rest of the file remains the same until on_applyPushButton_clicked
+
+void SettingsWindow::on_applyPushButton_clicked() {
+    qDebug() << "Apply button clicked";
+    
+    // Save settings to Config
+    if (saveSettingsToConfig()) {
+        // Create a success message event
+        GuiEvent successEvent;
+        successEvent.keyword = "GuiMessage";
+        successEvent.data = "Settings saved successfully";
+        successEvent.target = "info";
+        eventQueue_.push(successEvent);
+        
+        // Set the refreshing flag to prevent marking items as changed during refresh
+        isRefreshing_ = true;
+        
+        // Reset all changed field markings after successful save
+        resetChangedFields();
+        
+        // Refresh the timer fields to show the updated values
+        fillTimersTabFields();
+        
+        // Ask Logic to initialize communication ports
+        GuiEvent paramEvent;
+        paramEvent.keyword = "ParameterChange";
+        paramEvent.data = "Settings applied";
+        eventQueue_.push(paramEvent);
+        
+        // Reset the refreshing flag
+        isRefreshing_ = false;
+    } else {
+        // Create an error message event
+        GuiEvent errorEvent;
+        errorEvent.keyword = "GuiMessage";
+        errorEvent.data = "Failed to save settings";
+        errorEvent.target = "error";
+        eventQueue_.push(errorEvent);
+    }
+}
+
+void SettingsWindow::on_cancelPushButton_clicked() {
+    qDebug() << "Cancel button clicked";
+    close();
+}
+
+void SettingsWindow::on_defaultsPushButton_clicked() {
+    qDebug() << "Defaults button clicked";
+    fillWithDefaults();
+}
+
+void SettingsWindow::on_okPushButton_clicked() {
+    qDebug() << "OK button clicked";
+    
+    // Save settings to Config
+    if (saveSettingsToConfig()) {
+        // Create a success message event
+        GuiEvent successEvent;
+        successEvent.keyword = "GuiMessage";
+        successEvent.data = "Settings saved successfully";
+        successEvent.target = "info";
+        eventQueue_.push(successEvent);
+        
+        // Ask Logic to initialize communication ports
+        GuiEvent paramEvent;
+        paramEvent.keyword = "ParameterChange";
+        paramEvent.data = "Settings applied";
+        eventQueue_.push(paramEvent);
+        
+        // Close the window
+        close();
+    } else {
+        // Create an error message event
+        GuiEvent errorEvent;
+        errorEvent.keyword = "GuiMessage";
+        errorEvent.data = "Failed to save settings";
+        errorEvent.target = "error";
+        eventQueue_.push(errorEvent);
+    }
+}
+
+// Rest of the file remains the same until on_communication1SendPushButton_clicked
+
+void SettingsWindow::on_communication1SendPushButton_clicked()
+{
+    QString message = ui->commuication1TriggerLineEdit->text();
+    if (!message.isEmpty()) {
+        // Create a communication message event
+        GuiEvent commEvent;
+        commEvent.keyword = "SendCommunicationMessage";
+        commEvent.data = message.toStdString();
+        commEvent.target = "communication1";
+        eventQueue_.push(commEvent);
+        
+        qDebug() << "Sent message to communication1:" << message;
+    } else {
+        qDebug() << "Cannot send empty message to communication1";
+    }
+}
+
+void SettingsWindow::on_communication2SendPushButton_clicked()
+{
+    QString message = ui->commuication2TriggerLineEdit->text();
+    
+    // Create a test message event
+    GuiEvent testEvent;
+    testEvent.keyword = "SendCommunicationMessage";
+    testEvent.data = message.toStdString();
+    testEvent.target = "communication2";
+    testEvent.intValue = 2;
+    eventQueue_.push(testEvent);
+    
+    qDebug() << "Sending test message to communication 2: " << message;
+}

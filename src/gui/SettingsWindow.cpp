@@ -19,6 +19,9 @@ SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQ
 {
     ui->setupUi(this);
     
+    // Set style sheet for the timers table to ensure text is visible during editing
+    ui->timersTable->setStyleSheet("QTableWidget::item:selected { color: black; background-color: #c0c0ff; }");
+    
     // Set up connections for the communication selector
     // This needs to be done after setupUi
     QComboBox* commSelector = findChild<QComboBox*>("communicationSelectorComboBox");
@@ -1032,6 +1035,9 @@ void SettingsWindow::fillTimersTabFields()
     // Set the refreshing flag to prevent marking items as changed during loading
     isRefreshing_ = true;
     
+    // Temporarily disconnect the itemChanged signal to prevent items from being marked as changed
+    disconnect(ui->timersTable, &QTableWidget::itemChanged, nullptr, nullptr);
+    
     if (!config_) {
         qDebug() << "Config object is null. Cannot load timer settings.";
         isRefreshing_ = false; // Reset flag
@@ -1068,6 +1074,12 @@ void SettingsWindow::fillTimersTabFields()
             QTableWidgetItem* durationItem = new QTableWidgetItem(QString::number(duration));
             QTableWidgetItem* descriptionItem = new QTableWidgetItem(QString::fromStdString(description));
             
+            // Ensure all items have proper colors for good visibility
+            nameItem->setForeground(QBrush(Qt::black));
+            durationItem->setBackground(QBrush(Qt::transparent));
+            durationItem->setForeground(QBrush(Qt::black));
+            descriptionItem->setForeground(QBrush(Qt::black));
+            
             // Disable editing for name and description fields
             nameItem->setFlags(nameItem->flags() & ~Qt::ItemIsEditable);
             descriptionItem->setFlags(descriptionItem->flags() & ~Qt::ItemIsEditable);
@@ -1087,6 +1099,15 @@ void SettingsWindow::fillTimersTabFields()
     
     // Reset the refreshing flag
     isRefreshing_ = false;
+    
+    // Reconnect the itemChanged signal to track changes after initialization
+    connect(ui->timersTable, &QTableWidget::itemChanged, [this](QTableWidgetItem* item) {
+        // Only mark duration column (column 1) as changed and only if not refreshing
+        if (item && item->column() == 1 && !isRefreshing_) {
+            item->setBackground(QBrush(QColor(255, 200, 200))); // Light red
+            item->setForeground(QBrush(Qt::black)); // Ensure text is black and visible
+        }
+    });
 }
 
 void SettingsWindow::fillWithDefaults()
@@ -1516,7 +1537,7 @@ void SettingsWindow::resetChangedFields() {
         lineEdit->setPalette(QPalette());
     }
     
-    // Timer table cells
+    // Timer table cells - ensure all duration cells (column 1) are reset to transparent
     for (int row = 0; row < ui->timersTable->rowCount(); ++row) {
         QTableWidgetItem* durationItem = ui->timersTable->item(row, 1);
         if (durationItem) {
@@ -1548,13 +1569,8 @@ void SettingsWindow::connectChangeEvents() {
         });
     }
     
-    // Connect change events for timer duration cells
-    connect(ui->timersTable, &QTableWidget::itemChanged, [this](QTableWidgetItem* item) {
-        // Only mark duration column (column 1) as changed and only if not refreshing
-        if (item && item->column() == 1 && !isRefreshing_) {
-            item->setBackground(QBrush(QColor(255, 200, 200))); // Light red
-        }
-    });
+    // Note: Timer table itemChanged signal is connected in fillTimersTabFields
+    // to properly handle disconnection/reconnection during initialization
 }
 
 void SettingsWindow::on_communication1SendPushButton_clicked()

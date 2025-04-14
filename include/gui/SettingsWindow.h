@@ -5,6 +5,7 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QJsonArray>
+#include <QSet>
 #include "Event.h"
 #include "EventQueue.h"
 #include "Config.h"
@@ -45,6 +46,7 @@ signals:
     void outputStateChanged(const std::unordered_map<std::string, IOChannel>& outputs);
 
 private slots:
+    
     void on_overrideOutputsCheckBox_stateChanged(int state);
     void on_applyPushButton_clicked();
     void on_cancelPushButton_clicked();
@@ -87,6 +89,7 @@ private:
     EventQueue<EventVariant>& eventQueue_;
     const Config* config_; // Pointer to Config object
     bool isRefreshing_ = false; // Flag to prevent marking items as changed during refresh
+    QSet<QWidget*> changedWidgets_; // Set of widgets that have been changed
 };
 
 #endif // SETTINGSWINDOW_H

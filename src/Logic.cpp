@@ -7,7 +7,7 @@ Logic::Logic(EventQueue<EventVariant> &eventQueue, const Config &config)
     : eventQueue_(eventQueue), config_(config), io_(eventQueue_, config) {
   if (!io_.initialize()) {
     std::cerr << "Failed to initialize PCI7248IO." << std::endl;
-    getLogger()->error("Failed to initialize PCI7248IO.");
+    getLogger()->error("[{}] Failed to initialize PCI7248IO.", __PRETTY_FUNCTION__);
   } else {
     // Get initial input states and emit signal to update the SettingsWindow
     // This ensures the IO tab shows the correct states when first opened
@@ -16,9 +16,7 @@ Logic::Logic(EventQueue<EventVariant> &eventQueue, const Config &config)
 
     std::cout << "Initial input states sent to SettingsWindow." << std::endl;
   }
-  getLogger()->debug("[{}] Logic initialized22", __PRETTY_FUNCTION__);
-
-  
+  getLogger()->debug("[{}] Logic initialized", __PRETTY_FUNCTION__);
   
   // Communication ports and timers will be initialized when the GUI is ready
 }
@@ -37,17 +35,17 @@ Logic::~Logic() {
 void Logic::initialize() {
   // Initialize timers 
   if (!initTimers()) {
-    getLogger()->error("Failed to initialize timers");
+    getLogger()->error("[{}] Failed to initialize timers", __PRETTY_FUNCTION__);
   } else {
-    getLogger()->info("Timers initialized successfully");
+    getLogger()->info("[{}] Timers initialized successfully", __PRETTY_FUNCTION__);
   }
 
   // Initialize communication ports now that the GUI is ready to display messages
   if (!initializeCommunicationPorts()) {
-    getLogger()->error("Failed to initialize communication ports");
+    getLogger()->error("[{}] Failed to initialize communication ports", __PRETTY_FUNCTION__);
     emit guiMessage("Failed to initialize communication ports", "error");
   } else {
-    getLogger()->info("Communication ports initialized successfully");
+    getLogger()->info("[{}] Communication ports initialized successfully", __PRETTY_FUNCTION__);
     emit guiMessage("Communication ports initialized successfully", "info");
   }
 }
@@ -62,7 +60,7 @@ void Logic::run() {
 
     // Check if this is a termination event
     if (std::holds_alternative<TerminationEvent>(event)) {
-      getLogger()->info("Termination event received, exiting event loop");
+      getLogger()->info("[{}] Termination event received, exiting event loop", __PRETTY_FUNCTION__);
       break;
     }
 
@@ -123,7 +121,7 @@ void Logic::oneLogicCycle() {
     // Now process data from all active communication ports
     for (auto& [portName, messageList] : communicationDataLists_) {
       if (!messageList.empty()) {
-        getLogger()->debug("Processing {} messages from {}", messageList.size(), portName);
+        getLogger()->debug("[{}] Processing {} messages from {}", __PRETTY_FUNCTION__, messageList.size(), portName);
         
         // Machine-specific logic for each port
         // This is where you would implement custom handling for different ports
@@ -141,7 +139,7 @@ void Logic::oneLogicCycle() {
           // }
           
           // For now, just log the message
-          getLogger()->debug("Message from {}: {}", portName, message);
+          getLogger()->debug("[{}] Message from {}: {}", __PRETTY_FUNCTION__, portName, message);
         }
         
         // Clear the list after processing
@@ -153,13 +151,23 @@ void Logic::oneLogicCycle() {
     commUpdated_ = false;
   }
   
+  // reset timers edge
+  for (auto& [name, timer] : timers_) {
+    timer.setEventType(IOEventType::None);
+  }
+  
   return;
+
+
+
+
+  // i didnt deal with this bottom yet
   // Log the start of a logic cycle
-  getLogger()->debug("Starting logic cycle");
+  getLogger()->debug("[{}] Starting logic cycle", __PRETTY_FUNCTION__);
 
   // Process input changes if inputs were updated
   if (inputsUpdated_) {
-    getLogger()->debug("Processing input changes");
+    getLogger()->debug("[{}] Processing input changes", __PRETTY_FUNCTION__);
 
     // Example of machine-specific logic based on input states
     // Check for specific input conditions
@@ -176,17 +184,17 @@ void Logic::oneLogicCycle() {
 
   // Process communication data if it was updated
   if (commUpdated_) {
-    getLogger()->debug("Processing communication updates");
+    getLogger()->debug("[{}] Processing communication updates", __PRETTY_FUNCTION__);
 
     // Example: Process messages from different ports
     for (const auto &[port, messageList] : communicationDataLists_) {
       // Add machine-specific communication handling here
       // Example: Parse commands, update registers, etc.
-      getLogger()->debug("Processing {} messages from {}", messageList.size(), port);
+      getLogger()->debug("[{}] Processing {} messages from {}", __PRETTY_FUNCTION__, messageList.size(), port);
       
       // Process each message in the list
       for (const auto& message : messageList) {
-        getLogger()->debug("Message from {}: {}", port, message);
+        getLogger()->debug("[{}] Message from {}: {}", __PRETTY_FUNCTION__, port, message);
         // Add your machine-specific message handling here
       }
     }
@@ -196,7 +204,7 @@ void Logic::oneLogicCycle() {
 
   // Process timer events if any timer was updated
   if (timerUpdated_) {
-    getLogger()->debug("Processing timer updates");
+    getLogger()->debug("[{}] Processing timer updates", __PRETTY_FUNCTION__);
 
     // Add machine-specific timer handling here
 
@@ -205,13 +213,13 @@ void Logic::oneLogicCycle() {
 
   // Apply output changes if needed
   if (outputsUpdated_) {
-    getLogger()->debug("Applying output changes");
+    getLogger()->debug("[{}] Applying output changes", __PRETTY_FUNCTION__);
     writeOutputs();
     outputsUpdated_ = false; // Reset the flag
   }
 
   // Log the end of a logic cycle
-  getLogger()->debug("Logic cycle completed");
+  getLogger()->debug("[{}] Logic cycle completed", __PRETTY_FUNCTION__);
 }
 
 // **Event Handlers**
@@ -247,7 +255,7 @@ void Logic::handleEvent(const IOEvent &event) {
 }
 
 void Logic::handleEvent(const CommEvent &event) {
-  getLogger()->debug("Received communication from {}: {}", event.communicationName,
+  getLogger()->debug("[{}] Received communication from {}: {}", __PRETTY_FUNCTION__, event.communicationName,
              event.message);
   std::cout << "[Communication] Received from " << event.communicationName << ": "
             << event.message << std::endl;
@@ -267,24 +275,24 @@ void Logic::handleEvent(const GuiEvent &event) {
   bool runLogicCycle = false; // Flag to determine if we should run the logic cycle
 
   // Log the event for debugging
-  getLogger()->debug("[GUI Event] Received: keyword='{}', data='{}', target='{}', intValue={}",
-                    event.keyword, event.data, event.target, event.intValue);
+  getLogger()->debug("[{}] GUI Event] Received: keyword='{}', data='{}', target='{}', intValue={}",
+                    __PRETTY_FUNCTION__, event.keyword, event.data, event.target, event.intValue);
 
   // Handle events based on keyword
   if (event.keyword == "SetOutput") {
     // Set an output channel state
-    getLogger()->info("Setting output {} to {}", event.target, event.intValue);
+    getLogger()->info("[{}] Setting output {} to {}", __PRETTY_FUNCTION__, event.target, event.intValue);
     outputChannels_[event.target].state = event.intValue;
     outputsUpdated_ = true;
     runLogicCycle = true;
   }
   else if (event.keyword == "SetVariable") {
     // Handle variable setting
-    getLogger()->info("Setting variable {}", event.target);
+    getLogger()->info("[{}] Setting variable {}", __PRETTY_FUNCTION__, event.target);
     
     if (event.target == "blinkLed0") {
       blinkLed0_ = !blinkLed0_;
-      getLogger()->info("LED blinking {}", blinkLed0_ ? "enabled" : "disabled");
+      getLogger()->info("[{}] LED blinking {}", __PRETTY_FUNCTION__, blinkLed0_ ? "enabled" : "disabled");
       
       if (blinkLed0_) {
         timers_["timer1"].start(
@@ -300,7 +308,7 @@ void Logic::handleEvent(const GuiEvent &event) {
   }
   else if (event.keyword == "ParameterChange") {
     // Reinitialize components after parameter changes
-    getLogger()->info("Parameters changed: {}", event.data);
+    getLogger()->info("[{}] Parameters changed: {}", __PRETTY_FUNCTION__, event.data);
     initializeCommunicationPorts();
     initTimers();
     runLogicCycle = true;
@@ -315,16 +323,16 @@ void Logic::handleEvent(const GuiEvent &event) {
     auto commPortIt = activeCommPorts_.find(event.target);
     if (commPortIt != activeCommPorts_.end()) {
       if (!commPortIt->second.send(event.data)) {
-        getLogger()->error("Failed to send message to {}", event.target);
+        getLogger()->error("[{}] Failed to send message to {}", __PRETTY_FUNCTION__, event.target);
       } else {
-        getLogger()->info("Message sent to {}: {}", event.target, event.data);
+        getLogger()->info("[{}] Message sent to {}: {}", __PRETTY_FUNCTION__, event.target, event.data);
         // Store the sent message in our communication data
         communicationNewInputData_[event.target + "_sent"] = event.data;
         commUpdated_ = true;
         runLogicCycle = true;
       }
     } else {
-      getLogger()->error("Communication port {} not found or not active", event.target);
+      getLogger()->error("[{}] Communication port {} not found or not active", __PRETTY_FUNCTION__, event.target);
       emit guiMessage(QString("Communication port %1 not found or not active")
                           .arg(QString::fromStdString(event.target)),
                       "error");
@@ -332,7 +340,7 @@ void Logic::handleEvent(const GuiEvent &event) {
   }
   else {
     // Handle custom or machine-specific events
-    getLogger()->info("Custom event: keyword='{}', data='{}'", event.keyword, event.data);
+    getLogger()->info("[{}] Custom event: keyword='{}', data='{}'", __PRETTY_FUNCTION__, event.keyword, event.data);
     
     // Add your machine-specific event handling here
     // Example:
@@ -385,29 +393,28 @@ void Logic::handleOutputStateChanged(
 
     // Forward the output states to the IO module
     if (io_.writeOutputs(outputs)) {
-      getLogger()->debug("Output states updated successfully");
+      getLogger()->debug("[{}] Output states updated successfully", __PRETTY_FUNCTION__);
     } else {
-      getLogger()->error("Failed to update output states");
+      getLogger()->error("[{}] Failed to update output states", __PRETTY_FUNCTION__);
       emit guiMessage("Failed to update output states", "error");
     }
 
     // Run the central logic cycle
     oneLogicCycle();
   } else {
-    getLogger()->debug(
-        "Ignoring output state change request - override not enabled");
+    getLogger()->debug("[{}] Ignoring output state change request - override not enabled", __PRETTY_FUNCTION__);
   }
 }
 
 void Logic::handleEvent(const TerminationEvent &event) {
-  getLogger()->info("TerminationEvent received; shutting down logic thread.");
+  getLogger()->info("[{}] TerminationEvent received; shutting down logic thread.", __PRETTY_FUNCTION__);
   // No need to do anything here as the main loop will check for
   // TerminationEvent directly
 }
 
 void Logic::writeOutputs() {
   if (!io_.writeOutputs(outputChannels_)) {
-    getLogger()->error("Failed to write output states");
+    getLogger()->error("[{}] Failed to write output states", __PRETTY_FUNCTION__);
   }
 }
 
@@ -431,7 +438,7 @@ void Logic::emergencyShutdown() { io_.resetConfiguredOutputPorts(); }
 
 bool Logic::initializeCommunicationPorts() {
   try {
-    getLogger()->info("Initializing communication ports...");
+    getLogger()->info("[{}] Initializing communication ports...", __PRETTY_FUNCTION__);
     
     // Close existing communication ports if they're open
     for (auto &pair : activeCommPorts_) {
@@ -443,7 +450,7 @@ bool Logic::initializeCommunicationPorts() {
     nlohmann::json commSettings = config_.getCommunicationSettings();
     if (commSettings.empty()) {
       const std::string errorMsg = "No communication settings found in configuration";
-      getLogger()->error(errorMsg);
+      getLogger()->error("[{}] {}", __PRETTY_FUNCTION__, errorMsg);
       emit guiMessage(QString::fromStdString(errorMsg), "error");
       return false;
     }
@@ -459,9 +466,7 @@ bool Logic::initializeCommunicationPorts() {
       // Check if this port is marked as active in the configuration
       bool isActive = commConfig.value("active", false);
       if (!isActive) {
-        getLogger()->debug(
-            "Communication port '{}' is not active in config, skipping",
-            commName);
+        getLogger()->debug("[{}] Communication port '{}' is not active in config, skipping", __PRETTY_FUNCTION__, commName);
         continue; // Skip inactive ports
       }
       
@@ -473,14 +478,13 @@ bool Logic::initializeCommunicationPorts() {
         // Add to active communication ports map using move semantics
         activeCommPorts_.emplace(commName, std::move(comm));
         successfullyInitialized++;
-        getLogger()->info("Communication port '{}' initialized successfully",
-                          commName);
+        getLogger()->info("[{}] Communication port '{}' initialized successfully", __PRETTY_FUNCTION__, commName);
         emit guiMessage(QString("Communication port %1 initialized successfully")
                         .arg(QString::fromStdString(commName)),
                     "comm_success");
       } else {
         const std::string errorMsg = "Communication port '" + commName + "' initialization failed";
-        getLogger()->warn(errorMsg);
+        getLogger()->warn("[{}] {}", __PRETTY_FUNCTION__, errorMsg);
         emit guiMessage(QString::fromStdString(errorMsg), "warning");
         // No need to clean up - object will be destroyed when it goes out of scope
       }
@@ -489,7 +493,7 @@ bool Logic::initializeCommunicationPorts() {
     // Check if any active ports were configured
     if (activePortsCount == 0) {
       const std::string errorMsg = "No active communication ports configured in settings";
-      getLogger()->warn(errorMsg);
+      getLogger()->warn("[{}] {}", __PRETTY_FUNCTION__,   errorMsg);
       emit guiMessage(QString::fromStdString(errorMsg), "warning");
       return false;
     }
@@ -497,7 +501,7 @@ bool Logic::initializeCommunicationPorts() {
     // Check if any ports were successfully initialized
     if (activeCommPorts_.empty()) {
       const std::string errorMsg = "Failed to initialize any communication ports. Check port settings and availability.";
-      getLogger()->error(errorMsg);
+      getLogger()->error("[{}] {}", __PRETTY_FUNCTION__, errorMsg);
       emit guiMessage(QString::fromStdString(errorMsg), "error");
       return false;
     }
@@ -506,18 +510,18 @@ bool Logic::initializeCommunicationPorts() {
     if (successfullyInitialized < activePortsCount) {
       const std::string warnMsg = std::to_string(successfullyInitialized) + " of " + 
                                  std::to_string(activePortsCount) + " communication ports initialized";
-      getLogger()->warn(warnMsg);
+      getLogger()->warn("[{}] {}", __PRETTY_FUNCTION__, warnMsg);
       emit guiMessage(QString::fromStdString(warnMsg), "warning");
     } else {
       const std::string successMsg = std::to_string(successfullyInitialized) + " communication port(s) initialized successfully";
-      getLogger()->info(successMsg);
+      getLogger()->info("[{}] {}", __PRETTY_FUNCTION__, successMsg);
       emit guiMessage(QString::fromStdString(successMsg), "info");
     }
     
     return true;
   } catch (const std::exception &e) {
     const std::string errorMsg = "Error initializing communication ports: " + std::string(e.what());
-    getLogger()->error(errorMsg);
+    getLogger()->error("[{}] {}", __PRETTY_FUNCTION__, errorMsg);
     emit guiMessage(QString::fromStdString(errorMsg), "error");
     return false;
   }
@@ -534,12 +538,12 @@ Logic::getActiveCommPorts() const {
 
 bool Logic::initTimers() {
   try {
-    getLogger()->info("Initializing timers...");
+    getLogger()->info("[{}] Initializing timers...", __PRETTY_FUNCTION__);
     
     nlohmann::json timerSettings = config_.getTimerSettings();
     if (timerSettings.empty()) {
       const std::string errorMsg = "No timer settings found in configuration";
-      getLogger()->error(errorMsg);
+      getLogger()->error("[{}] {}", __PRETTY_FUNCTION__, errorMsg);
       emit guiMessage(QString::fromStdString(errorMsg), "timer_error");
       return false;
     }
@@ -557,7 +561,7 @@ bool Logic::initTimers() {
         // Get the duration from the timer settings
         if (!timerData.contains("duration")) {
           const std::string warnMsg = "Timer '" + timerName + "' has no duration specified, skipping";
-          getLogger()->warn(warnMsg);
+          getLogger()->warn("[{}] {}", __PRETTY_FUNCTION__, warnMsg);
           emit guiMessage(QString::fromStdString(warnMsg), "timer_warning");
           continue;
         }
@@ -565,7 +569,7 @@ bool Logic::initTimers() {
         int duration = timerData["duration"].get<int>();
         if (duration <= 0) {
           const std::string warnMsg = "Timer '" + timerName + "' has invalid duration: " + std::to_string(duration) + "ms, skipping";
-          getLogger()->warn(warnMsg);
+          getLogger()->warn("[{}] {}", __PRETTY_FUNCTION__, warnMsg);
           emit guiMessage(QString::fromStdString(warnMsg), "timer_warning");
           continue;
         }
@@ -580,32 +584,32 @@ bool Logic::initTimers() {
         timer.setEventType(IOEventType::None);
 
         initializedCount++;
-        getLogger()->info("Initialized timer: {} with duration: {}ms", timerName, duration);
+        getLogger()->info("[{}] Initialized timer: {} with duration: {}ms", __PRETTY_FUNCTION__, timerName, duration);
         emit guiMessage(QString("Timer %1 initialized with duration: %2ms")
                          .arg(QString::fromStdString(timerName))
                          .arg(duration),
                      "timer_success");
       } catch (const std::exception &e) {
         const std::string errorMsg = "Error initializing timer '" + timerName + "': " + e.what();
-        getLogger()->error(errorMsg);
+        getLogger()->error("[{}] {}", __PRETTY_FUNCTION__, errorMsg);
         emit guiMessage(QString::fromStdString(errorMsg), "timer_error");
       }
     }
 
     if (initializedCount == 0) {
       const std::string errorMsg = "Failed to initialize any timers";
-      getLogger()->error(errorMsg);
+      getLogger()->error("[{}] {}", __PRETTY_FUNCTION__, errorMsg);
       emit guiMessage(QString::fromStdString(errorMsg), "timer_error");
       return false;
     }
 
     const std::string successMsg = std::to_string(initializedCount) + " timer(s) initialized successfully";
-    getLogger()->info(successMsg);
+    getLogger()->info(  "[{}] {}", __PRETTY_FUNCTION__, successMsg);
     emit guiMessage(QString::fromStdString(successMsg), "info");
     return true;
   } catch (const std::exception &e) {
     const std::string errorMsg = "Error initializing timers: " + std::string(e.what());
-    getLogger()->error(errorMsg);
+    getLogger()->error("[{}] {}", __PRETTY_FUNCTION__, errorMsg);
     emit guiMessage(QString::fromStdString(errorMsg), "timer_error");
     return false;
   }

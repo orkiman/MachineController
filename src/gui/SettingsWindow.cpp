@@ -2,29 +2,53 @@
 #include "ui_SettingsWindow.h"
 #include "Config.h"
 #include <QDebug>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
 #include <QFile>
 #include <QDir>
+#include <QStackedWidget>
 #include <QTimer>
 
 SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQueue, const Config& config)
     : QDialog(parent),
       ui(new Ui::SettingsWindow),
       eventQueue_(eventQueue),
-      config_(&config)
+      config_(&config),
+      changedWidgets_()
 {
     ui->setupUi(this);
+    
+    // Set up connections for the communication selector
+    // This needs to be done after setupUi
+    QComboBox* commSelector = findChild<QComboBox*>("communicationSelectorComboBox");
+    QStackedWidget* commStack = findChild<QStackedWidget*>("communicationStackedWidget");
+    
+    if (commSelector && commStack) {
+        connect(commSelector, QOverload<int>::of(&QComboBox::currentIndexChanged),
+                [commStack](int index) {
+                    commStack->setCurrentIndex(index);
+                });
+    }
+    
+    // Connect change events for all editable fields
+    connectChangeEvents();
+    
+    // Set the refreshing flag to prevent marking fields as changed during initial load
+    isRefreshing_ = true;
     
     // Fill the communication tab fields with default values
     fillCommunicationTabFields();
     
-    // Fill the timers tab fields with values from config
+    // Fill the timers tab with default values
     fillTimersTabFields();
     
-    // Fill the IO tab with inputs and outputs from config
+    // Fill the IO tab with inputs and outputs
     fillIOTabFields();
     
-    // Connect change events for all editable fields
-    connectChangeEvents();
+    // Reset the refreshing flag and clear any changed field markings
+    isRefreshing_ = false;
+    resetChangedFields();
     
     // Connect send button slots
     // connect(ui->communication1SendPushButton, &QPushButton::clicked, this, &SettingsWindow::on_communication1SendPushButton_clicked);
@@ -79,9 +103,37 @@ bool SettingsWindow::loadSettingsFromJson(const QString& filePath) {
 }
 
 void SettingsWindow::fillCommunicationTabFields() {
-    // First set up all the combo boxes with their possible values
-    // This needs to happen regardless of whether we load from JSON or use defaults
+    // Access the communication selector using findChild
+    QComboBox* commSelector = findChild<QComboBox*>("communicationSelectorComboBox");
+    if (!commSelector) {
+        // If we can't find the selector, we're probably using the old UI
+        // Just return and use the old implementation
+        return;
+    }
     
+    // Clear the selector
+    commSelector->clear();
+    
+    // Get the communications from settings.json
+    nlohmann::json commSettingsList = config_->getCommunicationSettings();
+    
+    // Add items to the selector based on the communications in settings.json
+    if (!commSettingsList.empty()) {
+        for (auto& [commName, commData] : commSettingsList.items()) {
+            QString description = "Unknown";
+            if (commData.contains("description")) {
+                description = QString::fromStdString(commData["description"].get<std::string>());
+            }
+            commSelector->addItem(QString("%1 (%2)").arg(QString::fromStdString(commName)).arg(description));
+        }
+    } else {
+        // Default items if no communications found in settings
+        commSelector->addItem("Communication 1 (reader1)");
+        commSelector->addItem("Communication 2 (reader2)");
+        commSelector->addItem("Communication 3 (reader3)");
+    }
+    
+    // Setup type combo boxes for all communication pages
     // Communication 1 Type setup
     ui->communication1TypeComboBox->clear();
     ui->communication1TypeComboBox->addItems({"RS232", "TCP/IP"});
@@ -99,6 +151,10 @@ void SettingsWindow::fillCommunicationTabFields() {
     ui->communication3TypeComboBox->addItems({"RS232", "TCP/IP"});
     connect(ui->communication3TypeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, &SettingsWindow::updateCommunicationTypeVisibility);
+    
+    // Force update of visibility for all communication pages
+    // This ensures all pages have the correct RS232/TCP-IP fields visible on initial load
+    updateCommunicationTypeVisibility(-1); // -1 means update all pages
     
     // Communication 1 Tab setup
     // Port names - populate with available serial ports
@@ -179,11 +235,11 @@ void SettingsWindow::fillCommunicationTabFields() {
     }
     
     // Get communication settings using the same approach as RS232Communication
-    auto commSettings = config_->getCommunicationSettings();
+    auto commSettingsJson = config_->getCommunicationSettings();
     
     // Check for communication1 key
-    if (commSettings.contains("communication1")) {
-        auto comm1 = commSettings["communication1"];
+    if (commSettingsJson.contains("communication1")) {
+        auto comm1 = commSettingsJson["communication1"];
         
         // Type
         if (comm1.contains("type")) {
@@ -288,8 +344,8 @@ void SettingsWindow::fillCommunicationTabFields() {
     }
     
     // Apply settings from JSON for Communication 2
-    if (commSettings.contains("communication2")) {
-        auto comm2 = commSettings["communication2"];
+    if (commSettingsJson.contains("communication2")) {
+        auto comm2 = commSettingsJson["communication2"];
         
         // Type
         if (comm2.contains("type")) {
@@ -417,8 +473,8 @@ void SettingsWindow::fillCommunicationTabFields() {
     }
     
     // Communication 3 settings
-    if (commSettings.contains("communication3")) {
-        auto comm3 = commSettings["communication3"];
+    if (commSettingsJson.contains("communication3")) {
+        auto comm3 = commSettingsJson["communication3"];
         
         // Type
         if (comm3.contains("type")) {
@@ -687,6 +743,9 @@ void SettingsWindow::on_applyPushButton_clicked() {
         
         // Reset the refreshing flag
         isRefreshing_ = false;
+        
+        // Reset all changed field markings
+        resetChangedFields();
     } else {
         GuiEvent errorEvent;
         errorEvent.keyword = "GuiMessage";
@@ -702,7 +761,18 @@ void SettingsWindow::on_cancelPushButton_clicked() {
 
 void SettingsWindow::on_defaultsPushButton_clicked() {
     qDebug() << "Defaults button clicked";
+    
+    // Set the refreshing flag to prevent marking fields as changed during refresh
+    isRefreshing_ = true;
+    
+    // Fill with default values
     fillWithDefaults();
+    
+    // Reset the refreshing flag
+    isRefreshing_ = false;
+    
+    // Reset all changed field markings
+    resetChangedFields();
 }
 
 void SettingsWindow::on_okPushButton_clicked() {
@@ -721,6 +791,9 @@ void SettingsWindow::on_okPushButton_clicked() {
         paramEvent.keyword = "ParameterChange";
         paramEvent.data = "Settings applied";
         eventQueue_.push(paramEvent);
+        
+        // Reset all changed field markings before closing
+        resetChangedFields();
         
         // Close the window
         close();
@@ -1432,6 +1505,12 @@ void SettingsWindow::resetChangedFields() {
         comboBox->setPalette(QPalette());
     }
     
+    // Ensure the communication selector dropdown is always reset to default color
+    QComboBox* commSelector = findChild<QComboBox*>("communicationSelectorComboBox");
+    if (commSelector) {
+        commSelector->setPalette(QPalette());
+    }
+    
     QList<QLineEdit*> lineEdits = findChildren<QLineEdit*>();
     for (QLineEdit* lineEdit : lineEdits) {
         lineEdit->setPalette(QPalette());
@@ -1448,9 +1527,14 @@ void SettingsWindow::resetChangedFields() {
 }
 
 void SettingsWindow::connectChangeEvents() {
-    // Connect change events for ComboBoxes
+    // Connect change events for all combo boxes
     QList<QComboBox*> comboBoxes = findChildren<QComboBox*>();
     for (QComboBox* comboBox : comboBoxes) {
+        // Skip the communication selector dropdown - we don't want to track changes for it
+        if (comboBox->objectName() == "communicationSelectorComboBox") {
+            continue;
+        }
+        
         connect(comboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), [this, comboBox](int) {
             markAsChanged(comboBox);
         });
@@ -1503,50 +1587,65 @@ eventQueue_.push(event);
 }
 
 void SettingsWindow::updateCommunicationTypeVisibility(int index) {
-    Q_UNUSED(index);
+    // If index is -1, it means we want to update all pages regardless of which is visible
+    bool forceUpdateAll = (index == -1);
+    
+    // Get the stacked widget to determine which communication is currently visible
+    QStackedWidget* commStack = findChild<QStackedWidget*>("communicationStackedWidget");
+    int currentCommIndex = commStack ? commStack->currentIndex() : -1;
+    
+    // If we're using the new UI with stacked widget, only update the visible communication page
+    // unless forceUpdateAll is true. Otherwise, update all communication pages as before
+    bool updateAll = forceUpdateAll || (currentCommIndex == -1);
     
     // Communication 1 visibility
-    if (ui->communication1TypeComboBox) {
-        QString type1 = ui->communication1TypeComboBox->currentText();
-        
-        // Show/hide RS232 settings
-        if (ui->rs232Group1) {
-            ui->rs232Group1->setVisible(type1 == "RS232");
-        }
-        
-        // Show/hide TCP/IP settings
-        if (ui->tcpipGroup1) {
-            ui->tcpipGroup1->setVisible(type1 == "TCP/IP");
+    if (updateAll || currentCommIndex == 0) {
+        if (ui->communication1TypeComboBox) {
+            QString type1 = ui->communication1TypeComboBox->currentText();
+            
+            // Show/hide RS232 settings
+            if (ui->rs232Group1) {
+                ui->rs232Group1->setVisible(type1 == "RS232");
+            }
+            
+            // Show/hide TCP/IP settings
+            if (ui->tcpipGroup1) {
+                ui->tcpipGroup1->setVisible(type1 == "TCP/IP");
+            }
         }
     }
     
     // Communication 2 visibility
-    if (ui->communication2TypeComboBox) {
-        QString type2 = ui->communication2TypeComboBox->currentText();
-        
-        // Show/hide RS232 settings
-        if (ui->rs232Group2) {
-            ui->rs232Group2->setVisible(type2 == "RS232");
-        }
-        
-        // Show/hide TCP/IP settings
-        if (ui->tcpipGroup2) {
-            ui->tcpipGroup2->setVisible(type2 == "TCP/IP");
+    if (updateAll || currentCommIndex == 1) {
+        if (ui->communication2TypeComboBox) {
+            QString type2 = ui->communication2TypeComboBox->currentText();
+            
+            // Show/hide RS232 settings
+            if (ui->rs232Group2) {
+                ui->rs232Group2->setVisible(type2 == "RS232");
+            }
+            
+            // Show/hide TCP/IP settings
+            if (ui->tcpipGroup2) {
+                ui->tcpipGroup2->setVisible(type2 == "TCP/IP");
+            }
         }
     }
     
     // Communication 3 visibility
-    if (ui->communication3TypeComboBox) {
-        QString type3 = ui->communication3TypeComboBox->currentText();
-        
-        // Show/hide RS232 settings
-        if (ui->rs232Group3) {
-            ui->rs232Group3->setVisible(type3 == "RS232");
-        }
-        
-        // Show/hide TCP/IP settings
-        if (ui->tcpipGroup3) {
-            ui->tcpipGroup3->setVisible(type3 == "TCP/IP");
+    if (updateAll || currentCommIndex == 2) {
+        if (ui->communication3TypeComboBox) {
+            QString type3 = ui->communication3TypeComboBox->currentText();
+            
+            // Show/hide RS232 settings
+            if (ui->rs232Group3) {
+                ui->rs232Group3->setVisible(type3 == "RS232");
+            }
+            
+            // Show/hide TCP/IP settings
+            if (ui->tcpipGroup3) {
+                ui->tcpipGroup3->setVisible(type3 == "TCP/IP");
+            }
         }
     }
 }
@@ -1580,6 +1679,7 @@ void SettingsWindow::on_communication2ActiveCheckBox_stateChanged(int state) {
 void SettingsWindow::on_communication3ActiveCheckBox_stateChanged(int state) {
     // Enable/disable the communication 3 settings based on the active state
     bool isActive = (state == Qt::Checked);
+    markAsChanged(ui->communication3ActiveCheckBox);
     
     if (ui->communication3TypeComboBox) {
         ui->communication3TypeComboBox->setEnabled(isActive);

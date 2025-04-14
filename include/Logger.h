@@ -6,7 +6,13 @@
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include <memory>
 #include <vector>
+#include <string>
 
+// Note: Use the following pattern for logging with function information:
+// getLogger()->debug("[{}] Your message", __PRETTY_FUNCTION__);
+// This will automatically include the function name in the log message
+
+// Implementation of getLogger function
 inline std::shared_ptr<spdlog::logger>& getLogger() {
     static std::shared_ptr<spdlog::logger> logger = nullptr;
     if (!logger) {

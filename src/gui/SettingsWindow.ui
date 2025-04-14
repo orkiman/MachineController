@@ -26,11 +26,32 @@ QDialog[overrideOutputs=&quot;true&quot;] {
      <property name="currentIndex">
       <number>0</number>
      </property>
-     <widget class="QWidget" name="communicationTab1">
+     <widget class="QWidget" name="communicationTab">
       <attribute name="title">
-       <string>Communication 1</string>
+       <string>Communications</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_4">
+       <item>
+        <layout class="QHBoxLayout" name="communicationSelectorLayout">
+         <item>
+          <widget class="QLabel" name="communicationSelectorLabel">
+           <property name="text">
+            <string>Select Communication:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="communicationSelectorComboBox"/>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QStackedWidget" name="communicationStackedWidget">
+         <property name="currentIndex">
+          <number>0</number>
+         </property>
+         <widget class="QWidget" name="communication1Page">
+          <layout class="QVBoxLayout" name="verticalLayout_comm1">
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
@@ -256,13 +277,10 @@ QDialog[overrideOutputs=&quot;true&quot;] {
        <item>
         <widget class="QTextEdit" name="textEdit"/>
        </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="communicationTab2">
-      <attribute name="title">
-       <string>Communication 2</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_5">
+          </layout>
+         </widget>
+         <widget class="QWidget" name="communication2Page">
+          <layout class="QVBoxLayout" name="verticalLayout_5">
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_7">
          <item>
@@ -488,13 +506,10 @@ QDialog[overrideOutputs=&quot;true&quot;] {
        <item>
         <widget class="QTextEdit" name="communication2TextEdit"/>
        </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="communicationTab3">
-      <attribute name="title">
-       <string>Communication 3</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_6">
+          </layout>
+         </widget>
+         <widget class="QWidget" name="communication3Page">
+          <layout class="QVBoxLayout" name="verticalLayout_6">
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_10">
          <item>
@@ -719,6 +734,10 @@ QDialog[overrideOutputs=&quot;true&quot;] {
        </item>
        <item>
         <widget class="QTextEdit" name="communication3TextEdit"/>
+       </item>
+          </layout>
+         </widget>
+        </widget>
        </item>
       </layout>
      </widget>

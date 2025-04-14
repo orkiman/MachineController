@@ -16,6 +16,7 @@ Logic::Logic(EventQueue<EventVariant> &eventQueue, const Config &config)
 
     std::cout << "Initial input states sent to SettingsWindow." << std::endl;
   }
+  getLogger()->debug("[{}] Logic initialized22", __PRETTY_FUNCTION__);
 
   
   
@@ -232,13 +233,8 @@ void Logic::handleEvent(const IOEvent &event) {
               << std::endl;
   }
 
-  // Get all current input states and update our internal state
-  inputChannels_ = io_.getInputChannelsSnapshot();
-
-  // Update event-specific input states (these have event types set)
-  for (const auto &[name, channel] : event.channels) {
-    inputChannels_[name] = channel;
-  }
+  // Update our internal state with all input channels from the event
+  inputChannels_ = event.channels;
 
   // Emit signal to update the SettingsWindow with current input states
   emit inputStatesChanged(inputChannels_);

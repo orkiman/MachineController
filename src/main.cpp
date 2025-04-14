@@ -37,7 +37,7 @@ BOOL WINAPI ConsoleHandler(DWORD signal) {
 
 
 int main(int argc, char* argv[]) {
-    getLogger()->debug("Application started");
+    getLogger()->debug("[{}] Application started",__PRETTY_FUNCTION__);
     // Console handler setup (if needed)
     // if (!SetConsoleCtrlHandler(ConsoleHandler, TRUE)) {
     //     getLogger()->error("Could not set control handler");

@@ -33,20 +33,30 @@ Logic::~Logic() {
 }
 
 void Logic::initialize() {
-  // Initialize timers 
-  if (!initTimers()) {
-    getLogger()->error("[{}] Failed to initialize timers", __PRETTY_FUNCTION__);
+  // Initialize timers if not already initialized
+  if (!timersInitialized_) {
+    if (!initTimers()) {
+      getLogger()->error("[{}] Failed to initialize timers", __PRETTY_FUNCTION__);
+    } else {
+      getLogger()->info("[{}] Timers initialized successfully", __PRETTY_FUNCTION__);
+      timersInitialized_ = true;
+    }
   } else {
-    getLogger()->info("[{}] Timers initialized successfully", __PRETTY_FUNCTION__);
+    getLogger()->debug("[{}] Timers already initialized, skipping", __PRETTY_FUNCTION__);
   }
 
-  // Initialize communication ports now that the GUI is ready to display messages
-  if (!initializeCommunicationPorts()) {
-    getLogger()->error("[{}] Failed to initialize communication ports", __PRETTY_FUNCTION__);
-    emit guiMessage("Failed to initialize communication ports", "error");
+  // Initialize communication ports if not already initialized
+  if (!commsInitialized_) {
+    if (!initializeCommunicationPorts()) {
+      getLogger()->error("[{}] Failed to initialize communication ports", __PRETTY_FUNCTION__);
+      emit guiMessage("Failed to initialize communication ports", "error");
+    } else {
+      getLogger()->info("[{}] Communication ports initialized successfully", __PRETTY_FUNCTION__);
+      emit guiMessage("Communication ports initialized successfully", "info");
+      commsInitialized_ = true;
+    }
   } else {
-    getLogger()->info("[{}] Communication ports initialized successfully", __PRETTY_FUNCTION__);
-    emit guiMessage("Communication ports initialized successfully", "info");
+    getLogger()->debug("[{}] Communication ports already initialized, skipping", __PRETTY_FUNCTION__);
   }
 }
 
@@ -309,8 +319,29 @@ void Logic::handleEvent(const GuiEvent &event) {
   else if (event.keyword == "ParameterChange") {
     // Reinitialize components after parameter changes
     getLogger()->info("[{}] Parameters changed: {}", __PRETTY_FUNCTION__, event.data);
-    initializeCommunicationPorts();
-    initTimers();
+    
+    // Check which parameters changed to avoid unnecessary reinitializations
+    if (event.data.find("communication") != std::string::npos) {
+      getLogger()->info("[{}] Reinitializing communication ports due to parameter changes", __PRETTY_FUNCTION__);
+      // Mark as not initialized so it will be reinitialized
+      commsInitialized_ = false;
+      initializeCommunicationPorts();
+      commsInitialized_ = true; // Mark as initialized after reinitialization
+    } else {
+      getLogger()->debug("[{}] Skipping communication ports reinitialization as parameters don't affect them", __PRETTY_FUNCTION__);
+    }
+    
+    // Only reinitialize timers if timer parameters changed
+    if (event.data.find("timer") != std::string::npos) {
+      getLogger()->info("[{}] Reinitializing timers due to parameter changes", __PRETTY_FUNCTION__);
+      // Mark as not initialized so it will be reinitialized
+      timersInitialized_ = false;
+      initTimers();
+      timersInitialized_ = true; // Mark as initialized after reinitialization
+    } else {
+      getLogger()->debug("[{}] Skipping timers reinitialization as parameters don't affect them", __PRETTY_FUNCTION__);
+    }
+    
     runLogicCycle = true;
   }  
   else if (event.keyword == "GuiMessage") {

@@ -91,6 +91,10 @@ private:
     bool commUpdated_{false};
     bool timerUpdated_{false};
 
+    // Initialization flags
+    bool commsInitialized_{false};
+    bool timersInitialized_{false};
+
     bool blinkLed0_{false};
     
     // Control flags

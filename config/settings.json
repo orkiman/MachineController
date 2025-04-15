@@ -3,7 +3,7 @@
     "communication1": {
       "active": true,
       "baudRate": 115200,
-      "dataBits": 8,
+      "dataBits": 7,
       "description": "reader1",
       "etx": 3,
       "parity": "N",

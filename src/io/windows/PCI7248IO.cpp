@@ -25,7 +25,7 @@ PCI7248IO::PCI7248IO(EventQueue<EventVariant>& eventQueue, const Config& config)
 }
 
 PCI7248IO::~PCI7248IO() {
-    getLogger()->info("Shutting down PCI7248IO...");
+    getLogger()->debug("Shutting down PCI7248IO...");
     stopPolling(); // Signal intent to stop (useful if external logic checks flag)
 
     // Signal threads to stop
@@ -47,7 +47,7 @@ PCI7248IO::~PCI7248IO() {
     // Release the hardware card
     if (card_ >= 0) {
         Release_Card(card_);
-        getLogger()->info("PCI-7248 Card ({}) released.", card_);
+        getLogger()->debug("PCI-7248 Card ({}) released.", card_);
         card_ = -1;
     }
 
@@ -61,13 +61,13 @@ bool PCI7248IO::initialize() {
         return false;
     }
 
-    getLogger()->info("Initializing PCI-7248...");
+    getLogger()->debug("Initializing PCI-7248...");
     card_ = Register_Card(PCI_7248, 0); // Use board number 0
     if (card_ < 0) {
         getLogger()->error("Failed to register PCI-7248! DASK Error Code: {}", card_);
         return false;
     }
-    getLogger()->info("PCI-7248 Card registered successfully (Card ID: {}).", card_);
+    getLogger()->debug("PCI-7248 Card registered successfully (Card ID: {}).", card_);
 
     portsConfig_ = config_.getPci7248IoPortsConfiguration();
 
@@ -119,7 +119,7 @@ bool PCI7248IO::initialize() {
         return false;
     }
 
-    getLogger()->info("Timer capabilities - Min: {}ms, Max: {}ms", tc_.wPeriodMin, tc_.wPeriodMax);
+    getLogger()->debug("Timer capabilities - Min: {}ms, Max: {}ms", tc_.wPeriodMin, tc_.wPeriodMax);
     
     // Timer resolution (1ms) is already set in main.cpp
 
@@ -145,7 +145,7 @@ bool PCI7248IO::initialize() {
         if (!SetThreadPriority(threadHandle, THREAD_PRIORITY_TIME_CRITICAL)) {
             getLogger()->warn("Failed to set timer thread to high priority. Error: {}", GetLastError());
         } else {
-            getLogger()->info("Polling Timer thread set to high priority.");
+            getLogger()->debug("Polling Timer thread set to high priority.");
         }
         LARGE_INTEGER dueTime;
         dueTime.QuadPart = -20000LL; // 2ms in 100ns units (negative for relative time)
@@ -172,7 +172,7 @@ bool PCI7248IO::initialize() {
     });
     timerThread.detach(); // Let the thread run independently
 
-    getLogger()->info("PCI7248IO initialized successfully. High-resolution timer started with 2ms interval.");
+    getLogger()->debug("PCI7248IO initialized successfully. High-resolution timer started with 2ms interval.");
     return true;
     return true;
 }
@@ -230,15 +230,15 @@ void PCI7248IO::readInitialInputStates(const std::unordered_map<std::string, int
 
 // Log which channels are configured as input vs. output.
 void PCI7248IO::logConfiguredChannels() {
-    getLogger()->info("--- Configured Input Channels ---");
+    getLogger()->debug("--- Configured Input Channels ---");
     for (const auto& [_, ch] : inputChannels_) {
-        getLogger()->info("Input : {} (Port {}, Pin {})", ch.name, ch.ioPort, ch.pin);
+        getLogger()->debug("Input : {} (Port {}, Pin {})", ch.name, ch.ioPort, ch.pin);
     }
-    getLogger()->info("--- Configured Output Channels ---");
+    getLogger()->debug("--- Configured Output Channels ---");
     for (const auto& [_, ch] : outputChannels_) {
-        getLogger()->info("Output: {} (Port {}, Pin {})", ch.name, ch.ioPort, ch.pin);
+        getLogger()->debug("Output: {} (Port {}, Pin {})", ch.name, ch.ioPort, ch.pin);
     }
-     getLogger()->info("---------------------------------");
+     getLogger()->debug("---------------------------------");
 }
 
 
@@ -274,7 +274,7 @@ void PCI7248IO::pollingIteration() {
                 const double avg = static_cast<double>(this->totalDuration) / this->iterationCount;
                 double samplesPerSecond = this->iterationCount / 10.0; // 10-second window
                 double actualInterval = 10000.0 / this->iterationCount; // actual ms between samples
-                getLogger()->info(
+                getLogger()->trace(
                     "[Poll Stats] Min: {:.3f}ms | Max: {:.3f}ms | Avg: {:.3f}ms | Samples: {} ({:.1f}/s, {:.3f}ms interval) | >5ms: {}",
                     this->minDuration / 1000.0,
                     this->maxDuration / 1000.0,
@@ -333,7 +333,7 @@ bool PCI7248IO::updateInputStates() {
                 } else if (channel.state == 1 && newState == 0) {
                     channel.eventType = IOEventType::Falling;
                 }
-                 getLogger()->trace("Input state change: {} ({}) from {} to {}", channel.name, channel.eventType == IOEventType::Rising ? "Rising" : "Falling", channel.state, newState);
+                 getLogger()->debug("Input state change: {} ({}) from {} to {}", channel.name, channel.eventType == IOEventType::Rising ? "Rising" : "Falling", channel.state, newState);
                 channel.state = newState;
                 anyChange = true;
             } else {
@@ -440,7 +440,7 @@ void PCI7248IO::stopPolling() {
     std::lock_guard<std::mutex> lock(this->statsMutex);
     if (this->iterationCount > 0) {
         const double avg = static_cast<double>(this->totalDuration) / this->iterationCount;
-        getLogger()->info(
+        getLogger()->trace(
             "[Final Poll Stats] Min: {:.3f}ms | Max: {:.3f}ms | Avg: {:.3f}ms | Samples: {} | >5ms: {}",
             this->minDuration / 1000.0,
             this->maxDuration / 1000.0,

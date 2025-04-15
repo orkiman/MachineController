@@ -1,7 +1,7 @@
 #include "gui/MainWindow.h"
 #include "ui_MainWindow.h"
 #include "gui/SettingsWindow.h"
-#include <QDebug>
+#include "Logger.h"
 #include <QDateTime>
 
 MainWindow::MainWindow(QWidget *parent, EventQueue<EventVariant>& eventQueue, const Config& config)
@@ -32,11 +32,11 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::on_runButton_clicked() {
-    qDebug() << "Run button clicked";
+    getLogger()->debug("Run button clicked");
 }
 
 void MainWindow::on_stopButton_clicked() {
-    qDebug() << "Stop button clicked";
+    getLogger()->debug("Stop button clicked");
 }
 
 void MainWindow::on_settingsButton_clicked() {

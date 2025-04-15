@@ -6,6 +6,9 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QSet>
+#include <memory> // For std::shared_ptr
+#include <spdlog/spdlog.h> // Include spdlog
+
 #include "Event.h"
 #include "EventQueue.h"
 #include "Config.h"
@@ -48,7 +51,6 @@ signals:
 private slots:
     
     void on_overrideOutputsCheckBox_stateChanged(int state);
-    void on_okPushButton_clicked();
     
     // Communication related slots
     void on_communicationActiveCheckBox_stateChanged(int state);
@@ -105,6 +107,7 @@ private:
     Ui::SettingsWindow *ui;
     EventQueue<EventVariant>& eventQueue_;
     const Config* config_; // Pointer to Config object
+
     bool isRefreshing_ = false; // Flag to prevent marking items as changed during refresh
     QSet<QWidget*> changedWidgets_; // Set of widgets that have been changed
 };

@@ -146,7 +146,7 @@ bool TCPIPCommunication::initialize()
     }
 
     connected_ = true;
-    getLogger()->info("Successfully connected to {}:{} for {}", ipAddress_, port_, communicationName_);
+    getLogger()->debug("Successfully connected to {}:{} for {}", ipAddress_, port_, communicationName_);
 
     // Start asynchronous reception
     receiving_ = true;
@@ -344,7 +344,7 @@ void TCPIPCommunication::close()
         WSACleanup();
         socket_ = INVALID_SOCKET;
         connected_ = false;
-        getLogger()->info("Closed connection for {}", communicationName_);
+        getLogger()->debug("Closed connection for {}", communicationName_);
     }
 }
 

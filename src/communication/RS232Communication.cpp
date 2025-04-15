@@ -55,7 +55,7 @@ bool RS232Communication::initialize()
 {
     // If already initialized, close first to ensure clean state
     if (hSerial_ != INVALID_HANDLE_VALUE) {
-        getLogger()->info("Port {} already open, closing before reinitializing", communicationName_);
+        getLogger()->debug("Port {} already open, closing before reinitializing", communicationName_);
         close();
     }
 
@@ -188,7 +188,7 @@ bool RS232Communication::initialize()
     receiving_ = true;
     try {
         receiveThread_ = std::thread(&RS232Communication::receiveLoop, this);
-        getLogger()->info("Started receive thread for port {}", communicationName_);
+        getLogger()->debug("Started receive thread for port {}", communicationName_);
     } catch (const std::exception& e) {
         getLogger()->error("Failed to start receive thread for {}: {}", communicationName_, e.what());
         receiving_ = false;

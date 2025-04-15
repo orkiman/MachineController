@@ -127,7 +127,7 @@ void Config::updateCommunicationSettings(const nlohmann::json& commSettings)
         // Update communication settings
         if (commSettings.is_object()) {
             configJson_["communication"] = commSettings;
-            getLogger()->info("Communication settings updated");
+            getLogger()->debug("Communication settings updated");
         } else {
             getLogger()->error("Invalid communication settings format");
         }
@@ -144,7 +144,7 @@ void Config::updateTimerSettings(const nlohmann::json& timerSettings)
         // Update timer settings
         if (timerSettings.is_object()) {
             configJson_["timers"] = timerSettings;
-            getLogger()->info("Timer settings updated");
+            getLogger()->debug("Timer settings updated");
         } else {
             getLogger()->error("Invalid timer settings format");
         }
@@ -195,7 +195,7 @@ void Config::ensureDefaultCommunicationSettings()
         if (!comm2.contains("etx")) comm2["etx"] = 3;
         if (!comm2.contains("trigger")) comm2["trigger"] = "t";
         
-        getLogger()->info("Default communication settings ensured");
+        getLogger()->debug("Default communication settings ensured");
     } catch (const std::exception& e) {
         getLogger()->error("Error ensuring default communication settings: {}", e.what());
     }
@@ -232,7 +232,7 @@ void Config::ensureDefaultTimerSettings()
             configJson_["timers"]["timer3"]["description"] = "General purpose timer 3";
         }
         
-        getLogger()->info("Default timer settings ensured");
+        getLogger()->debug("Default timer settings ensured");
     } catch (const std::exception& e) {
         getLogger()->error("Error ensuring default timer settings: {}", e.what());
     }
@@ -266,7 +266,7 @@ bool Config::saveToFile(const std::string& filePath) const
             return false;
         }
         
-        getLogger()->info("Configuration successfully saved to: {}", targetPath);
+        getLogger()->debug("Configuration successfully saved to: {}", targetPath);
         return true;
     } catch (const std::exception& e) {
         getLogger()->error("Exception while saving configuration: {}", e.what());

@@ -1,7 +1,7 @@
 #include "gui/SettingsWindow.h"
 #include "ui_SettingsWindow.h"
 #include "Config.h"
-#include <QDebug>
+#include "Logger.h"
 #include <QJsonDocument>
 
 #include <QJsonObject>
@@ -117,7 +117,7 @@ SettingsWindow::~SettingsWindow() {
 bool SettingsWindow::loadSettingsFromJson(const QString& filePath) {
     QFile file(filePath);
     if (!file.open(QIODevice::ReadOnly)) {
-        qDebug() << "Could not open settings file:" << filePath;
+        getLogger()->warn("[loadSettingsFromJson] Could not open settings file: {}", filePath.toStdString());
         GuiEvent event;
         event.keyword = "GuiMessage";
         event.data = "Failed to load settings from " + filePath.toStdString();
@@ -130,7 +130,7 @@ bool SettingsWindow::loadSettingsFromJson(const QString& filePath) {
     QJsonDocument loadDoc = QJsonDocument::fromJson(saveData);
     
     if (loadDoc.isNull() || !loadDoc.isObject()) {
-        qDebug() << "Invalid JSON format in settings file";
+        getLogger()->warn("[loadSettingsFromJson] Invalid JSON format in settings file");
         GuiEvent event;
         event.keyword = "GuiMessage";
         event.data = "Invalid JSON format in settings file";
@@ -144,7 +144,7 @@ bool SettingsWindow::loadSettingsFromJson(const QString& filePath) {
     
     // Check if communication settings exist
     if (!json.contains("communication") || !json["communication"].isObject()) {
-        qDebug() << "No communication settings found in JSON";
+        getLogger()->warn("[loadSettingsFromJson] No communication settings found in JSON");
         file.close();
         return false;
     }
@@ -163,7 +163,7 @@ void SettingsWindow::fillCommunicationTabFields() {
     QStackedWidget* commStack = findChild<QStackedWidget*>("communicationStackedWidget");
     
     if (!commSelector || !commStack) {
-        qDebug() << "Communication selector or stack widget not found";
+        getLogger()->warn("[fillCommunicationTabFields] Communication selector or stack widget not found");
         return;
     }
     
@@ -176,7 +176,7 @@ void SettingsWindow::fillCommunicationTabFields() {
     // Get the communication page
     QWidget* commPage = commStack->widget(0);
     if (!commPage) {
-        qDebug() << "Communication page not found";
+        getLogger()->warn("[fillCommunicationTabFields] Communication page not found");
         return;
     }
     
@@ -276,7 +276,7 @@ void SettingsWindow::fillCommunicationTabFields() {
     
     // Get communication settings from Config object
     if (!config_) {
-        qDebug() << "Config object is null. Using default values.";
+        getLogger()->warn("[fillCommunicationTabFields] Config object is null. Using default values.");
         fillWithDefaults();
         GuiEvent event;
         event.keyword = "GuiMessage";
@@ -569,7 +569,7 @@ void SettingsWindow::on_overrideOutputsCheckBox_stateChanged(int state) {
 // provide more granular control over resetting settings
 
 void SettingsWindow::onCommunicationDefaultsButtonClicked() {
-    qDebug() << "Communication defaults button clicked";
+    getLogger()->debug("Communication defaults button clicked");
     
     // Set the refreshing flag to prevent marking fields as changed during refresh
     isRefreshing_ = true;
@@ -646,7 +646,7 @@ void SettingsWindow::onCommunicationDefaultsButtonClicked() {
 }
 
 void SettingsWindow::onTimersDefaultsButtonClicked() {
-    qDebug() << "Timers defaults button clicked";
+    getLogger()->debug("Timers defaults button clicked");
     
     // Set the refreshing flag to prevent marking fields as changed during refresh
     isRefreshing_ = true;
@@ -705,31 +705,10 @@ void SettingsWindow::onTimersDefaultsButtonClicked() {
     isRefreshing_ = false;
 }
 
-void SettingsWindow::on_okPushButton_clicked() {
-    qDebug() << "OK button clicked";
-    
-    // Since changes are saved immediately, we just need to notify Logic to initialize communication ports
-    GuiEvent paramEvent;
-    paramEvent.keyword = "ParameterChange";
-    paramEvent.data = "Settings applied";
-    eventQueue_.push(paramEvent);
-    
-    // Notify user that settings have been applied
-    GuiEvent successEvent;
-    successEvent.keyword = "GuiMessage";
-    successEvent.data = "Settings applied successfully";
-    successEvent.target = "info";
-    eventQueue_.push(successEvent);
-    
-    // Close the window
-    close();
-}
-
-
 
 void SettingsWindow::on_refreshButton_clicked()
 {
-    qDebug() << "Refresh button clicked";
+    getLogger()->debug("Refresh button clicked");
     fillIOTabFields();
     GuiEvent event;
 event.keyword = "GuiMessage";
@@ -781,7 +760,7 @@ void SettingsWindow::updateInputStates(const std::unordered_map<std::string, IOC
 
 void SettingsWindow::fillIOTabFields() {
     if (!config_) {
-        qDebug() << "Config object is null. Cannot load IO settings.";
+        getLogger()->warn("[fillIOTabFields] Config object is null. Cannot load IO settings.");
         return;
     }
     
@@ -894,7 +873,7 @@ void SettingsWindow::fillIOTabFields() {
         }
         
     } catch (const std::exception& e) {
-        qDebug() << "Exception while loading IO settings: " << e.what();
+        getLogger()->warn("[fillIOTabFields] Exception while loading IO settings: {}", e.what());
     }
 }
 
@@ -940,7 +919,7 @@ void SettingsWindow::sendCurrentOutputStates() {
 
 // Handle individual output checkbox state changes
 void SettingsWindow::handleOutputCheckboxStateChanged(const QString& outputName, int state) {
-    qDebug() << "Output override for " << outputName << ": " << (state == Qt::Checked ? "ON" : "OFF");
+    getLogger()->debug("Output override for {}: {}", outputName.toStdString(), (state == Qt::Checked ? "ON" : "OFF"));
     
     // Send updated output states to Logic
     sendCurrentOutputStates();
@@ -955,7 +934,7 @@ void SettingsWindow::fillTimersTabFields()
     disconnect(ui->timersTable, &QTableWidget::itemChanged, nullptr, nullptr);
     
     if (!config_) {
-        qDebug() << "Config object is null. Cannot load timer settings.";
+        getLogger()->warn("[fillTimersTabFields] Config object is null. Cannot load timer settings.");
         isRefreshing_ = false; // Reset flag
         return;
     }
@@ -1010,7 +989,7 @@ void SettingsWindow::fillTimersTabFields()
             descriptionItem->setBackground(QBrush(QColor(240, 240, 240)));
         }
     } catch (const std::exception& e) {
-        qDebug() << "Exception while loading timer settings: " << e.what();
+        getLogger()->warn("[fillTimersTabFields] Exception while loading timer settings: {}", e.what());
     }
     
     // Reset the refreshing flag
@@ -1156,8 +1135,8 @@ int SettingsWindow::parseCharSetting(const nlohmann::json &settings, const std::
         else if (strValue.rfind("0x", 0) == 0) {
             try {
                 return std::stoi(strValue, nullptr, 16);
-            } catch (const std::exception &) {
-                qDebug() << "Invalid hex value for " << QString::fromStdString(key) << ": " << QString::fromStdString(strValue);
+            } catch (const std::exception &e) {
+                getLogger()->warn("[parseCharSetting] Invalid hex value for '{}': {}. Exception: {}", key, strValue, e.what());
                 return defaultValue;
             }
         }
@@ -1166,14 +1145,14 @@ int SettingsWindow::parseCharSetting(const nlohmann::json &settings, const std::
         }
     }
     else {
-        qDebug() << "Invalid type for " << QString::fromStdString(key) << " setting. Using default value.";
+        getLogger()->warn("[parseCharSetting] Invalid type for '{}' setting. Using default value.", key);
         return defaultValue;
     }
 }
 
 bool SettingsWindow::saveSettingsToConfig() {
     if (!config_) {
-        qDebug() << "Config object is null. Cannot save settings.";
+        getLogger()->warn("[saveSettingsToConfig] Config object is null. Cannot save settings.");
         return false;
     }
     
@@ -1251,21 +1230,21 @@ bool SettingsWindow::saveSettingsToConfig() {
         
         // Save the configuration to file
         if (mutableConfig->saveToFile()) {
-            qDebug() << "Settings saved to configuration file";
+            getLogger()->debug("Settings saved to configuration file");
             
             // Send a ParameterChange event to notify Logic to initialize communication ports
             GuiEvent paramEvent;
             paramEvent.keyword = "ParameterChange";
-            paramEvent.data = "Settings applied";
+            paramEvent.data = "communication"; // Specify which settings were changed
             eventQueue_.push(paramEvent);
             
             return true;
         } else {
-            qDebug() << "Failed to save settings to configuration file";
+            getLogger()->warn("[saveSettingsToConfig] Failed to save settings to configuration file");
             return false;
         }
     } catch (const std::exception& e) {
-        qDebug() << "Exception while saving settings: " << e.what();
+        getLogger()->warn("[saveSettingsToConfig] Exception while saving settings: {}", e.what());
         return false;
     }
 }
@@ -1364,13 +1343,13 @@ void SettingsWindow::on_communicationSendPushButton_clicked()
     // Find the trigger line edit in the current page
     QLineEdit* triggerLineEdit = currentPage->findChild<QLineEdit*>("communicationTriggerLineEdit");
     if (!triggerLineEdit) {
-        qDebug() << "Cannot find trigger line edit";
+        getLogger()->warn("[on_communicationSendPushButton_clicked] Cannot find trigger line edit");
         return;
     }
     
     QString message = triggerLineEdit->text();
     if (message.isEmpty()) {
-        qDebug() << "Cannot send empty message to " << currentCommunicationName_.c_str();
+        getLogger()->warn("[on_communicationSendPushButton_clicked] Cannot send empty message to {}", currentCommunicationName_);
         return;
     }
     
@@ -1381,7 +1360,7 @@ void SettingsWindow::on_communicationSendPushButton_clicked()
     event.target = currentCommunicationName_;
     eventQueue_.push(event);
     
-    qDebug() << "Sent message to " << currentCommunicationName_.c_str() << ": " << message;
+    getLogger()->debug("Sent message to {}: {}", currentCommunicationName_, message.toStdString());
 }
 
 // These methods are kept for backward compatibility with the UI file connections
@@ -1809,7 +1788,6 @@ void SettingsWindow::saveCurrentCommunicationSettings() {
         // We're just storing the settings in memory for later use
         // This happens when switching between communication channels
         // We don't want to trigger a save event in this case
-        qDebug() << "Skipping config update while in refreshing mode";
+        getLogger()->debug("Skipping config update while in refreshing mode");
     }
 }
-

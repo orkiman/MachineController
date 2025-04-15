@@ -37,8 +37,8 @@ QDialog[overrideOutputs=&quot;true&quot;] {
           <widget class="QLabel" name="communicationSelectorLabel">
            <property name="font">
             <font>
-             <pointsize>12</pointsize>
-             <bold>true</bold>
+             <pointsize>9</pointsize>
+             <bold>false</bold>
             </font>
            </property>
            <property name="text">
@@ -57,7 +57,7 @@ QDialog[overrideOutputs=&quot;true&quot;] {
            <property name="font">
             <font>
              <pointsize>12</pointsize>
-             <bold>true</bold>
+             <bold>false</bold>
             </font>
            </property>
           </widget>
@@ -69,21 +69,21 @@ QDialog[overrideOutputs=&quot;true&quot;] {
          <property name="currentIndex">
           <number>0</number>
          </property>
-         <widget class="QWidget" name="communication1Page">
-          <layout class="QVBoxLayout" name="verticalLayout_comm1">
+         <widget class="QWidget" name="communicationPage">
+          <layout class="QVBoxLayout" name="verticalLayout_comm">
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_2">
              <item>
-              <widget class="QLabel" name="descriptionLabel1">
+              <widget class="QLabel" name="descriptionLabel">
                <property name="text">
                 <string>Description:</string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="description1LineEdit">
+              <widget class="QLineEdit" name="descriptionLineEdit">
                <property name="text">
-                <string>reader1</string>
+                <string/>
                </property>
                <property name="readOnly">
                 <bool>true</bool>
@@ -95,14 +95,14 @@ QDialog[overrideOutputs=&quot;true&quot;] {
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_5">
              <item>
-              <widget class="QLabel" name="typeLabel1">
+              <widget class="QLabel" name="typeLabel">
                <property name="text">
                 <string>Communication Type:</string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QComboBox" name="communication1TypeComboBox">
+              <widget class="QComboBox" name="communicationTypeComboBox">
                <item>
                 <property name="text">
                  <string>RS232</string>
@@ -116,7 +116,7 @@ QDialog[overrideOutputs=&quot;true&quot;] {
               </widget>
              </item>
              <item>
-              <widget class="QCheckBox" name="communication1ActiveCheckBox">
+              <widget class="QCheckBox" name="communicationActiveCheckBox">
                <property name="text">
                 <string>Active</string>
                </property>
@@ -128,7 +128,7 @@ QDialog[overrideOutputs=&quot;true&quot;] {
             </layout>
            </item>
            <item>
-            <widget class="QGroupBox" name="rs232Group1">
+            <widget class="QGroupBox" name="rs232Group">
              <property name="title">
               <string>RS232 Settings</string>
              </property>
@@ -141,7 +141,7 @@ QDialog[overrideOutputs=&quot;true&quot;] {
                </widget>
               </item>
               <item row="0" column="1">
-               <widget class="QComboBox" name="portName1ComboBox"/>
+               <widget class="QComboBox" name="portNameComboBox"/>
               </item>
               <item row="1" column="0">
                <widget class="QLabel" name="label_2">
@@ -151,7 +151,7 @@ QDialog[overrideOutputs=&quot;true&quot;] {
                </widget>
               </item>
               <item row="1" column="1">
-               <widget class="QComboBox" name="baudRate1ComboBox"/>
+               <widget class="QComboBox" name="baudRateComboBox"/>
               </item>
               <item row="2" column="0">
                <widget class="QLabel" name="label_3">
@@ -161,7 +161,7 @@ QDialog[overrideOutputs=&quot;true&quot;] {
                </widget>
               </item>
               <item row="2" column="1">
-               <widget class="QComboBox" name="parity1ComboBox"/>
+               <widget class="QComboBox" name="parityComboBox"/>
               </item>
               <item row="3" column="0">
                <widget class="QLabel" name="label_4">
@@ -171,7 +171,7 @@ QDialog[overrideOutputs=&quot;true&quot;] {
                </widget>
               </item>
               <item row="3" column="1">
-               <widget class="QComboBox" name="dataBits1ComboBox"/>
+               <widget class="QComboBox" name="dataBitsComboBox"/>
               </item>
               <item row="4" column="0">
                <widget class="QLabel" name="label_5">
@@ -181,7 +181,7 @@ QDialog[overrideOutputs=&quot;true&quot;] {
                </widget>
               </item>
               <item row="4" column="1">
-               <widget class="QComboBox" name="stopBits1ComboBox"/>
+               <widget class="QComboBox" name="stopBitsComboBox"/>
               </item>
               <item row="5" column="0">
                <widget class="QLabel" name="label_6">
@@ -191,7 +191,7 @@ QDialog[overrideOutputs=&quot;true&quot;] {
                </widget>
               </item>
               <item row="5" column="1">
-               <widget class="QLineEdit" name="stx1LineEdit"/>
+               <widget class="QLineEdit" name="stxLineEdit"/>
               </item>
               <item row="6" column="0">
                <widget class="QLabel" name="label_7">
@@ -201,40 +201,40 @@ QDialog[overrideOutputs=&quot;true&quot;] {
                </widget>
               </item>
               <item row="6" column="1">
-               <widget class="QLineEdit" name="etx1LineEdit"/>
+               <widget class="QLineEdit" name="etxLineEdit"/>
               </item>
              </layout>
             </widget>
            </item>
            <item>
-            <widget class="QGroupBox" name="tcpipGroup1">
+            <widget class="QGroupBox" name="tcpipGroup">
              <property name="title">
               <string>TCP/IP Settings</string>
              </property>
              <layout class="QFormLayout" name="formLayout">
               <item row="0" column="0">
-               <widget class="QLabel" name="ipLabel1">
+               <widget class="QLabel" name="ipLabel">
                 <property name="text">
                  <string>IP Address:</string>
                 </property>
                </widget>
               </item>
               <item row="0" column="1">
-               <widget class="QLineEdit" name="ip1LineEdit">
+               <widget class="QLineEdit" name="ipLineEdit">
                 <property name="text">
                  <string>127.0.0.1</string>
                 </property>
                </widget>
               </item>
               <item row="1" column="0">
-               <widget class="QLabel" name="portLabel1">
+               <widget class="QLabel" name="portLabel">
                 <property name="text">
                  <string>Port:</string>
                 </property>
                </widget>
               </item>
               <item row="1" column="1">
-               <widget class="QSpinBox" name="port1SpinBox">
+               <widget class="QSpinBox" name="portSpinBox">
                 <property name="minimum">
                  <number>1</number>
                 </property>
@@ -247,14 +247,14 @@ QDialog[overrideOutputs=&quot;true&quot;] {
                </widget>
               </item>
               <item row="2" column="0">
-               <widget class="QLabel" name="timeoutLabel1">
+               <widget class="QLabel" name="timeoutLabel">
                 <property name="text">
                  <string>Timeout (ms):</string>
                 </property>
                </widget>
               </item>
               <item row="2" column="1">
-               <widget class="QSpinBox" name="timeout1SpinBox">
+               <widget class="QSpinBox" name="timeoutSpinBox">
                 <property name="minimum">
                  <number>100</number>
                 </property>
@@ -282,10 +282,10 @@ QDialog[overrideOutputs=&quot;true&quot;] {
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="commuication1TriggerLineEdit"/>
+              <widget class="QLineEdit" name="communicationTriggerLineEdit"/>
              </item>
              <item>
-              <widget class="QPushButton" name="communication1SendPushButton">
+              <widget class="QPushButton" name="communicationSendPushButton">
                <property name="text">
                 <string>Send</string>
                </property>
@@ -295,464 +295,6 @@ QDialog[overrideOutputs=&quot;true&quot;] {
            </item>
            <item>
             <widget class="QTextEdit" name="textEdit"/>
-           </item>
-          </layout>
-         </widget>
-         <widget class="QWidget" name="communication2Page">
-          <layout class="QVBoxLayout" name="verticalLayout_5">
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_7">
-             <item>
-              <widget class="QLabel" name="descriptionLabel2">
-               <property name="text">
-                <string>Description:</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="description2LineEdit">
-               <property name="text">
-                <string>reader2</string>
-               </property>
-               <property name="readOnly">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_8">
-             <item>
-              <widget class="QLabel" name="typeLabel2">
-               <property name="text">
-                <string>Communication Type:</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QComboBox" name="communication2TypeComboBox">
-               <item>
-                <property name="text">
-                 <string>RS232</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>TCP/IP</string>
-                </property>
-               </item>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="communication2ActiveCheckBox">
-               <property name="text">
-                <string>Active</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <widget class="QGroupBox" name="rs232Group2">
-             <property name="title">
-              <string>RS232 Settings</string>
-             </property>
-             <layout class="QGridLayout" name="gridLayout_2">
-              <item row="0" column="0">
-               <widget class="QLabel" name="label_8">
-                <property name="text">
-                 <string>Port:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="1">
-               <widget class="QComboBox" name="portName2ComboBox"/>
-              </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_9">
-                <property name="text">
-                 <string>Baud Rate:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="1">
-               <widget class="QComboBox" name="baudRate2ComboBox"/>
-              </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="label_10">
-                <property name="text">
-                 <string>Parity:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="1">
-               <widget class="QComboBox" name="parity2ComboBox"/>
-              </item>
-              <item row="3" column="0">
-               <widget class="QLabel" name="label_11">
-                <property name="text">
-                 <string>Data Bits:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="1">
-               <widget class="QComboBox" name="dataBits2ComboBox"/>
-              </item>
-              <item row="4" column="0">
-               <widget class="QLabel" name="label_12">
-                <property name="text">
-                 <string>Stop Bits:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="1">
-               <widget class="QComboBox" name="stopBits2ComboBox"/>
-              </item>
-              <item row="5" column="0">
-               <widget class="QLabel" name="label_13">
-                <property name="text">
-                 <string>STX:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="5" column="1">
-               <widget class="QLineEdit" name="stx2LineEdit"/>
-              </item>
-              <item row="6" column="0">
-               <widget class="QLabel" name="label_14">
-                <property name="text">
-                 <string>ETX:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="6" column="1">
-               <widget class="QLineEdit" name="etx2LineEdit"/>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
-            <widget class="QGroupBox" name="tcpipGroup2">
-             <property name="title">
-              <string>TCP/IP Settings</string>
-             </property>
-             <layout class="QFormLayout" name="formLayout_2">
-              <item row="0" column="0">
-               <widget class="QLabel" name="ipLabel2">
-                <property name="text">
-                 <string>IP Address:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="1">
-               <widget class="QLineEdit" name="ip2LineEdit">
-                <property name="text">
-                 <string>127.0.0.1</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="portLabel2">
-                <property name="text">
-                 <string>Port:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="1">
-               <widget class="QSpinBox" name="port2SpinBox">
-                <property name="minimum">
-                 <number>1</number>
-                </property>
-                <property name="maximum">
-                 <number>65535</number>
-                </property>
-                <property name="value">
-                 <number>502</number>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="timeoutLabel2">
-                <property name="text">
-                 <string>Timeout (ms):</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="1">
-               <widget class="QSpinBox" name="timeout2SpinBox">
-                <property name="minimum">
-                 <number>100</number>
-                </property>
-                <property name="maximum">
-                 <number>10000</number>
-                </property>
-                <property name="singleStep">
-                 <number>100</number>
-                </property>
-                <property name="value">
-                 <number>1000</number>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_9">
-             <item>
-              <widget class="QLabel" name="label_16">
-               <property name="text">
-                <string>Trigger:</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="commuication2TriggerLineEdit"/>
-             </item>
-             <item>
-              <widget class="QPushButton" name="communication2SendPushButton">
-               <property name="text">
-                <string>Send</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <widget class="QTextEdit" name="communication2TextEdit"/>
-           </item>
-          </layout>
-         </widget>
-         <widget class="QWidget" name="communication3Page">
-          <layout class="QVBoxLayout" name="verticalLayout_6">
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_10">
-             <item>
-              <widget class="QLabel" name="descriptionLabel3">
-               <property name="text">
-                <string>Description:</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="description3LineEdit">
-               <property name="text">
-                <string>reader3</string>
-               </property>
-               <property name="readOnly">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_11">
-             <item>
-              <widget class="QLabel" name="typeLabel3">
-               <property name="text">
-                <string>Communication Type:</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QComboBox" name="communication3TypeComboBox">
-               <item>
-                <property name="text">
-                 <string>RS232</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>TCP/IP</string>
-                </property>
-               </item>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="communication3ActiveCheckBox">
-               <property name="text">
-                <string>Active</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <widget class="QGroupBox" name="rs232Group3">
-             <property name="title">
-              <string>RS232 Settings</string>
-             </property>
-             <layout class="QGridLayout" name="gridLayout_3">
-              <item row="0" column="0">
-               <widget class="QLabel" name="label_20">
-                <property name="text">
-                 <string>Port:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="1">
-               <widget class="QComboBox" name="portName3ComboBox"/>
-              </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_21">
-                <property name="text">
-                 <string>Baud Rate:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="1">
-               <widget class="QComboBox" name="baudRate3ComboBox"/>
-              </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="label_22">
-                <property name="text">
-                 <string>Parity:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="1">
-               <widget class="QComboBox" name="parity3ComboBox"/>
-              </item>
-              <item row="3" column="0">
-               <widget class="QLabel" name="label_23">
-                <property name="text">
-                 <string>Data Bits:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="1">
-               <widget class="QComboBox" name="dataBits3ComboBox"/>
-              </item>
-              <item row="4" column="0">
-               <widget class="QLabel" name="label_24">
-                <property name="text">
-                 <string>Stop Bits:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="1">
-               <widget class="QComboBox" name="stopBits3ComboBox"/>
-              </item>
-              <item row="5" column="0">
-               <widget class="QLabel" name="label_25">
-                <property name="text">
-                 <string>STX:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="5" column="1">
-               <widget class="QLineEdit" name="stx3LineEdit"/>
-              </item>
-              <item row="6" column="0">
-               <widget class="QLabel" name="label_26">
-                <property name="text">
-                 <string>ETX:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="6" column="1">
-               <widget class="QLineEdit" name="etx3LineEdit"/>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
-            <widget class="QGroupBox" name="tcpipGroup3">
-             <property name="title">
-              <string>TCP/IP Settings</string>
-             </property>
-             <layout class="QFormLayout" name="formLayout_3">
-              <item row="0" column="0">
-               <widget class="QLabel" name="ipLabel3">
-                <property name="text">
-                 <string>IP Address:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="1">
-               <widget class="QLineEdit" name="ip3LineEdit">
-                <property name="text">
-                 <string>127.0.0.1</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="portLabel3">
-                <property name="text">
-                 <string>Port:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="1">
-               <widget class="QSpinBox" name="port3SpinBox">
-                <property name="minimum">
-                 <number>1</number>
-                </property>
-                <property name="maximum">
-                 <number>65535</number>
-                </property>
-                <property name="value">
-                 <number>502</number>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="timeoutLabel3">
-                <property name="text">
-                 <string>Timeout (ms):</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="1">
-               <widget class="QSpinBox" name="timeout3SpinBox">
-                <property name="minimum">
-                 <number>100</number>
-                </property>
-                <property name="maximum">
-                 <number>10000</number>
-                </property>
-                <property name="singleStep">
-                 <number>100</number>
-                </property>
-                <property name="value">
-                 <number>1000</number>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_12">
-             <item>
-              <widget class="QLabel" name="label_27">
-               <property name="text">
-                <string>Trigger:</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="commuication3TriggerLineEdit"/>
-             </item>
-             <item>
-              <widget class="QPushButton" name="communication3SendPushButton">
-               <property name="text">
-                <string>Send</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <widget class="QTextEdit" name="communication3TextEdit"/>
            </item>
           </layout>
          </widget>
@@ -898,31 +440,6 @@ QCheckBox {
       </layout>
      </widget>
     </widget>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_4">
-     <item>
-      <widget class="QPushButton" name="applyPushButton">
-       <property name="text">
-        <string>Apply</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="cancelPushButton">
-       <property name="text">
-        <string>Cancel</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="defaultsPushButton">
-       <property name="text">
-        <string>Defaults</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
    </item>
   </layout>
  </widget>

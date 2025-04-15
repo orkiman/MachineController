@@ -48,19 +48,36 @@ signals:
 private slots:
     
     void on_overrideOutputsCheckBox_stateChanged(int state);
-    void on_applyPushButton_clicked();
-    void on_cancelPushButton_clicked();
     void on_okPushButton_clicked();
-    void on_defaultsPushButton_clicked();
-    void on_communication1SendPushButton_clicked();
-    void on_communication2SendPushButton_clicked();
-    void updateCommunicationTypeVisibility(int index = 0);
+    
+    // Communication related slots
+    void on_communicationActiveCheckBox_stateChanged(int state);
     void on_communication1ActiveCheckBox_stateChanged(int state);
     void on_communication2ActiveCheckBox_stateChanged(int state);
     void on_communication3ActiveCheckBox_stateChanged(int state);
+    
+    void on_communicationSendPushButton_clicked();
+    void on_communication1SendPushButton_clicked();
+    void on_communication2SendPushButton_clicked();
+    
     void on_refreshButton_clicked();
+    
+    void updateCommunicationTypeVisibility(int index = 0);
+    
+    // Updates UI elements when a different communication channel is selected
+    void onCommunicationSelectorChanged(int index);
+    
+    // Save current communication settings before switching to another channel
+    void saveCurrentCommunicationSettings();
+    
+    // Individual defaults buttons handlers
+    void onCommunicationDefaultsButtonClicked();
+    void onTimersDefaultsButtonClicked();
 
 private:
+    // Current selected communication channel name
+    std::string currentCommunicationName_;
+    
     // Helper function to fill fields with default values
     void fillWithDefaults();
     

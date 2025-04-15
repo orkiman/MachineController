@@ -3,6 +3,7 @@
 #include "Config.h"
 #include <QDebug>
 #include <QJsonDocument>
+
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QFile>
@@ -28,10 +29,30 @@ SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQ
     QStackedWidget* commStack = findChild<QStackedWidget*>("communicationStackedWidget");
     
     if (commSelector && commStack) {
+        // Connect the selector to our custom handler that will update all UI elements
         connect(commSelector, QOverload<int>::of(&QComboBox::currentIndexChanged),
-                [commStack](int index) {
-                    commStack->setCurrentIndex(index);
-                });
+                this, &SettingsWindow::onCommunicationSelectorChanged);
+                
+        // Add a defaults button for the current communication
+        QPushButton* commDefaultsButton = new QPushButton("Set Defaults", this);
+        commDefaultsButton->setToolTip("Reset the current communication settings to defaults");
+        QHBoxLayout* selectorLayout = findChild<QHBoxLayout*>("communicationSelectorLayout");
+        if (selectorLayout) {
+            selectorLayout->addWidget(commDefaultsButton);
+            connect(commDefaultsButton, &QPushButton::clicked, this, &SettingsWindow::onCommunicationDefaultsButtonClicked);
+        }
+    }
+    
+    // Add a defaults button for the timers tab
+    QPushButton* timersDefaultsButton = new QPushButton("Set Defaults", this);
+    timersDefaultsButton->setToolTip("Reset timer settings to defaults");
+    QVBoxLayout* timersLayout = ui->timersTab->findChild<QVBoxLayout*>();
+    if (timersLayout) {
+        QHBoxLayout* buttonLayout = new QHBoxLayout();
+        buttonLayout->addStretch();
+        buttonLayout->addWidget(timersDefaultsButton);
+        timersLayout->insertLayout(0, buttonLayout);
+        connect(timersDefaultsButton, &QPushButton::clicked, this, &SettingsWindow::onTimersDefaultsButtonClicked);
     }
     
     // Connect change events for all editable fields
@@ -49,13 +70,44 @@ SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQ
     // Fill the IO tab with inputs and outputs
     fillIOTabFields();
     
+    // Buttons have been completely removed from the UI
+    // Individual defaults buttons at the top of each section provide the reset functionality
+    
     // Reset the refreshing flag and clear any changed field markings
     isRefreshing_ = false;
     resetChangedFields();
     
+    // Call updateCommunicationTypeVisibility directly after all UI components are set up
+    // This ensures proper visibility of communication type-specific widgets
+    QMetaObject::invokeMethod(this, [this]() {
+        updateCommunicationTypeVisibility(-1);
+    }, Qt::QueuedConnection);
+    
+    // Connect the communication type combo box to updateCommunicationTypeVisibility
+    QWidget* commPage = commStack->widget(0); // Get the first page
+    if (commPage) {
+        QComboBox* typeComboBox = commPage->findChild<QComboBox*>("communicationTypeComboBox");
+        if (typeComboBox) {
+            connect(typeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
+                    this, &SettingsWindow::updateCommunicationTypeVisibility);
+        }
+        
+        // Connect the active checkbox to our handler
+        QCheckBox* activeCheckBox = commPage->findChild<QCheckBox*>("communicationActiveCheckBox");
+        if (activeCheckBox) {
+            connect(activeCheckBox, &QCheckBox::stateChanged,
+                    this, &SettingsWindow::on_communicationActiveCheckBox_stateChanged);
+        }
+    }
+    
     // Connect send button slots
-    // connect(ui->communication1SendPushButton, &QPushButton::clicked, this, &SettingsWindow::on_communication1SendPushButton_clicked);
-    // connect(ui->communication2SendPushButton, &QPushButton::clicked, this, &SettingsWindow::on_communication2SendPushButton_clicked);
+    QWidget* currentPage = commStack->currentWidget();
+    if (currentPage) {
+        QPushButton* sendButton = currentPage->findChild<QPushButton*>("communicationSendPushButton");
+        if (sendButton) {
+            connect(sendButton, &QPushButton::clicked, this, &SettingsWindow::on_communicationSendPushButton_clicked);
+        }
+    }
 }
 
 SettingsWindow::~SettingsWindow() {
@@ -108,9 +160,10 @@ bool SettingsWindow::loadSettingsFromJson(const QString& filePath) {
 void SettingsWindow::fillCommunicationTabFields() {
     // Access the communication selector using findChild
     QComboBox* commSelector = findChild<QComboBox*>("communicationSelectorComboBox");
-    if (!commSelector) {
-        // If we can't find the selector, we're probably using the old UI
-        // Just return and use the old implementation
+    QStackedWidget* commStack = findChild<QStackedWidget*>("communicationStackedWidget");
+    
+    if (!commSelector || !commStack) {
+        qDebug() << "Communication selector or stack widget not found";
         return;
     }
     
@@ -120,110 +173,106 @@ void SettingsWindow::fillCommunicationTabFields() {
     // Get the communications from settings.json
     nlohmann::json commSettingsList = config_->getCommunicationSettings();
     
-    // Add items to the selector based on the communications in settings.json
-    if (!commSettingsList.empty()) {
-        for (auto& [commName, commData] : commSettingsList.items()) {
-            QString description = "Unknown";
-            if (commData.contains("description")) {
-                description = QString::fromStdString(commData["description"].get<std::string>());
-            }
-            commSelector->addItem(QString("%1 (%2)").arg(QString::fromStdString(commName)).arg(description));
-        }
-    } else {
-        // Default items if no communications found in settings
-        commSelector->addItem("Communication 1 (reader1)");
-        commSelector->addItem("Communication 2 (reader2)");
-        commSelector->addItem("Communication 3 (reader3)");
+    // Get the communication page
+    QWidget* commPage = commStack->widget(0);
+    if (!commPage) {
+        qDebug() << "Communication page not found";
+        return;
     }
     
-    // Setup type combo boxes for all communication pages
-    // Communication 1 Type setup
-    ui->communication1TypeComboBox->clear();
-    ui->communication1TypeComboBox->addItems({"RS232", "TCP/IP"});
-    connect(ui->communication1TypeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
-            this, &SettingsWindow::updateCommunicationTypeVisibility);
+    // Define a list of common COM ports
+    QStringList portNames = {"COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", 
+                            "COM9", "COM10", "COM11", "COM12", "COM13", "COM14", "COM15", "COM16"};
     
-    // Communication 2 Type setup
-    ui->communication2TypeComboBox->clear();
-    ui->communication2TypeComboBox->addItems({"RS232", "TCP/IP"});
-    connect(ui->communication2TypeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
-            this, &SettingsWindow::updateCommunicationTypeVisibility);
+    // Find the port name combo box and populate it
+    QComboBox* portNameComboBox = commPage->findChild<QComboBox*>("portNameComboBox");
+    if (portNameComboBox) {
+        portNameComboBox->clear();
+        portNameComboBox->addItems(portNames);
+    }
     
-    // Communication 3 Type setup
-    ui->communication3TypeComboBox->clear();
-    ui->communication3TypeComboBox->addItems({"RS232", "TCP/IP"});
-    connect(ui->communication3TypeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
-            this, &SettingsWindow::updateCommunicationTypeVisibility);
+    // Find the baud rate combo box and populate it with common baud rates
+    QComboBox* baudRateComboBox = commPage->findChild<QComboBox*>("baudRateComboBox");
+    if (baudRateComboBox) {
+        baudRateComboBox->clear();
+        baudRateComboBox->addItems({"9600", "19200", "38400", "57600", "115200"});
+    }
     
-    // Force update of visibility for all communication pages
-    // This ensures all pages have the correct RS232/TCP-IP fields visible on initial load
-    updateCommunicationTypeVisibility(-1); // -1 means update all pages
+    // Find the parity combo box and populate it
+    QComboBox* parityComboBox = commPage->findChild<QComboBox*>("parityComboBox");
+    if (parityComboBox) {
+        parityComboBox->clear();
+        parityComboBox->addItems({"None", "Even", "Odd", "Mark", "Space"});
+    }
     
-    // Communication 1 Tab setup
-    // Port names - populate with available serial ports
-    ui->portName1ComboBox->clear();
-    ui->portName1ComboBox->addItems({"COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "COM10", "COM11", "COM12", "COM13", "COM14", "COM15", "COM16"});
+    // Find the data bits combo box and populate it
+    QComboBox* dataBitsComboBox = commPage->findChild<QComboBox*>("dataBitsComboBox");
+    if (dataBitsComboBox) {
+        dataBitsComboBox->clear();
+        dataBitsComboBox->addItems({"5", "6", "7", "8"});
+    }
     
-    // Baud rates - minimum recommended is 9600
-    ui->baudRate1ComboBox->clear();
-    ui->baudRate1ComboBox->addItems({"9600", "19200", "38400", "57600", "115200"});
+    // Find the stop bits combo box and populate it
+    QComboBox* stopBitsComboBox = commPage->findChild<QComboBox*>("stopBitsComboBox");
+    if (stopBitsComboBox) {
+        stopBitsComboBox->clear();
+        stopBitsComboBox->addItems({"1", "1.5", "2"});
+    }
     
-    // Parity options
-    ui->parity1ComboBox->clear();
-    ui->parity1ComboBox->addItems({"None", "Even", "Odd", "Mark", "Space"});
+    // Add all communications to the selector
+    for (auto& [name, settings] : commSettingsList.items()) {
+        QString displayName = QString::fromStdString(name);
+        
+        // Add description if available
+        if (settings.contains("description")) {
+            QString description = QString::fromStdString(settings["description"]);
+            displayName += " (" + description + ")";
+        }
+        
+        commSelector->addItem(displayName);
+    }
     
-    // Data bits - only 7 or 8 are allowed
-    ui->dataBits1ComboBox->clear();
-    ui->dataBits1ComboBox->addItems({"7", "8"});
+    // If no communications found, add a default one
+    if (commSelector->count() == 0) {
+        commSelector->addItem("communication1 (Default)");
+        
+        // Set default values for the UI elements
+        QCheckBox* activeCheckBox = commPage->findChild<QCheckBox*>("communicationActiveCheckBox");
+        if (activeCheckBox) {
+            activeCheckBox->setChecked(true);
+        }
+        
+        QComboBox* typeComboBox = commPage->findChild<QComboBox*>("communicationTypeComboBox");
+        if (typeComboBox) {
+            typeComboBox->setCurrentText("RS232");
+        }
+        
+        if (portNameComboBox && !portNames.isEmpty()) {
+            portNameComboBox->setCurrentText(portNames.first());
+        }
+        
+        if (baudRateComboBox) {
+            baudRateComboBox->setCurrentText("115200");
+        }
+        
+        if (parityComboBox) {
+            parityComboBox->setCurrentText("None");
+        }
+        
+        if (dataBitsComboBox) {
+            dataBitsComboBox->setCurrentText("8");
+        }
+        
+        if (stopBitsComboBox) {
+            stopBitsComboBox->setCurrentText("1");
+        }
+    }
     
-    // Stop bits
-    ui->stopBits1ComboBox->clear();
-    ui->stopBits1ComboBox->addItems({"1", "1.5", "2"});
-    
-    // Communication 2 Tab setup
-    // Port names - use the same list as communication 1
-    ui->portName2ComboBox->clear();
-    ui->portName2ComboBox->addItems({"COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "COM10", "COM11", "COM12", "COM13", "COM14", "COM15", "COM16"});
-    
-    // Baud rates - minimum recommended is 9600
-    ui->baudRate2ComboBox->clear();
-    ui->baudRate2ComboBox->addItems({"9600", "19200", "38400", "57600", "115200"});
-    
-    // Parity options
-    ui->parity2ComboBox->clear();
-    ui->parity2ComboBox->addItems({"None", "Even", "Odd", "Mark", "Space"});
-    
-    // Data bits - only 7 or 8 are allowed
-    ui->dataBits2ComboBox->clear();
-    ui->dataBits2ComboBox->addItems({"7", "8"});
-    
-    // Stop bits
-    ui->stopBits2ComboBox->clear();
-    ui->stopBits2ComboBox->addItems({"1", "1.5", "2"});
-    
-    // Communication 3 Tab setup
-    // Port names - use the same list as communication 1
-    ui->portName3ComboBox->clear();
-    ui->portName3ComboBox->addItems({"COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "COM10", "COM11", "COM12", "COM13", "COM14", "COM15", "COM16"});
-    
-    // Baud rates - minimum recommended is 9600
-    ui->baudRate3ComboBox->clear();
-    ui->baudRate3ComboBox->addItems({"9600", "19200", "38400", "57600", "115200"});
-    
-    // Parity options
-    ui->parity3ComboBox->clear();
-    ui->parity3ComboBox->addItems({"None", "Even", "Odd", "Mark", "Space"});
-    
-    // Data bits - only 7 or 8 are allowed
-    ui->dataBits3ComboBox->clear();
-    ui->dataBits3ComboBox->addItems({"7", "8"});
-    
-    // Stop bits
-    ui->stopBits3ComboBox->clear();
-    ui->stopBits3ComboBox->addItems({"1", "1.5", "2"});
-    
-    // Initial visibility setup
-    updateCommunicationTypeVisibility(0);
+    // Select the first communication in the list
+    if (commSelector->count() > 0) {
+        commSelector->setCurrentIndex(0);
+        // This will trigger onCommunicationSelectorChanged which will update the UI
+    }
     
     // Get communication settings from Config object
     if (!config_) {
@@ -247,434 +296,233 @@ void SettingsWindow::fillCommunicationTabFields() {
         // Type
         if (comm1.contains("type")) {
             QString type = QString::fromStdString(comm1["type"]);
-            ui->communication1TypeComboBox->setCurrentText(type);
+            QComboBox* typeComboBox = commPage->findChild<QComboBox*>("communicationTypeComboBox");
+            if (typeComboBox) {
+                typeComboBox->setCurrentText(type);
+            }
         } else {
             // Default to RS232 if not specified
-            ui->communication1TypeComboBox->setCurrentText("RS232");
+            QComboBox* typeComboBox = commPage->findChild<QComboBox*>("communicationTypeComboBox");
+            if (typeComboBox) {
+                typeComboBox->setCurrentText("RS232");
+            }
         }
         
         // Active state
         if (comm1.contains("active")) {
             bool active = comm1["active"];
-            ui->communication1ActiveCheckBox->setChecked(active);
+            QCheckBox* activeCheckBox = commPage->findChild<QCheckBox*>("communicationActiveCheckBox");
+            if (activeCheckBox) {
+                activeCheckBox->setChecked(active);
+            }
         } else {
             // Default to active if not specified
-            ui->communication1ActiveCheckBox->setChecked(true);
+            QCheckBox* activeCheckBox = commPage->findChild<QCheckBox*>("communicationActiveCheckBox");
+            if (activeCheckBox) {
+                activeCheckBox->setChecked(true);
+            }
         }
         
         // RS232 Settings
-        if (ui->communication1TypeComboBox->currentText() == "RS232") {
+        if (commPage->findChild<QComboBox*>("communicationTypeComboBox")->currentText() == "RS232") {
             // Port
             if (comm1.contains("port")) {
                 QString port = QString::fromStdString(comm1["port"]);
-                ui->portName1ComboBox->setCurrentText(port);
+                QComboBox* portNameComboBox = commPage->findChild<QComboBox*>("portNameComboBox");
+                if (portNameComboBox) {
+                    portNameComboBox->setCurrentText(port);
+                }
             } else if (comm1.contains("portName")) { // For backward compatibility
                 QString portName = QString::fromStdString(comm1["portName"]);
-                ui->portName1ComboBox->setCurrentText(portName);
+                QComboBox* portNameComboBox = commPage->findChild<QComboBox*>("portNameComboBox");
+                if (portNameComboBox) {
+                    portNameComboBox->setCurrentText(portName);
+                }
             }
         }
         
         // TCP/IP Settings
-        if (ui->communication1TypeComboBox->currentText() == "TCP/IP") {
+        if (commPage->findChild<QComboBox*>("communicationTypeComboBox")->currentText() == "TCP/IP") {
             if (comm1.contains("tcpip")) {
                 auto tcpip = comm1["tcpip"];
                 if (tcpip.contains("ip")) {
                     QString ip = QString::fromStdString(tcpip["ip"]);
-                    ui->ip1LineEdit->setText(ip);
+                    QLineEdit* ipLineEdit = commPage->findChild<QLineEdit*>("ipLineEdit");
+                    if (ipLineEdit) {
+                        ipLineEdit->setText(ip);
+                    }
                 }
                 if (tcpip.contains("port")) {
                     int port = tcpip["port"];
-                    ui->port1SpinBox->setValue(port);
+                    QSpinBox* portSpinBox = commPage->findChild<QSpinBox*>("portSpinBox");
+                    if (portSpinBox) {
+                        portSpinBox->setValue(port);
+                    }
                 }
                 if (tcpip.contains("timeout_ms")) {
                     int timeout = tcpip["timeout_ms"];
-                    ui->timeout1SpinBox->setValue(timeout);
+                    QSpinBox* timeoutSpinBox = commPage->findChild<QSpinBox*>("timeoutSpinBox");
+                    if (timeoutSpinBox) {
+                        timeoutSpinBox->setValue(timeout);
+                    }
                 }
             }
         }
         
-
-        
         // Baud rate
         if (comm1.contains("baudRate")) {
             int baudRate = comm1["baudRate"];
-            ui->baudRate1ComboBox->setCurrentText(QString::number(baudRate));
+            QComboBox* baudRateComboBox = commPage->findChild<QComboBox*>("baudRateComboBox");
+            if (baudRateComboBox) {
+                baudRateComboBox->setCurrentText(QString::number(baudRate));
+            }
         }
         
         // Parity
         if (comm1.contains("parity")) {
             QString parity = QString::fromStdString(comm1["parity"]);
             // Convert from single letter to full word
-            if (parity == "N") ui->parity1ComboBox->setCurrentText("None");
-            else if (parity == "E") ui->parity1ComboBox->setCurrentText("Even");
-            else if (parity == "O") ui->parity1ComboBox->setCurrentText("Odd");
-            else if (parity == "M") ui->parity1ComboBox->setCurrentText("Mark");
-            else if (parity == "S") ui->parity1ComboBox->setCurrentText("Space");
-            else ui->parity1ComboBox->setCurrentText(parity); // Direct setting if already in full word format
+            if (parity == "N") {
+                QComboBox* parityComboBox = commPage->findChild<QComboBox*>("parityComboBox");
+                if (parityComboBox) {
+                    parityComboBox->setCurrentText("None");
+                }
+            } else if (parity == "E") {
+                QComboBox* parityComboBox = commPage->findChild<QComboBox*>("parityComboBox");
+                if (parityComboBox) {
+                    parityComboBox->setCurrentText("Even");
+                }
+            } else if (parity == "O") {
+                QComboBox* parityComboBox = commPage->findChild<QComboBox*>("parityComboBox");
+                if (parityComboBox) {
+                    parityComboBox->setCurrentText("Odd");
+                }
+            } else if (parity == "M") {
+                QComboBox* parityComboBox = commPage->findChild<QComboBox*>("parityComboBox");
+                if (parityComboBox) {
+                    parityComboBox->setCurrentText("Mark");
+                }
+            } else if (parity == "S") {
+                QComboBox* parityComboBox = commPage->findChild<QComboBox*>("parityComboBox");
+                if (parityComboBox) {
+                    parityComboBox->setCurrentText("Space");
+                }
+            } else {
+                QComboBox* parityComboBox = commPage->findChild<QComboBox*>("parityComboBox");
+                if (parityComboBox) {
+                    parityComboBox->setCurrentText(parity); // Direct setting if already in full word format
+                }
+            }
         }
         
         // Data bits
         if (comm1.contains("dataBits")) {
             int dataBits = comm1["dataBits"];
-            ui->dataBits1ComboBox->setCurrentText(QString::number(dataBits));
+            QComboBox* dataBitsComboBox = commPage->findChild<QComboBox*>("dataBitsComboBox");
+            if (dataBitsComboBox) {
+                dataBitsComboBox->setCurrentText(QString::number(dataBits));
+            }
         }
         
         // Stop bits
         if (comm1.contains("stopBits")) {
             double stopBits = comm1["stopBits"];
-            ui->stopBits1ComboBox->setCurrentText(QString::number(stopBits));
+            QComboBox* stopBitsComboBox = commPage->findChild<QComboBox*>("stopBitsComboBox");
+            if (stopBitsComboBox) {
+                stopBitsComboBox->setCurrentText(QString::number(stopBits, 'g', 2));
+            }
         }
         
-        // STX
+        // STX/ETX values
         if (comm1.contains("stx")) {
-            int stxValue = parseCharSetting(comm1, "stx", 2);
-            QString stxText = QString::number(stxValue, 16).rightJustified(2, '0');
-            ui->stx1LineEdit->setText(stxText);
+            // Handle different formats (int, string, hex string)
+            if (comm1["stx"].is_number()) {
+                int stx = comm1["stx"];
+                QLineEdit* stxLineEdit = commPage->findChild<QLineEdit*>("stxLineEdit");
+                if (stxLineEdit) {
+                    stxLineEdit->setText(QString::number(stx, 16).rightJustified(2, '0'));
+                }
+            } else if (comm1["stx"].is_string()) {
+                std::string stxStr = comm1["stx"];
+                // Check if it's a hex string (starts with 0x)
+                if (stxStr.substr(0, 2) == "0x") {
+                    // Convert from hex string to integer and then to formatted hex
+                    int stxValue = std::stoi(stxStr.substr(2), nullptr, 16);
+                    QLineEdit* stxLineEdit = commPage->findChild<QLineEdit*>("stxLineEdit");
+                    if (stxLineEdit) {
+                        stxLineEdit->setText(QString::number(stxValue, 16).rightJustified(2, '0'));
+                    }
+                } else {
+                    // Just use the string as is
+                    QLineEdit* stxLineEdit = commPage->findChild<QLineEdit*>("stxLineEdit");
+                    if (stxLineEdit) {
+                        stxLineEdit->setText(QString::fromStdString(stxStr));
+                    }
+                }
+            }
         }
         
-        // ETX
         if (comm1.contains("etx")) {
-            int etxValue = parseCharSetting(comm1, "etx", 3);
-            QString etxText = QString::number(etxValue, 16).rightJustified(2, '0');
-            ui->etx1LineEdit->setText(etxText);
+            // Handle different formats (int, string, hex string)
+            if (comm1["etx"].is_number()) {
+                int etx = comm1["etx"];
+                QLineEdit* etxLineEdit = commPage->findChild<QLineEdit*>("etxLineEdit");
+                if (etxLineEdit) {
+                    etxLineEdit->setText(QString::number(etx, 16).rightJustified(2, '0'));
+                }
+            } else if (comm1["etx"].is_string()) {
+                std::string etxStr = comm1["etx"];
+                // Check if it's a hex string (starts with 0x)
+                if (etxStr.substr(0, 2) == "0x") {
+                    // Convert from hex string to integer and then to formatted hex
+                    int etxValue = std::stoi(etxStr.substr(2), nullptr, 16);
+                    QLineEdit* etxLineEdit = commPage->findChild<QLineEdit*>("etxLineEdit");
+                    if (etxLineEdit) {
+                        etxLineEdit->setText(QString::number(etxValue, 16).rightJustified(2, '0'));
+                    }
+                } else {
+                    // Just use the string as is
+                    QLineEdit* etxLineEdit = commPage->findChild<QLineEdit*>("etxLineEdit");
+                    if (etxLineEdit) {
+                        etxLineEdit->setText(QString::fromStdString(etxStr));
+                    }
+                }
+            }
         }
         
         // Set test message
         if (comm1.contains("trigger")) {
             QString trigger = QString::fromStdString(comm1["trigger"]);
-            ui->commuication1TriggerLineEdit->setText(trigger);
+            QLineEdit* triggerLineEdit = commPage->findChild<QLineEdit*>("communicationTriggerLineEdit");
+            if (triggerLineEdit) {
+                triggerLineEdit->setText(trigger);
+            }
         }
+        
+        // No more code needed here
+        
+        // No more code needed here
     }
     
-    // Apply settings from JSON for Communication 2
-    if (commSettingsJson.contains("communication2")) {
-        auto comm2 = commSettingsJson["communication2"];
-        
-        // Type
-        if (comm2.contains("type")) {
-            QString type = QString::fromStdString(comm2["type"]);
-            ui->communication2TypeComboBox->setCurrentText(type);
-        } else {
-            // Default to RS232 if not specified
-            ui->communication2TypeComboBox->setCurrentText("RS232");
-        }
-        
-        // Active state
-        if (comm2.contains("active")) {
-            bool active = comm2["active"];
-            ui->communication2ActiveCheckBox->setChecked(active);
-        } else {
-            // Default to active if not specified
-            ui->communication2ActiveCheckBox->setChecked(true);
-        }
-        
-        // RS232 Settings
-        if (ui->communication2TypeComboBox->currentText() == "RS232") {
-            // Port
-            if (comm2.contains("port")) {
-                QString port = QString::fromStdString(comm2["port"]);
-                ui->portName2ComboBox->setCurrentText(port);
-            } else if (comm2.contains("portName")) { // For backward compatibility
-                QString portName = QString::fromStdString(comm2["portName"]);
-                ui->portName2ComboBox->setCurrentText(portName);
-            }
-        }
-        
-        // TCP/IP Settings
-        if (ui->communication2TypeComboBox->currentText() == "TCP/IP") {
-            if (comm2.contains("tcpip")) {
-                auto tcpip = comm2["tcpip"];
-                if (tcpip.contains("ip")) {
-                    QString ip = QString::fromStdString(tcpip["ip"]);
-                    ui->ip2LineEdit->setText(ip);
-                }
-                if (tcpip.contains("port")) {
-                    int port = tcpip["port"];
-                    ui->port2SpinBox->setValue(port);
-                }
-                if (tcpip.contains("timeout_ms")) {
-                    int timeout = tcpip["timeout_ms"];
-                    ui->timeout2SpinBox->setValue(timeout);
-                }
-            }
-        }
-        
-        // Baud rate
-        if (comm2.contains("baudRate")) {
-            int baudRate = comm2["baudRate"];
-            ui->baudRate2ComboBox->setCurrentText(QString::number(baudRate));
-        }
-        
-        // Parity
-        if (comm2.contains("parity")) {
-            QString parity = QString::fromStdString(comm2["parity"]);
-            // Convert from single letter to full word
-            if (parity == "N") ui->parity2ComboBox->setCurrentText("None");
-            else if (parity == "E") ui->parity2ComboBox->setCurrentText("Even");
-            else if (parity == "O") ui->parity2ComboBox->setCurrentText("Odd");
-            else if (parity == "M") ui->parity2ComboBox->setCurrentText("Mark");
-            else if (parity == "S") ui->parity2ComboBox->setCurrentText("Space");
-            else ui->parity2ComboBox->setCurrentText(parity); // Direct setting if already in full word format
-        }
-        
-        // Data bits
-        if (comm2.contains("dataBits")) {
-            int dataBits = comm2["dataBits"];
-            ui->dataBits2ComboBox->setCurrentText(QString::number(dataBits));
-        }
-        
-        // Stop bits
-        if (comm2.contains("stopBits")) {
-            double stopBits = comm2["stopBits"];
-            ui->stopBits2ComboBox->setCurrentText(QString::number(stopBits, 'g', 2));
-        }
-        
-        // STX/ETX values
-        if (comm2.contains("stx")) {
-            // Handle different formats (int, string, hex string)
-            if (comm2["stx"].is_number()) {
-                int stx = comm2["stx"];
-                ui->stx2LineEdit->setText(QString::number(stx, 16).rightJustified(2, '0'));
-            } else if (comm2["stx"].is_string()) {
-                std::string stxStr = comm2["stx"];
-                // Check if it's a hex string (starts with 0x)
-                if (stxStr.substr(0, 2) == "0x") {
-                    // Convert from hex string to integer and then to formatted hex
-                    int stxValue = std::stoi(stxStr.substr(2), nullptr, 16);
-                    ui->stx2LineEdit->setText(QString::number(stxValue, 16).rightJustified(2, '0'));
-                } else {
-                    // Just use the string as is
-                    ui->stx2LineEdit->setText(QString::fromStdString(stxStr));
-                }
-            }
-        }
-        
-        if (comm2.contains("etx")) {
-            // Handle different formats (int, string, hex string)
-            if (comm2["etx"].is_number()) {
-                int etx = comm2["etx"];
-                ui->etx2LineEdit->setText(QString::number(etx, 16).rightJustified(2, '0'));
-            } else if (comm2["etx"].is_string()) {
-                std::string etxStr = comm2["etx"];
-                // Check if it's a hex string (starts with 0x)
-                if (etxStr.substr(0, 2) == "0x") {
-                    // Convert from hex string to integer and then to formatted hex
-                    int etxValue = std::stoi(etxStr.substr(2), nullptr, 16);
-                    ui->etx2LineEdit->setText(QString::number(etxValue, 16).rightJustified(2, '0'));
-                } else {
-                    // Just use the string as is
-                    ui->etx2LineEdit->setText(QString::fromStdString(etxStr));
-                }
-            }
-        }
-        
-        // Set test message
-        if (comm2.contains("trigger")) {
-            QString trigger = QString::fromStdString(comm2["trigger"]);
-            ui->commuication2TriggerLineEdit->setText(trigger);
-        }
-    }
-    
-    // Communication 3 settings
-    if (commSettingsJson.contains("communication3")) {
-        auto comm3 = commSettingsJson["communication3"];
-        
-        // Type
-        if (comm3.contains("type")) {
-            QString type = QString::fromStdString(comm3["type"]);
-            ui->communication3TypeComboBox->setCurrentText(type);
-        } else {
-            // Default to RS232 if not specified
-            ui->communication3TypeComboBox->setCurrentText("RS232");
-        }
-        
-        // Active state
-        if (comm3.contains("active")) {
-            bool active = comm3["active"];
-            ui->communication3ActiveCheckBox->setChecked(active);
-        } else {
-            // Default to active if not specified
-            ui->communication3ActiveCheckBox->setChecked(true);
-        }
-        
-        // RS232 Settings
-        if (ui->communication3TypeComboBox->currentText() == "RS232") {
-            // Port
-            if (comm3.contains("port")) {
-                QString port = QString::fromStdString(comm3["port"]);
-                ui->portName3ComboBox->setCurrentText(port);
-            } else if (comm3.contains("portName")) { // For backward compatibility
-                QString portName = QString::fromStdString(comm3["portName"]);
-                ui->portName3ComboBox->setCurrentText(portName);
-            }
-        }
-        
-        // TCP/IP Settings
-        if (ui->communication3TypeComboBox->currentText() == "TCP/IP") {
-            if (comm3.contains("tcpip")) {
-                auto tcpip = comm3["tcpip"];
-                if (tcpip.contains("ip")) {
-                    QString ip = QString::fromStdString(tcpip["ip"]);
-                    ui->ip3LineEdit->setText(ip);
-                }
-                if (tcpip.contains("port")) {
-                    int port = tcpip["port"];
-                    ui->port3SpinBox->setValue(port);
-                }
-                if (tcpip.contains("timeout_ms")) {
-                    int timeout = tcpip["timeout_ms"];
-                    ui->timeout3SpinBox->setValue(timeout);
-                }
-            }
-        }
-        
-        // Baud rate
-        if (comm3.contains("baudRate")) {
-            int baudRate = comm3["baudRate"];
-            ui->baudRate3ComboBox->setCurrentText(QString::number(baudRate));
-        }
-        
-        // Parity
-        if (comm3.contains("parity")) {
-            QString parity = QString::fromStdString(comm3["parity"]);
-            // Convert from single letter to full word
-            if (parity == "N") ui->parity3ComboBox->setCurrentText("None");
-            else if (parity == "E") ui->parity3ComboBox->setCurrentText("Even");
-            else if (parity == "O") ui->parity3ComboBox->setCurrentText("Odd");
-            else if (parity == "M") ui->parity3ComboBox->setCurrentText("Mark");
-            else if (parity == "S") ui->parity3ComboBox->setCurrentText("Space");
-            else ui->parity3ComboBox->setCurrentText(parity); // Direct setting if already in full word format
-        }
-        
-        // Data bits
-        if (comm3.contains("dataBits")) {
-            int dataBits = comm3["dataBits"];
-            ui->dataBits3ComboBox->setCurrentText(QString::number(dataBits));
-        }
-        
-        // Stop bits
-        if (comm3.contains("stopBits")) {
-            double stopBits = comm3["stopBits"];
-            ui->stopBits3ComboBox->setCurrentText(QString::number(stopBits, 'g', 2));
-        }
-        
-        // STX/ETX values
-        if (comm3.contains("stx")) {
-            // Handle different formats (int, string, hex string)
-            if (comm3["stx"].is_number()) {
-                int stx = comm3["stx"];
-                ui->stx3LineEdit->setText(QString::number(stx, 16).rightJustified(2, '0'));
-            } else if (comm3["stx"].is_string()) {
-                std::string stxStr = comm3["stx"];
-                // Check if it's a hex string (starts with 0x)
-                if (stxStr.substr(0, 2) == "0x") {
-                    // Convert from hex string to integer and then to formatted hex
-                    int stxValue = std::stoi(stxStr.substr(2), nullptr, 16);
-                    ui->stx3LineEdit->setText(QString::number(stxValue, 16).rightJustified(2, '0'));
-                } else {
-                    // Just use the string as is
-                    ui->stx3LineEdit->setText(QString::fromStdString(stxStr));
-                }
-            }
-        }
-        
-        if (comm3.contains("etx")) {
-            // Handle different formats (int, string, hex string)
-            if (comm3["etx"].is_number()) {
-                int etx = comm3["etx"];
-                ui->etx3LineEdit->setText(QString::number(etx, 16).rightJustified(2, '0'));
-            } else if (comm3["etx"].is_string()) {
-                std::string etxStr = comm3["etx"];
-                // Check if it's a hex string (starts with 0x)
-                if (etxStr.substr(0, 2) == "0x") {
-                    // Convert from hex string to integer and then to formatted hex
-                    int etxValue = std::stoi(etxStr.substr(2), nullptr, 16);
-                    ui->etx3LineEdit->setText(QString::number(etxValue, 16).rightJustified(2, '0'));
-                } else {
-                    // Just use the string as is
-                    ui->etx3LineEdit->setText(QString::fromStdString(etxStr));
-                }
-            }
-        }
-        
-        // Set test message
-        if (comm3.contains("trigger")) {
-            QString trigger = QString::fromStdString(comm3["trigger"]);
-            ui->commuication3TriggerLineEdit->setText(trigger);
-        }
-        
-        // Set baud rate
-        if (comm3.contains("baudRate")) {
-            int baudRate = comm3["baudRate"];
-            ui->baudRate3ComboBox->setCurrentText(QString::number(baudRate));
-        }
-        
-        // Parity
-        if (comm3.contains("parity")) {
-            QString parity = QString::fromStdString(comm3["parity"]);
-            // Convert from single letter to full word
-            if (parity == "N") ui->parity3ComboBox->setCurrentText("None");
-            else if (parity == "E") ui->parity3ComboBox->setCurrentText("Even");
-            else if (parity == "O") ui->parity3ComboBox->setCurrentText("Odd");
-            else if (parity == "M") ui->parity3ComboBox->setCurrentText("Mark");
-            else if (parity == "S") ui->parity3ComboBox->setCurrentText("Space");
-            else ui->parity3ComboBox->setCurrentText(parity); // Direct setting if already in full word format
-        }
-        
-        // Set data bits
-        if (comm3.contains("dataBits")) {
-            int dataBits = comm3["dataBits"];
-            ui->dataBits3ComboBox->setCurrentText(QString::number(dataBits));
-        }
-        
-        // Set stop bits
-        if (comm3.contains("stopBits")) {
-            double stopBits = comm3["stopBits"];
-            ui->stopBits3ComboBox->setCurrentText(QString::number(stopBits));
-        }
-        
-        // Set STX/ETX
-        if (comm3.contains("stx")) {
-            int stxValue = parseCharSetting(comm3, "stx", 2);
-            QString stxText = QString::number(stxValue, 16).rightJustified(2, '0');
-            ui->stx3LineEdit->setText(stxText);
-        }
-        
-        if (comm3.contains("etx")) {
-            int etxValue = parseCharSetting(comm3, "etx", 3);
-            QString etxText = QString::number(etxValue, 16).rightJustified(2, '0');
-            ui->etx3LineEdit->setText(etxText);
-        }
-        
-        // Set test message
-        if (comm3.contains("trigger")) {
-            QString trigger = QString::fromStdString(comm3["trigger"]);
-            ui->commuication3TriggerLineEdit->setText(trigger);
-        }
-    }
+    // No more code needed here
     
 
     
     // Set defaults for STX/ETX if not already set
-    if (ui->stx2LineEdit->text().isEmpty()) {
-        ui->stx2LineEdit->setText("02"); // Default if not specified
+    QLineEdit* stxLineEdit = findChild<QLineEdit*>("stxLineEdit");
+    if (stxLineEdit && stxLineEdit->text().isEmpty()) {
+        stxLineEdit->setText("02"); // Default if not specified
     }
     
-    if (ui->etx2LineEdit->text().isEmpty()) {
-        ui->etx2LineEdit->setText("03"); // Default if not specified
+    QLineEdit* etxLineEdit = findChild<QLineEdit*>("etxLineEdit");
+    if (etxLineEdit && etxLineEdit->text().isEmpty()) {
+        etxLineEdit->setText("03"); // Default if not specified
     }
     
-    // Set trigger defaults only if they're not already set
-    if (ui->commuication1TriggerLineEdit->text().isEmpty()) {
-        ui->commuication1TriggerLineEdit->setText("t");
-    }
-    
-    if (ui->commuication2TriggerLineEdit->text().isEmpty()) {
-        ui->commuication2TriggerLineEdit->setText("t");
-    }
-    
-    if (ui->commuication3TriggerLineEdit->text().isEmpty()) {
-        ui->commuication3TriggerLineEdit->setText("t");
+    // Set trigger default only if it's not already set
+    QLineEdit* triggerLineEdit = findChild<QLineEdit*>("communicationTriggerLineEdit");
+    if (triggerLineEdit && triggerLineEdit->text().isEmpty()) {
+        triggerLineEdit->setText("t");
     }
     
     // Emit a message to the event queue that settings were loaded
@@ -715,98 +563,166 @@ void SettingsWindow::on_overrideOutputsCheckBox_stateChanged(int state) {
     }
 }
 
-void SettingsWindow::on_applyPushButton_clicked() {
-    qDebug() << "Apply button clicked";
-    
-    // Save settings to Config
-    if (saveSettingsToConfig()) {
-        GuiEvent successEvent;
-        successEvent.keyword = "GuiMessage";
-        successEvent.data = "Settings saved successfully";
-        successEvent.target = "info";
-        eventQueue_.push(successEvent);
-        
-        // Set the refreshing flag to prevent marking items as changed during refresh
-        isRefreshing_ = true;
-        
-        // Refresh the communication fields to show the updated values
-        fillCommunicationTabFields();
-        
-        // Refresh the IO fields to show the updated values
-        fillIOTabFields();
-        
-        // Refresh the timer fields to show the updated values
-        fillTimersTabFields();
-        
-        // Ask Logic to initialize communication ports
-        GuiEvent paramEvent;
-        paramEvent.keyword = "ParameterChange";
-        paramEvent.data = "Settings applied";
-        eventQueue_.push(paramEvent);
-        
-        // Reset the refreshing flag
-        isRefreshing_ = false;
-        
-        // Reset all changed field markings
-        resetChangedFields();
-    } else {
-        GuiEvent errorEvent;
-        errorEvent.keyword = "GuiMessage";
-        errorEvent.data = "Failed to save settings";
-        errorEvent.target = "error";
-        eventQueue_.push(errorEvent);
-    }
-}
-void SettingsWindow::on_cancelPushButton_clicked() {
-    qDebug() << "Cancel button clicked";
-    close();
-}
+// Button handler methods for Apply, Cancel, and Defaults buttons have been removed
+// as the buttons themselves have been removed from the UI
+// Settings are now saved automatically when changed, and individual defaults buttons
+// provide more granular control over resetting settings
 
-void SettingsWindow::on_defaultsPushButton_clicked() {
-    qDebug() << "Defaults button clicked";
+void SettingsWindow::onCommunicationDefaultsButtonClicked() {
+    qDebug() << "Communication defaults button clicked";
     
     // Set the refreshing flag to prevent marking fields as changed during refresh
     isRefreshing_ = true;
     
-    // Fill with default values
-    fillWithDefaults();
+    // Get the current communication name
+    if (!currentCommunicationName_.empty()) {
+        // Set default values for the current communication channel
+        QComboBox* portNameComboBox = findChild<QComboBox*>("portNameComboBox");
+        if (portNameComboBox) {
+            portNameComboBox->setCurrentText("COM1");
+        }
+        
+        QComboBox* baudRateComboBox = findChild<QComboBox*>("baudRateComboBox");
+        if (baudRateComboBox) {
+            baudRateComboBox->setCurrentText("115200");
+        }
+        
+        QComboBox* parityComboBox = findChild<QComboBox*>("parityComboBox");
+        if (parityComboBox) {
+            parityComboBox->setCurrentText("None");
+        }
+        
+        QComboBox* dataBitsComboBox = findChild<QComboBox*>("dataBitsComboBox");
+        if (dataBitsComboBox) {
+            dataBitsComboBox->setCurrentText("8");
+        }
+        
+        QComboBox* stopBitsComboBox = findChild<QComboBox*>("stopBitsComboBox");
+        if (stopBitsComboBox) {
+            stopBitsComboBox->setCurrentText("1");
+        }
+        
+        QLineEdit* stxLineEdit = findChild<QLineEdit*>("stxLineEdit");
+        if (stxLineEdit) {
+            stxLineEdit->setText("02");
+        }
+        
+        QLineEdit* etxLineEdit = findChild<QLineEdit*>("etxLineEdit");
+        if (etxLineEdit) {
+            etxLineEdit->setText("03");
+        }
+        
+        QLineEdit* triggerLineEdit = findChild<QLineEdit*>("communicationTriggerLineEdit");
+        if (triggerLineEdit) {
+            triggerLineEdit->setText("t");
+        }
+        
+        // Set the communication type to RS232 by default
+        QComboBox* commTypeComboBox = findChild<QComboBox*>("communicationTypeComboBox");
+        if (commTypeComboBox) {
+            commTypeComboBox->setCurrentText("RS232");
+        }
+        
+        // Set active checkbox to checked by default
+        QCheckBox* activeCheckBox = findChild<QCheckBox*>("communicationActiveCheckBox");
+        if (activeCheckBox) {
+            activeCheckBox->setChecked(true);
+        }
+        
+        // Save the default settings
+        saveCurrentCommunicationSettings();
+        saveSettingsToConfig();
+        
+        // Notify user
+        GuiEvent successEvent;
+        successEvent.keyword = "GuiMessage";
+        successEvent.data = "Communication settings for " + currentCommunicationName_ + " reset to defaults";
+        successEvent.target = "info";
+        eventQueue_.push(successEvent);
+    }
     
     // Reset the refreshing flag
     isRefreshing_ = false;
+}
+
+void SettingsWindow::onTimersDefaultsButtonClicked() {
+    qDebug() << "Timers defaults button clicked";
     
-    // Reset all changed field markings
-    resetChangedFields();
+    // Set the refreshing flag to prevent marking fields as changed during refresh
+    isRefreshing_ = true;
+    
+    // Clear the timers table
+    ui->timersTable->setRowCount(0);
+    
+    // Add default timers
+    // Timer 1
+    int row = ui->timersTable->rowCount();
+    ui->timersTable->insertRow(row);
+    QTableWidgetItem* nameItem1 = new QTableWidgetItem("timer1");
+    QTableWidgetItem* durationItem1 = new QTableWidgetItem("1000");
+    QTableWidgetItem* descriptionItem1 = new QTableWidgetItem("General purpose timer 1");
+    nameItem1->setFlags(nameItem1->flags() & ~Qt::ItemIsEditable);
+    descriptionItem1->setFlags(descriptionItem1->flags() & ~Qt::ItemIsEditable);
+    ui->timersTable->setItem(row, 0, nameItem1);
+    ui->timersTable->setItem(row, 1, durationItem1);
+    ui->timersTable->setItem(row, 2, descriptionItem1);
+    
+    // Timer 2
+    row = ui->timersTable->rowCount();
+    ui->timersTable->insertRow(row);
+    QTableWidgetItem* nameItem2 = new QTableWidgetItem("timer2");
+    QTableWidgetItem* durationItem2 = new QTableWidgetItem("2000");
+    QTableWidgetItem* descriptionItem2 = new QTableWidgetItem("General purpose timer 2");
+    nameItem2->setFlags(nameItem2->flags() & ~Qt::ItemIsEditable);
+    descriptionItem2->setFlags(descriptionItem2->flags() & ~Qt::ItemIsEditable);
+    ui->timersTable->setItem(row, 0, nameItem2);
+    ui->timersTable->setItem(row, 1, durationItem2);
+    ui->timersTable->setItem(row, 2, descriptionItem2);
+    
+    // Timer 3
+    row = ui->timersTable->rowCount();
+    ui->timersTable->insertRow(row);
+    QTableWidgetItem* nameItem3 = new QTableWidgetItem("timer3");
+    QTableWidgetItem* durationItem3 = new QTableWidgetItem("5000");
+    QTableWidgetItem* descriptionItem3 = new QTableWidgetItem("General purpose timer 3");
+    nameItem3->setFlags(nameItem3->flags() & ~Qt::ItemIsEditable);
+    descriptionItem3->setFlags(descriptionItem3->flags() & ~Qt::ItemIsEditable);
+    ui->timersTable->setItem(row, 0, nameItem3);
+    ui->timersTable->setItem(row, 1, durationItem3);
+    ui->timersTable->setItem(row, 2, descriptionItem3);
+    
+    // Save the default settings
+    saveSettingsToConfig();
+    
+    // Notify user
+    GuiEvent successEvent;
+    successEvent.keyword = "GuiMessage";
+    successEvent.data = "Timer settings reset to defaults";
+    successEvent.target = "info";
+    eventQueue_.push(successEvent);
+    
+    // Reset the refreshing flag
+    isRefreshing_ = false;
 }
 
 void SettingsWindow::on_okPushButton_clicked() {
     qDebug() << "OK button clicked";
     
-    // Save settings to Config
-    if (saveSettingsToConfig()) {
-        GuiEvent successEvent;
-        successEvent.keyword = "GuiMessage";
-        successEvent.data = "Settings saved successfully";
-        successEvent.target = "info";
-        eventQueue_.push(successEvent);
-        
-        // Ask Logic to initialize communication ports
-        GuiEvent paramEvent;
-        paramEvent.keyword = "ParameterChange";
-        paramEvent.data = "Settings applied";
-        eventQueue_.push(paramEvent);
-        
-        // Reset all changed field markings before closing
-        resetChangedFields();
-        
-        // Close the window
-        close();
-    } else {
-        GuiEvent errorEvent;
-        errorEvent.keyword = "GuiMessage";
-        errorEvent.data = "Failed to save settings";
-        errorEvent.target = "error";
-        eventQueue_.push(errorEvent);
-    }
+    // Since changes are saved immediately, we just need to notify Logic to initialize communication ports
+    GuiEvent paramEvent;
+    paramEvent.keyword = "ParameterChange";
+    paramEvent.data = "Settings applied";
+    eventQueue_.push(paramEvent);
+    
+    // Notify user that settings have been applied
+    GuiEvent successEvent;
+    successEvent.keyword = "GuiMessage";
+    successEvent.data = "Settings applied successfully";
+    successEvent.target = "info";
+    eventQueue_.push(successEvent);
+    
+    // Close the window
+    close();
 }
 
 
@@ -1100,47 +1016,82 @@ void SettingsWindow::fillTimersTabFields()
     // Reset the refreshing flag
     isRefreshing_ = false;
     
-    // Reconnect the itemChanged signal to track changes after initialization
+    // Reconnect the itemChanged signal to save changes immediately
     connect(ui->timersTable, &QTableWidget::itemChanged, [this](QTableWidgetItem* item) {
-        // Only mark duration column (column 1) as changed and only if not refreshing
+        // Only handle duration column (column 1) and only if not refreshing
         if (item && item->column() == 1 && !isRefreshing_) {
-            item->setBackground(QBrush(QColor(255, 200, 200))); // Light red
-            item->setForeground(QBrush(Qt::black)); // Ensure text is black and visible
+            // Save changes immediately
+            saveSettingsToConfig();
+            
+            // Ensure text is black and visible
+            item->setForeground(QBrush(Qt::black));
         }
     });
 }
 
 void SettingsWindow::fillWithDefaults()
 {
-    // Fill Communication 1 Tab with default values
-    ui->portName1ComboBox->setCurrentText("COM1");
-    ui->baudRate1ComboBox->setCurrentText("115200");
-    ui->parity1ComboBox->setCurrentText("None");
-    ui->dataBits1ComboBox->setCurrentText("8");
-    ui->stopBits1ComboBox->setCurrentText("1");
-    ui->stx1LineEdit->setText("02");
-    ui->etx1LineEdit->setText("03");
-    ui->commuication1TriggerLineEdit->setText("t");
+    // Fill Communication settings with default values
+    QComboBox* commSelector = findChild<QComboBox*>("communicationSelectorComboBox");
+    if (commSelector) {
+        // Make sure we have at least one communication channel
+        if (commSelector->count() == 0) {
+            commSelector->addItem("Communication 1");
+        }
+        commSelector->setCurrentIndex(0);
+    }
     
-    // Fill Communication 2 Tab with default values
-    ui->portName2ComboBox->setCurrentText("COM2");
-    ui->baudRate2ComboBox->setCurrentText("115200");
-    ui->parity2ComboBox->setCurrentText("None");
-    ui->dataBits2ComboBox->setCurrentText("8");
-    ui->stopBits2ComboBox->setCurrentText("1");
-    ui->stx2LineEdit->setText("02");
-    ui->etx2LineEdit->setText("03");
-    ui->commuication2TriggerLineEdit->setText("t");
+    QComboBox* portNameComboBox = findChild<QComboBox*>("portNameComboBox");
+    if (portNameComboBox) {
+        portNameComboBox->setCurrentText("COM1");
+    }
     
-    // Fill Communication 3 Tab with default values
-    ui->portName3ComboBox->setCurrentText("COM3");
-    ui->baudRate3ComboBox->setCurrentText("115200");
-    ui->parity3ComboBox->setCurrentText("None");
-    ui->dataBits3ComboBox->setCurrentText("8");
-    ui->stopBits3ComboBox->setCurrentText("1");
-    ui->stx3LineEdit->setText("02");
-    ui->etx3LineEdit->setText("03");
-    ui->commuication3TriggerLineEdit->setText("t");
+    QComboBox* baudRateComboBox = findChild<QComboBox*>("baudRateComboBox");
+    if (baudRateComboBox) {
+        baudRateComboBox->setCurrentText("115200");
+    }
+    
+    QComboBox* parityComboBox = findChild<QComboBox*>("parityComboBox");
+    if (parityComboBox) {
+        parityComboBox->setCurrentText("None");
+    }
+    
+    QComboBox* dataBitsComboBox = findChild<QComboBox*>("dataBitsComboBox");
+    if (dataBitsComboBox) {
+        dataBitsComboBox->setCurrentText("8");
+    }
+    
+    QComboBox* stopBitsComboBox = findChild<QComboBox*>("stopBitsComboBox");
+    if (stopBitsComboBox) {
+        stopBitsComboBox->setCurrentText("1");
+    }
+    
+    QLineEdit* stxLineEdit = findChild<QLineEdit*>("stxLineEdit");
+    if (stxLineEdit) {
+        stxLineEdit->setText("02");
+    }
+    
+    QLineEdit* etxLineEdit = findChild<QLineEdit*>("etxLineEdit");
+    if (etxLineEdit) {
+        etxLineEdit->setText("03");
+    }
+    
+    QLineEdit* triggerLineEdit = findChild<QLineEdit*>("communicationTriggerLineEdit");
+    if (triggerLineEdit) {
+        triggerLineEdit->setText("t");
+    }
+    
+    // Set the communication type to RS232 by default
+    QComboBox* commTypeComboBox = findChild<QComboBox*>("communicationTypeComboBox");
+    if (commTypeComboBox) {
+        commTypeComboBox->setCurrentText("RS232");
+    }
+    
+    // Set active checkbox to checked by default
+    QCheckBox* activeCheckBox = findChild<QCheckBox*>("communicationActiveCheckBox");
+    if (activeCheckBox) {
+        activeCheckBox->setChecked(true);
+    }
     
     // Fill Timers Tab with default values
     ui->timersTable->setRowCount(0);
@@ -1233,272 +1184,81 @@ bool SettingsWindow::saveSettingsToConfig() {
     // Create a new JSON object for communication settings
     nlohmann::json commSettings = nlohmann::json::object();
     
-    // Update communication1 settings
-    nlohmann::json comm1 = nlohmann::json::object();
-    comm1["type"] = ui->communication1TypeComboBox->currentText().toStdString();
-    comm1["active"] = ui->communication1ActiveCheckBox->isChecked();
-    comm1["description"] = "reader1"; // Default description
+    // We'll use the saveCurrentCommunicationSettings method to save the current communication settings
+    // This will ensure that all settings are saved properly
+    saveCurrentCommunicationSettings();
     
-    // RS232 Settings
-    if (ui->communication1TypeComboBox->currentText() == "RS232") {
-        comm1["port"] = ui->portName1ComboBox->currentText().toStdString();
-        comm1["baudRate"] = ui->baudRate1ComboBox->currentText().toInt();
+    // Get the communication settings from the config
+    nlohmann::json commSettingsList = config_->getCommunicationSettings();
+    
+    // If there are no communication settings, add a default one
+    if (commSettingsList.empty()) {
+        nlohmann::json defaultComm = nlohmann::json::object();
+        defaultComm["type"] = "RS232";
+        defaultComm["active"] = true;
+        defaultComm["description"] = "reader1";
+        defaultComm["port"] = "COM1";
+        defaultComm["baudRate"] = 115200;
+        defaultComm["parity"] = "N";
+        defaultComm["dataBits"] = 8;
+        defaultComm["stopBits"] = 1;
+        defaultComm["stx"] = 0x02;
+        defaultComm["etx"] = 0x03;
+        
+        commSettingsList["communication1"] = defaultComm;
     }
     
-    // TCP/IP Settings
-    if (ui->communication1TypeComboBox->currentText() == "TCP/IP") {
-        nlohmann::json tcpip = nlohmann::json::object();
-        tcpip["ip"] = ui->ip1LineEdit->text().toStdString();
-        tcpip["port"] = ui->port1SpinBox->value();
-        tcpip["timeout_ms"] = ui->timeout1SpinBox->value();
-        comm1["tcpip"] = tcpip;
-    }
+    // Update the config with the communication settings
+    mutableConfig->updateCommunicationSettings(commSettingsList);
+
+    // The rest of the method is handled by saveCurrentCommunicationSettings
     
 
     
-    // Convert parity from full word to single letter
-    QString parity1 = ui->parity1ComboBox->currentText();
-    if (parity1 == "None") comm1["parity"] = "N";
-    else if (parity1 == "Even") comm1["parity"] = "E";
-    else if (parity1 == "Odd") comm1["parity"] = "O";
-    else if (parity1 == "Mark") comm1["parity"] = "M";
-    else if (parity1 == "Space") comm1["parity"] = "S";
-    else comm1["parity"] = parity1.toStdString();
+
     
-    comm1["dataBits"] = ui->dataBits1ComboBox->currentText().toInt();
-    comm1["stopBits"] = ui->stopBits1ComboBox->currentText().toDouble();
+    // Get the existing timer settings from the config
+    nlohmann::json timerSettings = config_->getTimerSettings();
     
-    // Handle STX/ETX values - convert from hex string to appropriate format
-    QString stx1Text = ui->stx1LineEdit->text().trimmed();
-    if (!stx1Text.isEmpty()) {
-        bool ok;
-        int stxValue = stx1Text.toInt(&ok, 16);
-        if (ok) {
-            // For small values (0-9), store as integers
-            if (stxValue <= 9) {
-                comm1["stx"] = stxValue;
-            } else {
-                // For larger values, store as hex strings
-                comm1["stx"] = "0x" + QString::number(stxValue, 16).rightJustified(2, '0').toStdString();
-            }
-        }
-    } else {
-        comm1["stx"] = "";
-    }
-    
-    QString etx1Text = ui->etx1LineEdit->text().trimmed();
-    if (!etx1Text.isEmpty()) {
-        bool ok;
-        int etxValue = etx1Text.toInt(&ok, 16);
-        if (ok) {
-            // For small values (0-9), store as integers
-            if (etxValue <= 9) {
-                comm1["etx"] = etxValue;
-            } else {
-                // For larger values, store as hex strings
-                comm1["etx"] = "0x" + QString::number(etxValue, 16).rightJustified(2, '0').toStdString();
-            }
-        }
-    } else {
-        comm1["etx"] = "";
-    }
-    
-    // Save trigger
-    comm1["trigger"] = ui->commuication1TriggerLineEdit->text().toStdString();
-    
-    // Update communication2 settings
-    nlohmann::json comm2 = nlohmann::json::object();
-    comm2["type"] = ui->communication2TypeComboBox->currentText().toStdString();
-    comm2["active"] = ui->communication2ActiveCheckBox->isChecked();
-    comm2["description"] = "reader2"; // Default description
-    
-    // RS232 Settings
-    if (ui->communication2TypeComboBox->currentText() == "RS232") {
-        comm2["port"] = ui->portName2ComboBox->currentText().toStdString();
-        comm2["baudRate"] = ui->baudRate2ComboBox->currentText().toInt();
-    }
-    
-    // TCP/IP Settings
-    if (ui->communication2TypeComboBox->currentText() == "TCP/IP") {
-        nlohmann::json tcpip = nlohmann::json::object();
-        tcpip["ip"] = ui->ip2LineEdit->text().toStdString();
-        tcpip["port"] = ui->port2SpinBox->value();
-        tcpip["timeout_ms"] = ui->timeout2SpinBox->value();
-        comm2["tcpip"] = tcpip;
-    }
-    
-    // Convert parity from full word to single letter
-    QString parity2 = ui->parity2ComboBox->currentText();
-    if (parity2 == "None") {
-        comm2["parity"] = "N";
-    } else if (parity2 == "Even") {
-        comm2["parity"] = "E";
-    } else if (parity2 == "Odd") {
-        comm2["parity"] = "O";
-    } else if (parity2 == "Mark") {
-        comm2["parity"] = "M";
-    } else if (parity2 == "Space") {
-        comm2["parity"] = "S";
-    }
-    
-    // Data bits
-    comm2["dataBits"] = ui->dataBits2ComboBox->currentText().toInt();
-    
-    // Stop bits (convert from string to float)
-    QString stopBits2 = ui->stopBits2ComboBox->currentText();
-    if (stopBits2 == "1") {
-        comm2["stopBits"] = 1.0f;
-    } else if (stopBits2 == "1.5") {
-        comm2["stopBits"] = 1.5f;
-    } else if (stopBits2 == "2") {
-        comm2["stopBits"] = 2.0f;
-    }
-    
-    // STX/ETX values
-    comm2["stx"] = ui->stx2LineEdit->text().toStdString();
-    comm2["etx"] = ui->etx2LineEdit->text().toStdString();
-    
-    // Add communication2 settings to the commSettings object
-    commSettings["communication2"] = comm2;
-    
-    // Update communication3 settings
-    nlohmann::json comm3 = nlohmann::json::object();
-    comm3["type"] = ui->communication3TypeComboBox->currentText().toStdString();
-    comm3["active"] = ui->communication3ActiveCheckBox->isChecked();
-    comm3["description"] = "reader3"; // Default description
-    
-    // RS232 Settings
-    if (ui->communication3TypeComboBox->currentText() == "RS232") {
-        comm3["port"] = ui->portName3ComboBox->currentText().toStdString();
-        comm3["baudRate"] = ui->baudRate3ComboBox->currentText().toInt();
-    }
-    
-    // TCP/IP Settings
-    if (ui->communication3TypeComboBox->currentText() == "TCP/IP") {
-        nlohmann::json tcpip = nlohmann::json::object();
-        tcpip["ip"] = ui->ip3LineEdit->text().toStdString();
-        tcpip["port"] = ui->port3SpinBox->value();
-        tcpip["timeout_ms"] = ui->timeout3SpinBox->value();
-        comm3["tcpip"] = tcpip;
-    }
-    
-    // Convert parity from full word to single letter
-    QString parity3 = ui->parity3ComboBox->currentText();
-    if (parity3 == "None") {
-        comm3["parity"] = "N";
-    } else if (parity3 == "Even") {
-        comm3["parity"] = "E";
-    } else if (parity3 == "Odd") {
-        comm3["parity"] = "O";
-    } else if (parity3 == "Mark") {
-        comm3["parity"] = "M";
-    } else if (parity3 == "Space") {
-        comm3["parity"] = "S";
-    }
-    
-    // Data bits
-    comm3["dataBits"] = ui->dataBits3ComboBox->currentText().toInt();
-    
-    // Stop bits (convert from string to float)
-    QString stopBits3 = ui->stopBits3ComboBox->currentText();
-    if (stopBits3 == "1") {
-        comm3["stopBits"] = 1.0f;
-    } else if (stopBits3 == "1.5") {
-        comm3["stopBits"] = 1.5f;
-    } else if (stopBits3 == "2") {
-        comm3["stopBits"] = 2.0f;
-    }
-    
-    // STX/ETX values
-    comm3["stx"] = ui->stx3LineEdit->text().toStdString();
-    comm3["etx"] = ui->etx3LineEdit->text().toStdString();
-    
-    // Save trigger
-    comm3["trigger"] = ui->commuication3TriggerLineEdit->text().toStdString();
-    
-    // This section is redundant as parity is already set above (lines 1024-1034)
-    
-    comm2["dataBits"] = ui->dataBits2ComboBox->currentText().toInt();
-    comm2["stopBits"] = ui->stopBits2ComboBox->currentText().toDouble();
-    
-    // Handle STX/ETX values - convert from hex string to appropriate format
-    QString stx2Text = ui->stx2LineEdit->text().trimmed();
-    if (!stx2Text.isEmpty()) {
-        bool ok;
-        int stxValue = stx2Text.toInt(&ok, 16);
-        if (ok) {
-            // For small values (0-9), store as integers
-            if (stxValue <= 9) {
-                comm2["stx"] = stxValue;
-            } else {
-                // For larger values, store as hex strings
-                comm2["stx"] = "0x" + QString::number(stxValue, 16).rightJustified(2, '0').toStdString();
-            }
-        }
-    } else {
-        comm2["stx"] = "";
-    }
-    
-    QString etx2Text = ui->etx2LineEdit->text().trimmed();
-    if (!etx2Text.isEmpty()) {
-        bool ok;
-        int etxValue = etx2Text.toInt(&ok, 16);
-        if (ok) {
-            // For small values (0-9), store as integers
-            if (etxValue <= 9) {
-                comm2["etx"] = etxValue;
-            } else {
-                // For larger values, store as hex strings
-                comm2["etx"] = "0x" + QString::number(etxValue, 16).rightJustified(2, '0').toStdString();
-            }
-        }
-    } else {
-        comm2["etx"] = "";
-    }
-    
-    // Save trigger
-    comm2["trigger"] = ui->commuication2TriggerLineEdit->text().toStdString();
-    
-    // Update the communication settings in the commSettings object
-    commSettings["communication1"] = comm1;
-    commSettings["communication2"] = comm2;
-    commSettings["communication3"] = comm3;
-    
-    // Create a new JSON object for timer settings
-    nlohmann::json timerSettings = nlohmann::json::object();
-    
-    // Get timer settings from the table
-    for (int row = 0; row < ui->timersTable->rowCount(); ++row) {
-        QTableWidgetItem* nameItem = ui->timersTable->item(row, 0);
-        QTableWidgetItem* durationItem = ui->timersTable->item(row, 1);
-        QTableWidgetItem* descriptionItem = ui->timersTable->item(row, 2);
-        
-        if (nameItem && durationItem && descriptionItem) {
-            std::string timerName = nameItem->text().toStdString();
-            int duration = durationItem->text().toInt();
-            std::string description = descriptionItem->text().toStdString();
+    // If the timers table has entries, update the timer settings
+    if (ui->timersTable->rowCount() > 0) {
+        // Get timer settings from the table
+        for (int row = 0; row < ui->timersTable->rowCount(); ++row) {
+            QTableWidgetItem* nameItem = ui->timersTable->item(row, 0);
+            QTableWidgetItem* durationItem = ui->timersTable->item(row, 1);
+            QTableWidgetItem* descriptionItem = ui->timersTable->item(row, 2);
             
-            // Create timer object
-            nlohmann::json timerObject = nlohmann::json::object();
-            timerObject["duration"] = duration;
-            timerObject["description"] = description;
-            
-            // Add to timer settings
-            timerSettings[timerName] = timerObject;
+            if (nameItem && durationItem && descriptionItem) {
+                std::string timerName = nameItem->text().toStdString();
+                int duration = durationItem->text().toInt();
+                std::string description = descriptionItem->text().toStdString();
+                
+                // Create timer object
+                nlohmann::json timerObject = nlohmann::json::object();
+                timerObject["duration"] = duration;
+                timerObject["description"] = description;
+                
+                // Add to timer settings
+                timerSettings[timerName] = timerObject;
+            }
         }
     }
     
     // Update the Config object with the new settings
     try {
-        // Update the communication settings
-        mutableConfig->updateCommunicationSettings(commSettings);
-        
         // Update the timer settings
         mutableConfig->updateTimerSettings(timerSettings);
         
         // Save the configuration to file
         if (mutableConfig->saveToFile()) {
             qDebug() << "Settings saved to configuration file";
+            
+            // Send a ParameterChange event to notify Logic to initialize communication ports
+            GuiEvent paramEvent;
+            paramEvent.keyword = "ParameterChange";
+            paramEvent.data = "Settings applied";
+            eventQueue_.push(paramEvent);
+            
             return true;
         } else {
             qDebug() << "Failed to save settings to configuration file";
@@ -1511,53 +1271,32 @@ bool SettingsWindow::saveSettingsToConfig() {
 }
 
 void SettingsWindow::markAsChanged(QWidget* widget) {
-    // Set light red background to indicate a changed value
-    QPalette palette = widget->palette();
-    palette.setColor(QPalette::Base, QColor(255, 200, 200)); // Light red
-    widget->setPalette(palette);
+    // This method is kept for backward compatibility but no longer changes the widget appearance
+    // since we're saving changes immediately
+    Q_UNUSED(widget);
 }
 
 void SettingsWindow::resetChangedFields() {
-    // Reset background color for all editable fields
-    
-    // Communication tab fields
-    QList<QComboBox*> comboBoxes = findChildren<QComboBox*>();
-    for (QComboBox* comboBox : comboBoxes) {
-        comboBox->setPalette(QPalette());
-    }
-    
-    // Ensure the communication selector dropdown is always reset to default color
-    QComboBox* commSelector = findChild<QComboBox*>("communicationSelectorComboBox");
-    if (commSelector) {
-        commSelector->setPalette(QPalette());
-    }
-    
-    QList<QLineEdit*> lineEdits = findChildren<QLineEdit*>();
-    for (QLineEdit* lineEdit : lineEdits) {
-        lineEdit->setPalette(QPalette());
-    }
-    
-    // Timer table cells - ensure all duration cells (column 1) are reset to transparent
-    for (int row = 0; row < ui->timersTable->rowCount(); ++row) {
-        QTableWidgetItem* durationItem = ui->timersTable->item(row, 1);
-        if (durationItem) {
-            // Clear the background color completely
-            durationItem->setBackground(QBrush(Qt::transparent));
-        }
-    }
+    // This method is kept for backward compatibility but no longer does anything
+    // since we're saving changes immediately and not marking fields as changed
 }
 
 void SettingsWindow::connectChangeEvents() {
     // Connect change events for all combo boxes
     QList<QComboBox*> comboBoxes = findChildren<QComboBox*>();
     for (QComboBox* comboBox : comboBoxes) {
-        // Skip the communication selector dropdown - we don't want to track changes for it
+        // Skip the communication selector dropdown - we handle it separately
         if (comboBox->objectName() == "communicationSelectorComboBox") {
             continue;
         }
         
         connect(comboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), [this, comboBox](int) {
-            markAsChanged(comboBox);
+            // Skip if we're refreshing the UI
+            if (isRefreshing_) return;
+            
+            // Save changes immediately
+            // saveCurrentCommunicationSettings() is called inside saveSettingsToConfig()
+            saveSettingsToConfig();
         });
     }
     
@@ -1565,7 +1304,43 @@ void SettingsWindow::connectChangeEvents() {
     QList<QLineEdit*> lineEdits = findChildren<QLineEdit*>();
     for (QLineEdit* lineEdit : lineEdits) {
         connect(lineEdit, &QLineEdit::textChanged, [this, lineEdit](const QString&) {
-            markAsChanged(lineEdit);
+            // Skip if we're refreshing the UI
+            if (isRefreshing_) return;
+            
+            // Save changes immediately
+            // saveCurrentCommunicationSettings() is called inside saveSettingsToConfig()
+            saveSettingsToConfig();
+        });
+    }
+    
+    // Connect change events for CheckBoxes
+    QList<QCheckBox*> checkBoxes = findChildren<QCheckBox*>();
+    for (QCheckBox* checkBox : checkBoxes) {
+        // Skip output override checkboxes which are handled separately
+        if (checkBox->objectName().contains("outputOverride")) {
+            continue;
+        }
+        
+        connect(checkBox, &QCheckBox::stateChanged, [this, checkBox](int) {
+            // Skip if we're refreshing the UI
+            if (isRefreshing_) return;
+            
+            // Save changes immediately
+            // saveCurrentCommunicationSettings() is called inside saveSettingsToConfig()
+            saveSettingsToConfig();
+        });
+    }
+    
+    // Connect change events for SpinBoxes
+    QList<QSpinBox*> spinBoxes = findChildren<QSpinBox*>();
+    for (QSpinBox* spinBox : spinBoxes) {
+        connect(spinBox, QOverload<int>::of(&QSpinBox::valueChanged), [this, spinBox](int) {
+            // Skip if we're refreshing the UI
+            if (isRefreshing_) return;
+            
+            // Save changes immediately
+            // saveCurrentCommunicationSettings() is called inside saveSettingsToConfig()
+            saveSettingsToConfig();
         });
     }
     
@@ -1573,136 +1348,468 @@ void SettingsWindow::connectChangeEvents() {
     // to properly handle disconnection/reconnection during initialization
 }
 
+void SettingsWindow::on_communicationSendPushButton_clicked()
+{
+    // Get the current page
+    QStackedWidget* commStack = findChild<QStackedWidget*>("communicationStackedWidget");
+    if (!commStack) {
+        return;
+    }
+    
+    QWidget* currentPage = commStack->currentWidget();
+    if (!currentPage) {
+        return;
+    }
+    
+    // Find the trigger line edit in the current page
+    QLineEdit* triggerLineEdit = currentPage->findChild<QLineEdit*>("communicationTriggerLineEdit");
+    if (!triggerLineEdit) {
+        qDebug() << "Cannot find trigger line edit";
+        return;
+    }
+    
+    QString message = triggerLineEdit->text();
+    if (message.isEmpty()) {
+        qDebug() << "Cannot send empty message to " << currentCommunicationName_.c_str();
+        return;
+    }
+    
+    // Send the message using the current communication channel
+    GuiEvent event;
+    event.keyword = "SendCommunicationMessage";
+    event.data = message.toStdString();
+    event.target = currentCommunicationName_;
+    eventQueue_.push(event);
+    
+    qDebug() << "Sent message to " << currentCommunicationName_.c_str() << ": " << message;
+}
+
+// These methods are kept for backward compatibility with the UI file connections
+// They simply forward to the generic handler
 void SettingsWindow::on_communication1SendPushButton_clicked()
 {
-    QString message = ui->commuication1TriggerLineEdit->text();
-    if (!message.isEmpty()) {
-        GuiEvent event;
-event.keyword = "SendCommunicationMessage";
-event.data = message.toStdString();
-event.target = "communication1";
-eventQueue_.push(event);
-        qDebug() << "Sent message to communication1:" << message;
-    } else {
-        qDebug() << "Cannot send empty message to communication1";
-    }
+    on_communicationSendPushButton_clicked();
 }
 
 void SettingsWindow::on_communication2SendPushButton_clicked()
 {
-    QString message = ui->commuication2TriggerLineEdit->text();
-    
-    GuiEvent event;
-event.keyword = "SendCommunicationMessage";
-event.data = message.toStdString();
-event.target = "2";
-event.intValue = 2;
-eventQueue_.push(event);
-    
-    qDebug() << "Sending test message to communication 2: " << message;
+    on_communicationSendPushButton_clicked();
 }
 
 void SettingsWindow::updateCommunicationTypeVisibility(int index) {
-    // If index is -1, it means we want to update all pages regardless of which is visible
-    bool forceUpdateAll = (index == -1);
-    
     // Get the stacked widget to determine which communication is currently visible
     QStackedWidget* commStack = findChild<QStackedWidget*>("communicationStackedWidget");
-    int currentCommIndex = commStack ? commStack->currentIndex() : -1;
-    
-    // If we're using the new UI with stacked widget, only update the visible communication page
-    // unless forceUpdateAll is true. Otherwise, update all communication pages as before
-    bool updateAll = forceUpdateAll || (currentCommIndex == -1);
-    
-    // Communication 1 visibility
-    if (updateAll || currentCommIndex == 0) {
-        if (ui->communication1TypeComboBox) {
-            QString type1 = ui->communication1TypeComboBox->currentText();
-            
-            // Show/hide RS232 settings
-            if (ui->rs232Group1) {
-                ui->rs232Group1->setVisible(type1 == "RS232");
-            }
-            
-            // Show/hide TCP/IP settings
-            if (ui->tcpipGroup1) {
-                ui->tcpipGroup1->setVisible(type1 == "TCP/IP");
-            }
-        }
+    if (!commStack) {
+        return; // Can't find the stacked widget, nothing to update
     }
     
-    // Communication 2 visibility
-    if (updateAll || currentCommIndex == 1) {
-        if (ui->communication2TypeComboBox) {
-            QString type2 = ui->communication2TypeComboBox->currentText();
-            
-            // Show/hide RS232 settings
-            if (ui->rs232Group2) {
-                ui->rs232Group2->setVisible(type2 == "RS232");
-            }
-            
-            // Show/hide TCP/IP settings
-            if (ui->tcpipGroup2) {
-                ui->tcpipGroup2->setVisible(type2 == "TCP/IP");
-            }
-        }
+    // Get the current page
+    QWidget* currentPage = commStack->currentWidget();
+    if (!currentPage) {
+        return; // No current page
     }
     
-    // Communication 3 visibility
-    if (updateAll || currentCommIndex == 2) {
-        if (ui->communication3TypeComboBox) {
-            QString type3 = ui->communication3TypeComboBox->currentText();
-            
-            // Show/hide RS232 settings
-            if (ui->rs232Group3) {
-                ui->rs232Group3->setVisible(type3 == "RS232");
-            }
-            
-            // Show/hide TCP/IP settings
-            if (ui->tcpipGroup3) {
-                ui->tcpipGroup3->setVisible(type3 == "TCP/IP");
-            }
-        }
+    // Find the communication type combo box in the current page
+    QComboBox* typeComboBox = currentPage->findChild<QComboBox*>("communicationTypeComboBox");
+    if (!typeComboBox) {
+        return; // Can't find the type combo box
+    }
+    
+    // Get the current communication type
+    QString commType = typeComboBox->currentText();
+    
+    // Find the RS232 and TCP/IP group boxes
+    QGroupBox* rs232Group = currentPage->findChild<QGroupBox*>("rs232Group");
+    QGroupBox* tcpipGroup = currentPage->findChild<QGroupBox*>("tcpipGroup");
+    
+    // Show/hide the appropriate group box based on the communication type
+    if (rs232Group) {
+        rs232Group->setVisible(commType == "RS232");
+    }
+    
+    if (tcpipGroup) {
+        tcpipGroup->setVisible(commType == "TCP/IP");
     }
 }
 
-void SettingsWindow::on_communication1ActiveCheckBox_stateChanged(int state) {
-    // Enable/disable the communication 1 settings based on the active state
+void SettingsWindow::on_communicationActiveCheckBox_stateChanged(int state) {
+    // Enable/disable the communication settings based on the active state
     bool isActive = (state == Qt::Checked);
     
-    if (ui->communication1TypeComboBox) {
-        ui->communication1TypeComboBox->setEnabled(isActive);
+    // Mark the checkbox as changed
+    QCheckBox* activeCheckBox = qobject_cast<QCheckBox*>(sender());
+    if (activeCheckBox) {
+        markAsChanged(activeCheckBox);
+    }
+    
+    // Get the current page
+    QStackedWidget* commStack = findChild<QStackedWidget*>("communicationStackedWidget");
+    if (!commStack) {
+        return;
+    }
+    
+    QWidget* currentPage = commStack->currentWidget();
+    if (!currentPage) {
+        return;
+    }
+    
+    // Find the UI elements in the current page
+    QComboBox* typeComboBox = currentPage->findChild<QComboBox*>("communicationTypeComboBox");
+    QGroupBox* rs232Group = currentPage->findChild<QGroupBox*>("rs232Group");
+    QGroupBox* tcpipGroup = currentPage->findChild<QGroupBox*>("tcpipGroup");
+    
+    // Enable/disable the type combo box
+    if (typeComboBox) {
+        typeComboBox->setEnabled(isActive);
     }
     
     // Enable/disable all groups based on active state
-    if (ui->rs232Group1) ui->rs232Group1->setEnabled(isActive);
-    if (ui->tcpipGroup1) ui->tcpipGroup1->setEnabled(isActive);
+    if (rs232Group) rs232Group->setEnabled(isActive);
+    if (tcpipGroup) tcpipGroup->setEnabled(isActive);
+}
+
+// These methods are kept for backward compatibility with the UI file connections
+// They simply forward to the generic handler
+void SettingsWindow::on_communication1ActiveCheckBox_stateChanged(int state) {
+    on_communicationActiveCheckBox_stateChanged(state);
 }
 
 void SettingsWindow::on_communication2ActiveCheckBox_stateChanged(int state) {
-    // Enable/disable the communication 2 settings based on the active state
-    bool isActive = (state == Qt::Checked);
-    
-    if (ui->communication2TypeComboBox) {
-        ui->communication2TypeComboBox->setEnabled(isActive);
-    }
-    
-    // Enable/disable all groups based on active state
-    if (ui->rs232Group2) ui->rs232Group2->setEnabled(isActive);
-    if (ui->tcpipGroup2) ui->tcpipGroup2->setEnabled(isActive);
+    on_communicationActiveCheckBox_stateChanged(state);
 }
 
 void SettingsWindow::on_communication3ActiveCheckBox_stateChanged(int state) {
-    // Enable/disable the communication 3 settings based on the active state
-    bool isActive = (state == Qt::Checked);
-    markAsChanged(ui->communication3ActiveCheckBox);
+    on_communicationActiveCheckBox_stateChanged(state);
+}
+
+void SettingsWindow::onCommunicationSelectorChanged(int index) {
+    QComboBox* commSelector = findChild<QComboBox*>("communicationSelectorComboBox");
+    QStackedWidget* commStack = findChild<QStackedWidget*>("communicationStackedWidget");
     
-    if (ui->communication3TypeComboBox) {
-        ui->communication3TypeComboBox->setEnabled(isActive);
+    if (!commSelector || !commStack || index < 0 || index >= commSelector->count()) {
+        return;
     }
     
-    // Enable/disable all groups based on active state
-    if (ui->rs232Group3) ui->rs232Group3->setEnabled(isActive);
-    if (ui->tcpipGroup3) ui->tcpipGroup3->setEnabled(isActive);
+    // First, save the current communication settings if we have a valid current selection
+    // but don't trigger a ParameterChange event since we're just switching views
+    if (!currentCommunicationName_.empty()) {
+        // Save the current settings to the internal structure only
+        // We're just switching between communication sets, not actually changing settings
+        bool wasRefreshing = isRefreshing_;
+        isRefreshing_ = true; // Set this to prevent triggering save events
+        saveCurrentCommunicationSettings();
+        isRefreshing_ = wasRefreshing; // Restore the previous state
+    }
+    
+    // Update the stacked widget to show the selected page
+    commStack->setCurrentIndex(0); // Always use the first page since we now have only one page
+    
+    // Get the communication settings from the config
+    nlohmann::json commSettingsList = config_->getCommunicationSettings();
+    
+    // Extract the communication name from the selector text (format: "name (description)")
+    QString selectorText = commSelector->itemText(index);
+    QString commName = selectorText.section(" (", 0, 0);
+    
+    // Store the current communication name for later use
+    currentCommunicationName_ = commName.toStdString();
+    
+    // Find the communication settings in the JSON
+    if (commSettingsList.contains(currentCommunicationName_)) {
+        auto& commData = commSettingsList[currentCommunicationName_];
+        
+        // Set the refreshing flag to prevent marking fields as changed during update
+        isRefreshing_ = true;
+        
+        // Update the UI elements based on the selected communication channel
+        // We'll use the UI elements from the current visible page in the stack
+        QWidget* currentPage = commStack->currentWidget();
+        
+        if (currentPage) {
+            // Find the UI elements in the current page using generic names
+            QComboBox* typeComboBox = currentPage->findChild<QComboBox*>("communicationTypeComboBox");
+            QCheckBox* activeCheckBox = currentPage->findChild<QCheckBox*>("communicationActiveCheckBox");
+            QLineEdit* descriptionLineEdit = currentPage->findChild<QLineEdit*>("descriptionLineEdit");
+            
+            // Set the description
+            if (descriptionLineEdit && commData.contains("description")) {
+                descriptionLineEdit->setText(QString::fromStdString(commData["description"].get<std::string>()));
+            }
+            
+            // Set the communication type
+            if (typeComboBox && commData.contains("type")) {
+                QString type = QString::fromStdString(commData["type"].get<std::string>());
+                int typeIndex = typeComboBox->findText(type);
+                if (typeIndex >= 0) {
+                    typeComboBox->setCurrentIndex(typeIndex);
+                }
+            }
+            
+            // Set the active state
+            if (activeCheckBox && commData.contains("active")) {
+                activeCheckBox->setChecked(commData["active"].get<bool>());
+            }
+            
+            // Update the RS232 settings if applicable
+            if (commData.contains("type") && commData["type"].get<std::string>() == "RS232") {
+                QComboBox* portNameComboBox = currentPage->findChild<QComboBox*>("portNameComboBox");
+                QComboBox* baudRateComboBox = currentPage->findChild<QComboBox*>("baudRateComboBox");
+                QComboBox* parityComboBox = currentPage->findChild<QComboBox*>("parityComboBox");
+                QComboBox* dataBitsComboBox = currentPage->findChild<QComboBox*>("dataBitsComboBox");
+                QComboBox* stopBitsComboBox = currentPage->findChild<QComboBox*>("stopBitsComboBox");
+                QLineEdit* stxLineEdit = currentPage->findChild<QLineEdit*>("stxLineEdit");
+                QLineEdit* etxLineEdit = currentPage->findChild<QLineEdit*>("etxLineEdit");
+                QLineEdit* triggerLineEdit = currentPage->findChild<QLineEdit*>("communicationTriggerLineEdit"); // Fixed typo
+                
+                // Set port name
+                if (portNameComboBox && commData.contains("port")) {
+                    QString port = QString::fromStdString(commData["port"].get<std::string>());
+                    int portIndex = portNameComboBox->findText(port);
+                    if (portIndex >= 0) {
+                        portNameComboBox->setCurrentIndex(portIndex);
+                    }
+                }
+                
+                // Set baud rate
+                if (baudRateComboBox && commData.contains("baudRate")) {
+                    QString baudRate = QString::number(commData["baudRate"].get<int>());
+                    int baudIndex = baudRateComboBox->findText(baudRate);
+                    if (baudIndex >= 0) {
+                        baudRateComboBox->setCurrentIndex(baudIndex);
+                    }
+                }
+                
+                // Set parity
+                if (parityComboBox && commData.contains("parity")) {
+                    QString parity = QString::fromStdString(commData["parity"].get<std::string>());
+                    // Convert from single character to full name
+                    QString parityName = "None";
+                    if (parity == "E" || parity == "e") parityName = "Even";
+                    else if (parity == "O" || parity == "o") parityName = "Odd";
+                    else if (parity == "M" || parity == "m") parityName = "Mark";
+                    else if (parity == "S" || parity == "s") parityName = "Space";
+                    
+                    int parityIndex = parityComboBox->findText(parityName);
+                    if (parityIndex >= 0) {
+                        parityComboBox->setCurrentIndex(parityIndex);
+                    }
+                }
+                
+                // Set data bits
+                if (dataBitsComboBox && commData.contains("dataBits")) {
+                    QString dataBits = QString::number(commData["dataBits"].get<int>());
+                    int dataBitsIndex = dataBitsComboBox->findText(dataBits);
+                    if (dataBitsIndex >= 0) {
+                        dataBitsComboBox->setCurrentIndex(dataBitsIndex);
+                    }
+                }
+                
+                // Set stop bits
+                if (stopBitsComboBox && commData.contains("stopBits")) {
+                    QString stopBits = QString::number(commData["stopBits"].get<double>());
+                    int stopBitsIndex = stopBitsComboBox->findText(stopBits);
+                    if (stopBitsIndex >= 0) {
+                        stopBitsComboBox->setCurrentIndex(stopBitsIndex);
+                    }
+                }
+                
+                // Set STX/ETX values
+                if (stxLineEdit && commData.contains("stx")) {
+                    if (commData["stx"].is_number()) {
+                        stxLineEdit->setText(QString::number(commData["stx"].get<int>()));
+                    } else if (commData["stx"].is_string()) {
+                        stxLineEdit->setText(QString::fromStdString(commData["stx"].get<std::string>()));
+                    }
+                }
+                
+                if (etxLineEdit && commData.contains("etx")) {
+                    if (commData["etx"].is_number()) {
+                        etxLineEdit->setText(QString::number(commData["etx"].get<int>()));
+                    } else if (commData["etx"].is_string()) {
+                        etxLineEdit->setText(QString::fromStdString(commData["etx"].get<std::string>()));
+                    }
+                }
+                
+                // Set trigger character
+                if (triggerLineEdit && commData.contains("trigger")) {
+                    triggerLineEdit->setText(QString::fromStdString(commData["trigger"].get<std::string>()));
+                }
+            }
+            // Update the TCP/IP settings if applicable
+            else if (commData.contains("type") && commData["type"].get<std::string>() == "TCP/IP" && commData.contains("tcpip")) {
+                auto& tcpip = commData["tcpip"];
+                QLineEdit* ipAddressLineEdit = currentPage->findChild<QLineEdit*>("ipLineEdit");
+                QSpinBox* tcpPortSpinBox = currentPage->findChild<QSpinBox*>("portSpinBox");
+                QSpinBox* timeoutSpinBox = currentPage->findChild<QSpinBox*>("timeoutSpinBox");
+                
+                if (ipAddressLineEdit && tcpip.contains("ip")) {
+                    ipAddressLineEdit->setText(QString::fromStdString(tcpip["ip"].get<std::string>()));
+                }
+                
+                if (tcpPortSpinBox && tcpip.contains("port")) {
+                    tcpPortSpinBox->setValue(tcpip["port"].get<int>());
+                }
+                
+                if (timeoutSpinBox && tcpip.contains("timeout_ms")) {
+                    timeoutSpinBox->setValue(tcpip["timeout_ms"].get<int>());
+                }
+            }
+        }
+        
+        // Call updateCommunicationTypeVisibility to ensure the correct settings are shown
+        updateCommunicationTypeVisibility(-1); // Use -1 to indicate we're using the generic UI elements
+        
+        // Reset the refreshing flag
+        isRefreshing_ = false;
+    }
+}
+
+void SettingsWindow::saveCurrentCommunicationSettings() {
+    if (currentCommunicationName_.empty()) {
+        return; // Nothing to save
+    }
+    
+    QStackedWidget* commStack = findChild<QStackedWidget*>("communicationStackedWidget");
+    if (!commStack) {
+        return;
+    }
+    
+    QWidget* currentPage = commStack->currentWidget();
+    
+    if (!currentPage) {
+        return;
+    }
+    
+    // Get the current settings from the UI
+    nlohmann::json commSettings;
+    
+    // Get the communication type
+    QComboBox* typeComboBox = currentPage->findChild<QComboBox*>("communicationTypeComboBox");
+    if (typeComboBox) {
+        commSettings["type"] = typeComboBox->currentText().toStdString();
+    }
+    
+    // Get the active state
+    QCheckBox* activeCheckBox = currentPage->findChild<QCheckBox*>("communicationActiveCheckBox");
+    if (activeCheckBox) {
+        commSettings["active"] = activeCheckBox->isChecked();
+    }
+    
+    // Get the description
+    QLineEdit* descriptionLineEdit = currentPage->findChild<QLineEdit*>("descriptionLineEdit");
+    if (descriptionLineEdit) {
+        commSettings["description"] = descriptionLineEdit->text().toStdString();
+    }
+    
+    // Get RS232 settings if applicable
+    if (typeComboBox && typeComboBox->currentText() == "RS232") {
+        QComboBox* portNameComboBox = currentPage->findChild<QComboBox*>("portNameComboBox");
+        QComboBox* baudRateComboBox = currentPage->findChild<QComboBox*>("baudRateComboBox");
+        QComboBox* parityComboBox = currentPage->findChild<QComboBox*>("parityComboBox");
+        QComboBox* dataBitsComboBox = currentPage->findChild<QComboBox*>("dataBitsComboBox");
+        QComboBox* stopBitsComboBox = currentPage->findChild<QComboBox*>("stopBitsComboBox");
+        QLineEdit* stxLineEdit = currentPage->findChild<QLineEdit*>("stxLineEdit");
+        QLineEdit* etxLineEdit = currentPage->findChild<QLineEdit*>("etxLineEdit");
+        QLineEdit* triggerLineEdit = currentPage->findChild<QLineEdit*>("communicationTriggerLineEdit"); // Fixed typo
+        
+        if (portNameComboBox) {
+            commSettings["port"] = portNameComboBox->currentText().toStdString();
+        }
+        
+        if (baudRateComboBox) {
+            commSettings["baudRate"] = baudRateComboBox->currentText().toInt();
+        }
+        
+        if (parityComboBox) {
+            // Convert from full name to single character
+            QString parityName = parityComboBox->currentText();
+            QString parityChar = "N";
+            if (parityName == "Even") parityChar = "E";
+            else if (parityName == "Odd") parityChar = "O";
+            else if (parityName == "Mark") parityChar = "M";
+            else if (parityName == "Space") parityChar = "S";
+            
+            commSettings["parity"] = parityChar.toStdString();
+        }
+        
+        if (dataBitsComboBox) {
+            commSettings["dataBits"] = dataBitsComboBox->currentText().toInt();
+        }
+        
+        if (stopBitsComboBox) {
+            commSettings["stopBits"] = stopBitsComboBox->currentText().toDouble();
+        }
+        
+        if (stxLineEdit) {
+            // Try to convert to int, otherwise store as string
+            bool ok;
+            int stxValue = stxLineEdit->text().toInt(&ok);
+            if (ok) {
+                commSettings["stx"] = stxValue;
+            } else {
+                commSettings["stx"] = stxLineEdit->text().toStdString();
+            }
+        }
+        
+        if (etxLineEdit) {
+            // Try to convert to int, otherwise store as string
+            bool ok;
+            int etxValue = etxLineEdit->text().toInt(&ok);
+            if (ok) {
+                commSettings["etx"] = etxValue;
+            } else {
+                commSettings["etx"] = etxLineEdit->text().toStdString();
+            }
+        }
+        
+        if (triggerLineEdit) {
+            commSettings["trigger"] = triggerLineEdit->text().toStdString();
+        }
+    }
+    // Get TCP/IP settings if applicable
+    else if (typeComboBox && typeComboBox->currentText() == "TCP/IP") {
+        QLineEdit* ipAddressLineEdit = currentPage->findChild<QLineEdit*>("ipLineEdit");
+        QSpinBox* tcpPortSpinBox = currentPage->findChild<QSpinBox*>("portSpinBox");
+        QSpinBox* timeoutSpinBox = currentPage->findChild<QSpinBox*>("timeoutSpinBox");
+        
+        nlohmann::json tcpipSettings;
+        
+        if (ipAddressLineEdit) {
+            tcpipSettings["ip"] = ipAddressLineEdit->text().toStdString();
+        }
+        
+        if (tcpPortSpinBox) {
+            tcpipSettings["port"] = tcpPortSpinBox->value();
+        }
+        
+        if (timeoutSpinBox) {
+            tcpipSettings["timeout_ms"] = timeoutSpinBox->value();
+        }
+        
+        commSettings["tcpip"] = tcpipSettings;
+    }
+    
+    // Update the settings in the config only if we're not in refreshing mode
+    // This prevents sending events when just switching between communication channels
+    if (!isRefreshing_) {
+        nlohmann::json allCommSettings = config_->getCommunicationSettings();
+        allCommSettings[currentCommunicationName_] = commSettings;
+        
+        // Update the in-memory config with the new settings
+        Config* mutableConfig = const_cast<Config*>(config_);
+        mutableConfig->updateCommunicationSettings(allCommSettings);
+        
+        // Only notify that settings have been updated when not in refreshing mode
+        GuiEvent event;
+        event.keyword = "GuiMessage";
+        event.data = "Communication settings for " + currentCommunicationName_ + " updated";
+        event.target = "info";
+        eventQueue_.push(event);
+    } else {
+        // We're just storing the settings in memory for later use
+        // This happens when switching between communication channels
+        // We don't want to trigger a save event in this case
+        qDebug() << "Skipping config update while in refreshing mode";
+    }
 }
 

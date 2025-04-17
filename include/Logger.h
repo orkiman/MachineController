@@ -38,7 +38,7 @@ inline std::shared_ptr<spdlog::logger>& getLogger() {
         
         // Optionally set log level and flush behavior
         logger->set_level(spdlog::level::debug);
-        logger->flush_on(spdlog::level::info);
+        logger->flush_on(spdlog::level::debug);
     }
     return logger;
 }

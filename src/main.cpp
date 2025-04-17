@@ -30,13 +30,16 @@ BOOL WINAPI ConsoleHandler(DWORD signal) {
 }
 
 // only for communication test : 
-#include "communication/RS232Communication.h"
 #include <iostream>
 #include <chrono>
 
 
 
 int main(int argc, char* argv[]) {
+    // Initialize the custom logger - happens automatically on first getLogger() call
+    spdlog::set_level(spdlog::level::debug); // Set global log level back to debug
+    getLogger()->info("Application starting..."); // First call to getLogger() initializes it
+
     getLogger()->debug("[{}] Application started",__PRETTY_FUNCTION__);
     // Console handler setup (if needed)
     // if (!SetConsoleCtrlHandler(ConsoleHandler, TRUE)) {
@@ -45,17 +48,27 @@ int main(int argc, char* argv[]) {
     // }
 
     timeBeginPeriod(1);
+    getLogger()->debug("[{}] Multimedia timer resolution set to 1ms", __PRETTY_FUNCTION__);
 
     EventQueue<EventVariant> eventQueue;
+    getLogger()->debug("[{}] EventQueue created", __PRETTY_FUNCTION__);
 
     // 1. Config Setup
     Config config("config/settings.json");
     
     // 2. GUI Initialization
+    getLogger()->debug("[{}] QApplication instance creating...", __PRETTY_FUNCTION__);
     QApplication app(argc, argv);
+    getLogger()->debug("[{}] QApplication instance created.", __PRETTY_FUNCTION__);
+
+    getLogger()->debug("[{}] MainWindow instance creating...", __PRETTY_FUNCTION__);
     MainWindow mainWindow(nullptr, eventQueue, config);  // Pass reference to the event queue and config
-    mainWindow.show();
-    
+    getLogger()->debug("[{}] MainWindow instance created.", __PRETTY_FUNCTION__);
+
+    // Connect MainWindow's windowReady signal to SettingsWindow's slot
+    QObject::connect(&mainWindow, &MainWindow::windowReady,
+                     mainWindow.getSettingsWindow(), &SettingsWindow::onInitialLoadComplete);
+
     // 3. Logic Setup
     Logic logic(eventQueue, config);
     g_Logic = &logic;
@@ -73,49 +86,21 @@ int main(int argc, char* argv[]) {
     QObject::connect(mainWindow.getSettingsWindow(), SIGNAL(outputStateChanged(const std::unordered_map<std::string, IOChannel>&)), 
                      &logic, SLOT(handleOutputStateChanged(const std::unordered_map<std::string, IOChannel>&)));
                      
-    // Connect MainWindow's windowReady signal to Logic's initialize method
-    // This ensures that communication ports are initialized only after the GUI is ready
-    QObject::connect(&mainWindow, SIGNAL(windowReady()), 
-                     &logic, SLOT(initialize()));
-
     // 3. Start Logic in a separate thread
     std::thread logicThread([&logic]() {
         logic.run();
     });
 
-/*
-    // communication example : *******************************
+    // 5. Show MainWindow and Start Event Loop
+    getLogger()->debug("[{}] Showing MainWindow...", __PRETTY_FUNCTION__);
+    mainWindow.show();
+    getLogger()->debug("[{}] MainWindow show() called.", __PRETTY_FUNCTION__);
 
-    // Replace "COM3" with the appropriate port for your system, and set the desired baud rate.
-    //RS232Communication comm(eventQueue, "COM1", 9600); // no stx, default etx
-    //RS232Communication comm(eventQueue, "COM1", 9600, "\x02"); // with stx, default etx
-    RS232Communication comm(eventQueue, "COM4", 9600, 2, 0x13); // with stx, etx = 0x13
-
-    // Initialize the serial port.
-    if (!comm.initialize()) {
-        std::cerr << "Failed to initialize communication." << std::endl;
-        return -1;
-    }
-
-    // // Set a callback that will be invoked when new data is received.
-    // comm.setDataReceivedCallback([](const std::string &data) {
-    //     std::cout << "Received: " << data << std::endl;
-    // });
-
-    // Send a test message.
-    if (comm.send("Hello, RS232!")) {
-        std::cout << "Message sent successfully." << std::endl;
-    } else {
-        std::cerr << "Failed to send message." << std::endl;
-    }
-
-*/
-    
-    // 4. Start the GUI event loop (this blocks until the GUI closes)
+    getLogger()->debug("[{}] Starting QApplication event loop (app.exec())...", __PRETTY_FUNCTION__);
     int result = app.exec();
-    // Close the communication channel gracefully.
+    getLogger()->debug("[{}] QApplication event loop finished with result: {}", __PRETTY_FUNCTION__, result);
 
-    // comm.close();           //************************************  */
+    // 6. Cleanup
     getLogger()->debug("Application closing");
 
     // 5. Shutdown Sequence
@@ -127,4 +112,3 @@ int main(int argc, char* argv[]) {
     timeEndPeriod(1);
     return result;
 }
-

@@ -40,6 +40,9 @@ public:
     
     // Load settings from JSON file
     bool loadSettingsFromJson(const QString& filePath = "config/settings.json");
+    
+    // Slot to indicate initial loading is done
+    void onInitialLoadComplete();
 
 signals:
     // Signal emitted when output override is enabled/disabled
@@ -110,6 +113,8 @@ private:
 
     bool isRefreshing_ = false; // Flag to prevent marking items as changed during refresh
     QSet<QWidget*> changedWidgets_; // Set of widgets that have been changed
+    bool initialLoadComplete_{false}; // Flag to prevent events during initial load
+
 };
 
 #endif // SETTINGSWINDOW_H

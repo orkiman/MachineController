@@ -2,6 +2,7 @@
 #include "Logger.h"
 #include "communication/RS232Communication.h"
 #include <iostream>
+#include <tuple>
 
 Logic::Logic(EventQueue<EventVariant> &eventQueue, const Config &config)
     : eventQueue_(eventQueue), config_(config), io_(eventQueue_, config) {
@@ -22,14 +23,9 @@ Logic::Logic(EventQueue<EventVariant> &eventQueue, const Config &config)
 }
 
 Logic::~Logic() {
-  // Signal termination to stop the event loop
-  eventQueue_.push(TerminationEvent{});
-
-  // Close all active communication ports
-  for (auto &pair : activeCommPorts_) {
-    pair.second.close();
-  }
-  activeCommPorts_.clear();
+    // The map's destructor will handle calling RS232Communication destructors.
+    // RS232Communication destructor calls close(), which has checks for multiple calls.
+     getLogger()->debug("Logic destructor finished."); // Add log to confirm destructor completes
 }
 
 void Logic::initialize() {
@@ -61,6 +57,9 @@ void Logic::initialize() {
 }
 
 void Logic::run() {
+  // Initialize timers and communication ports within the Logic thread
+  this->initialize();
+  
   outputChannels_ = io_.getOutputChannels();
 
   // Run the event loop indefinitely until a TerminationEvent is received
@@ -70,7 +69,9 @@ void Logic::run() {
 
     // Check if this is a termination event
     if (std::holds_alternative<TerminationEvent>(event)) {
-      getLogger()->debug("[{}] Termination event received, exiting event loop", __PRETTY_FUNCTION__);
+      getLogger()->debug("[{}] Termination event received", __PRETTY_FUNCTION__);
+      closeAllPorts(); // Close ports BEFORE breaking
+      getLogger()->debug("[{}] Exiting event loop", __PRETTY_FUNCTION__);
       break;
     }
 
@@ -323,10 +324,10 @@ void Logic::handleEvent(const GuiEvent &event) {
     // Check which parameters changed to avoid unnecessary reinitializations
     if (event.data.find("communication") != std::string::npos) {
       getLogger()->debug("[{}] Reinitializing communication ports due to parameter changes", __PRETTY_FUNCTION__);
-      // Mark as not initialized so it will be reinitialized
-      commsInitialized_ = false;
-      initializeCommunicationPorts();
-      commsInitialized_ = true; // Mark as initialized after reinitialization
+      if (!initializeCommunicationPorts()) {
+        getLogger()->error("[{}] Failed to reinitialize communication ports after parameter change", __PRETTY_FUNCTION__);
+        emit guiMessage("Failed to reinitialize communication ports after parameter change", "error");
+      }
     } else {
       getLogger()->debug("[{}] Skipping communication ports reinitialization as parameters don't affect them", __PRETTY_FUNCTION__);
     }
@@ -454,16 +455,6 @@ void Logic::writeGUIOoutputs() {
   io_.writeOutputs(outputChannels_);
 }
 
-// void Logic::blinkLED(std::string channelName)
-// {
-//     std::cout << "Blink thread started." << std::endl;
-//     while (controllerRunning_)
-//     {
-//         outputChannels_[channelName].state =
-//         !outputChannels_[channelName].state; writeOutputs();
-//         std::this_thread::sleep_for(std::chrono::milliseconds(300));
-//     }
-// }
 
 void Logic::emergencyShutdown() { io_.resetConfiguredOutputPorts(); }
 
@@ -494,6 +485,12 @@ bool Logic::initializeCommunicationPorts() {
       const std::string &commName = it.key();
       const nlohmann::json &commConfig = it.value();
 
+      // *** ADDED CHECK FOR EMPTY PORT NAME ***
+      if (commName.empty()) {
+        getLogger()->warn("[{}] Found communication setting with empty name, skipping.", __PRETTY_FUNCTION__);
+        continue;
+      }
+
       // Check if this port is marked as active in the configuration
       bool isActive = commConfig.value("active", false);
       if (!isActive) {
@@ -503,21 +500,35 @@ bool Logic::initializeCommunicationPorts() {
       
       activePortsCount++;
 
-      // Create and initialize a new communication object
-      RS232Communication comm(eventQueue_, commName, config_);
-      if (comm.initialize()) {
-        // Add to active communication ports map using move semantics
-        activeCommPorts_.emplace(commName, std::move(comm));
-        successfullyInitialized++;
-        getLogger()->debug("[{}] Communication port '{}' initialized successfully", __PRETTY_FUNCTION__, commName);
-        emit guiMessage(QString("Communication port %1 initialized successfully")
-                        .arg(QString::fromStdString(commName)),
-                    "comm_success");
+      // Try to emplace (construct in-place) the communication object
+      auto emplaceResult = activeCommPorts_.emplace(
+          std::piecewise_construct,
+          std::forward_as_tuple(commName), // Key constructor arguments
+          std::forward_as_tuple(eventQueue_, commName, config_) // Value (RS232Communication) constructor arguments
+      );
+
+      // Check if emplacement was successful (should always be true here since we clear the map)
+      if (emplaceResult.second) {
+          RS232Communication& newComm = emplaceResult.first->second; // Get reference to the emplaced object
+
+          // Now initialize the object *after* it's securely in the map
+          if (newComm.initialize()) {
+              // Initialization successful
+              successfullyInitialized++;
+              getLogger()->debug("[{}] Communication port '{}' initialized successfully", __PRETTY_FUNCTION__, commName);
+              emit guiMessage(QString("Communication port %1 initialized successfully")
+                              .arg(QString::fromStdString(commName)),
+                          "comm_success");
+          } else {
+              // Initialization failed for the emplaced object, remove it from the map
+              const std::string errorMsg = "Communication port '" + commName + "' initialization failed";
+              getLogger()->warn("[{}] {}", __PRETTY_FUNCTION__, errorMsg);
+              emit guiMessage(QString::fromStdString(errorMsg), "warning");
+              activeCommPorts_.erase(emplaceResult.first); // Erase the element that failed initialization
+          }
       } else {
-        const std::string errorMsg = "Communication port '" + commName + "' initialization failed";
-        getLogger()->warn("[{}] {}", __PRETTY_FUNCTION__, errorMsg);
-        emit guiMessage(QString::fromStdString(errorMsg), "warning");
-        // No need to clean up - object will be destroyed when it goes out of scope
+          // This case indicates the key already existed, which shouldn't happen after clearing the map.
+           getLogger()->error("[{}] Failed to emplace communication port '{}' due to existing key (unexpected!)", __PRETTY_FUNCTION__, commName);
       }
     }
 
@@ -526,12 +537,13 @@ bool Logic::initializeCommunicationPorts() {
       const std::string errorMsg = "No active communication ports configured in settings";
       getLogger()->warn("[{}] {}", __PRETTY_FUNCTION__,   errorMsg);
       emit guiMessage(QString::fromStdString(errorMsg), "warning");
-      return false;
+      // Return true if no active ports is not considered a failure
+      return true; // Or false depending on desired behavior
     }
     
     // Check if any ports were successfully initialized
-    if (activeCommPorts_.empty()) {
-      const std::string errorMsg = "Failed to initialize any communication ports. Check port settings and availability.";
+    if (activeCommPorts_.empty() && activePortsCount > 0) { // Added check for activePortsCount > 0
+      const std::string errorMsg = "Failed to initialize any active communication ports. Check port settings and availability.";
       getLogger()->error("[{}] {}", __PRETTY_FUNCTION__, errorMsg);
       emit guiMessage(QString::fromStdString(errorMsg), "error");
       return false;
@@ -540,7 +552,7 @@ bool Logic::initializeCommunicationPorts() {
     // Report partial success if some ports failed
     if (successfullyInitialized < activePortsCount) {
       const std::string warnMsg = std::to_string(successfullyInitialized) + " of " + 
-                                 std::to_string(activePortsCount) + " communication ports initialized";
+                                 std::to_string(activePortsCount) + " active communication ports initialized";
       getLogger()->warn("[{}] {}", __PRETTY_FUNCTION__, warnMsg);
       emit guiMessage(QString::fromStdString(warnMsg), "warning");
     } else {
@@ -549,13 +561,23 @@ bool Logic::initializeCommunicationPorts() {
       emit guiMessage(QString::fromStdString(successMsg), "info");
     }
     
-    return true;
+    return !activeCommPorts_.empty(); // Return true if at least one port initialized successfully
   } catch (const std::exception &e) {
     const std::string errorMsg = "Error initializing communication ports: " + std::string(e.what());
     getLogger()->error("[{}] {}", __PRETTY_FUNCTION__, errorMsg);
-    emit guiMessage(QString::fromStdString(errorMsg), "error");
+
     return false;
   }
+}
+
+void Logic::closeAllPorts() {
+    getLogger()->debug("[{}] Closing all active communication ports...", __PRETTY_FUNCTION__);
+    for (auto &pair : activeCommPorts_) {
+        getLogger()->debug("Closing port '{}' from Logic::closeAllPorts", pair.first);
+        getLogger()->flush(); // Explicitly flush logs before closing port
+        pair.second.close();
+    }
+    getLogger()->debug("[{}] Finished closing communication ports.", __PRETTY_FUNCTION__);
 }
 
 bool Logic::isCommPortActive(const std::string &portName) const {

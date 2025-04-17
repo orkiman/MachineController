@@ -1,0 +1,131 @@
+09:12:42 [info] Application starting...
+09:12:42 [debug] [int main(int, char **)] Application started
+09:12:42 [debug] [int main(int, char **)] Multimedia timer resolution set to 1ms
+09:12:42 [debug] [int main(int, char **)] EventQueue created
+09:12:42 [debug] Default communication settings ensured
+09:12:42 [debug] Default timer settings ensured
+09:12:42 [debug] [int main(int, char **)] QApplication instance creating...
+09:12:43 [debug] [int main(int, char **)] QApplication instance created.
+09:12:43 [debug] [int main(int, char **)] MainWindow instance creating...
+09:12:43 [debug] [MainWindow] Constructor started
+09:12:43 [debug] [MainWindow] Calling ui->setupUi()...
+09:12:43 [debug] [MainWindow] ui->setupUi() finished.
+09:12:43 [debug] [MainWindow] Creating SettingsWindow...
+09:12:43 [debug] Communication settings updated
+09:12:43 [debug] Communication settings updated
+09:12:43 [debug] Timer settings updated
+09:12:43 [debug] Configuration successfully saved to: config/settings.json
+09:12:43 [debug] Settings saved to configuration file
+09:12:43 [debug] [saveSettingsToConfig] Skipping ParameterChange event during initial load
+09:12:43 [debug] Communication settings updated
+09:12:43 [debug] Communication settings updated
+09:12:43 [debug] Timer settings updated
+09:12:43 [debug] Configuration successfully saved to: config/settings.json
+09:12:43 [debug] Settings saved to configuration file
+09:12:43 [debug] [saveSettingsToConfig] Skipping ParameterChange event during initial load
+09:12:43 [debug] [MainWindow] SettingsWindow created.
+09:12:43 [debug] [MainWindow] Queuing emitWindowReady()...
+09:12:43 [debug] [MainWindow] emitWindowReady() queued.
+09:12:43 [debug] [MainWindow] Constructor finished
+09:12:43 [debug] [int main(int, char **)] MainWindow instance created.
+09:12:43 [debug] Initializing PCI-7248...
+09:12:43 [debug] PCI-7248 Card registered successfully (Card ID: 0).
+09:12:43 [debug] Configured Port A (0) as output
+09:12:43 [debug] Configured Port B (1) as input
+09:12:43 [debug] Configured Port CH (4) as input
+09:12:43 [debug] Configured Port CL (3) as output
+09:12:43 [debug] --- Configured Input Channels ---
+09:12:43 [debug] Input : i8 (Port B, Pin 8)
+09:12:43 [debug] Input : i13 (Port B, Pin 13)
+09:12:43 [debug] Input : i9 (Port B, Pin 9)
+09:12:43 [debug] Input : i12 (Port B, Pin 12)
+09:12:43 [debug] Input : i10 (Port B, Pin 10)
+09:12:43 [debug] Input : i11 (Port B, Pin 11)
+09:12:43 [debug] Input : i14 (Port B, Pin 14)
+09:12:43 [debug] Input : i15 (Port B, Pin 15)
+09:12:43 [debug] Input : i20 (Port CH, Pin 20)
+09:12:43 [debug] Input : i21 (Port CH, Pin 21)
+09:12:43 [debug] Input : i22 (Port CH, Pin 22)
+09:12:43 [debug] Input : i23 (Port CH, Pin 23)
+09:12:43 [debug] --- Configured Output Channels ---
+09:12:43 [debug] Output: o0 (Port A, Pin 0)
+09:12:43 [debug] Output: o1 (Port A, Pin 1)
+09:12:43 [debug] Output: o7 (Port A, Pin 7)
+09:12:43 [debug] ---------------------------------
+09:12:43 [debug] Resetting configured output ports to OFF state.
+09:12:43 [debug] Timer capabilities - Min: 1ms, Max: 1000000ms
+09:12:43 [debug] PCI7248IO initialized successfully. High-resolution timer started with 2ms interval.
+09:12:43 [debug] [Logic::Logic(EventQueue<EventVariant> &, const Config &)] Logic initialized
+09:12:43 [debug] Polling Timer thread set to high priority.
+09:12:43 [debug] [int main(int, char **)] Showing MainWindow...
+09:12:43 [debug] [bool Logic::initTimers()] Initializing timers...
+09:12:43 [debug] [bool Logic::initTimers()] Initialized timer: timer1 with duration: 333ms
+09:12:43 [debug] [bool Logic::initTimers()] Initialized timer: timer2 with duration: 2222ms
+09:12:43 [debug] [bool Logic::initTimers()] Initialized timer: timer3 with duration: 5000ms
+09:12:43 [debug] [bool Logic::initTimers()] 3 timer(s) initialized successfully
+09:12:43 [debug] [void Logic::initialize()] Timers initialized successfully
+09:12:43 [debug] [bool Logic::initializeCommunicationPorts()] Initializing communication ports...
+09:12:43 [debug] [0x1c1aea86798] RS232Communication constructor for 'communication1'
+09:12:43 [debug] [virtual bool RS232Communication::initialize()] RS232Communication initialize() started for 'communication1'
+09:12:44 [debug] Started receive thread for port communication1
+09:12:44 [debug] [bool Logic::initializeCommunicationPorts()] Communication port 'communication1' initialized successfully
+09:12:44 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() started for 'communication1'
+09:12:44 [debug] [0x1c1aea82568] RS232Communication constructor for 'communication2'
+09:12:44 [debug] [virtual bool RS232Communication::initialize()] RS232Communication initialize() started for 'communication2'
+09:12:44 [debug] Started receive thread for port communication2
+09:12:44 [debug] [bool Logic::initializeCommunicationPorts()] Communication port 'communication2' initialized successfully
+09:12:44 [debug] [bool Logic::initializeCommunicationPorts()] Communication port 'communication3' is not active in config, skipping
+09:12:44 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() started for 'communication2'
+09:12:44 [debug] [bool Logic::initializeCommunicationPorts()] Communication port 'communication4' is not active in config, skipping
+09:12:44 [debug] [bool Logic::initializeCommunicationPorts()] 2 communication port(s) initialized successfully
+09:12:44 [debug] [void Logic::initialize()] Communication ports initialized successfully
+09:12:44 [debug] [void Logic::handleEvent(const GuiEvent &)] GUI Event] Received: keyword='GuiMessage', data='Communication settings for communication1 updated', target='info', intValue=0
+09:12:44 [debug] [void Logic::handleEvent(const GuiEvent &)] GUI Event] Received: keyword='GuiMessage', data='Communication settings for communication1 updated', target='info', intValue=0
+09:12:44 [debug] [void Logic::handleEvent(const GuiEvent &)] GUI Event] Received: keyword='GuiMessage', data='Communication settings loaded from JSON', target='info', intValue=0
+09:12:44 [debug] [int main(int, char **)] MainWindow show() called.
+09:12:44 [debug] [int main(int, char **)] Starting QApplication event loop (app.exec())...
+09:12:44 [debug] [MainWindow] emitWindowReady() called.
+09:12:44 [debug] [MainWindow] Emitting windowReady signal...
+09:12:44 [debug] SettingsWindow::onInitialLoadComplete() called.
+09:12:44 [debug] [MainWindow] windowReady signal emitted.
+09:12:44 [debug] [MainWindow] emitWindowReady() finished.
+09:12:58 [debug] Skipping config update while in refreshing mode
+09:13:01 [debug] Skipping config update while in refreshing mode
+09:13:09 [debug] [int main(int, char **)] QApplication event loop finished with result: 0
+09:13:09 [debug] Application closing
+09:13:09 [debug] Stop polling signal set.
+09:13:09 [debug] [void Logic::run()] Termination event received
+09:13:09 [debug] [void Logic::closeAllPorts()] Closing all active communication ports...
+09:13:09 [debug] Closing port 'communication1' from Logic::closeAllPorts
+09:13:09 [debug] [0x1c1aea86798] RS232Communication close() started for 'communication1'
+09:13:09 [debug] [virtual void RS232Communication::close()] Closing port communication1
+09:13:09 [debug] [virtual void RS232Communication::close()] close: Closing handle for communication1...
+09:13:09 [debug] [void RS232Communication::receiveLoop()] receiveLoop: WaitCommEvent aborted/cancelled (sync error check) for communication1
+09:13:09 [debug] [void RS232Communication::receiveLoop()] receiveLoop: Breaking after WaitCommEvent error due to stop requested.
+09:13:09 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() exited for 'communication1'
+09:13:10 [debug] Attempting to join receive thread for communication1
+09:13:10 [debug] Successfully joined receive thread for communication1
+09:13:10 [debug] [virtual void RS232Communication::close()] RS232Communication close() finished for 'communication1' Port closed successfully
+09:13:10 [debug] Closing port 'communication2' from Logic::closeAllPorts
+09:13:10 [debug] [0x1c1aea82568] RS232Communication close() started for 'communication2'
+09:13:10 [debug] [virtual void RS232Communication::close()] Closing port communication2
+09:13:10 [debug] [virtual void RS232Communication::close()] close: Closing handle for communication2...
+09:13:10 [debug] [void RS232Communication::receiveLoop()] receiveLoop: WaitCommEvent aborted/cancelled (sync error check) for communication2
+09:13:10 [debug] Attempting to join receive thread for communication2
+09:13:10 [debug] [void RS232Communication::receiveLoop()] receiveLoop: Breaking after WaitCommEvent error due to stop requested.
+09:13:10 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() exited for 'communication2'
+09:13:10 [debug] Successfully joined receive thread for communication2
+09:13:10 [debug] [virtual void RS232Communication::close()] RS232Communication close() finished for 'communication2' Port closed successfully
+09:13:10 [debug] [void Logic::closeAllPorts()] Finished closing communication ports.
+09:13:10 [debug] [void Logic::run()] Exiting event loop
+09:13:10 [debug] Logic destructor finished.
+09:13:10 [debug] [virtual RS232Communication::~RS232Communication()] RS232Communication destructor for 'communication1'
+09:13:10 [debug] [0x1c1aea86798] RS232Communication close() started for 'communication1'
+09:13:10 [debug] [virtual void RS232Communication::close()] Port communication1 already closed, skipping close operation
+09:13:10 [debug] [virtual RS232Communication::~RS232Communication()] RS232Communication destructor for 'communication2'
+09:13:10 [debug] [0x1c1aea82568] RS232Communication close() started for 'communication2'
+09:13:10 [debug] [virtual void RS232Communication::close()] Port communication2 already closed, skipping close operation
+09:13:10 [debug] Shutting down PCI7248IO...
+09:13:10 [debug] Stop polling signal set.
+09:13:10 [debug] Resetting configured output ports to OFF state.
+09:13:10 [debug] PCI-7248 Card (0) released.

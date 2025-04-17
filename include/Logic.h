@@ -99,6 +99,8 @@ private:
     
     // Control flags
     bool overrideOutputs_{false}; // Flag to control output overrides
+
+    void closeAllPorts(); // Added declaration
 };
 
 #endif // LOGIC_H

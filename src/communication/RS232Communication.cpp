@@ -8,15 +8,18 @@ RS232Communication::RS232Communication(EventQueue<EventVariant>& eventQueue, con
     : eventQueue_(&eventQueue),
       communicationName_(communicationName),
       receiving_(false),
+      stopRequested_(false), // Explicitly initialize
       hSerial_(INVALID_HANDLE_VALUE),
       config_(&config) // Initialize config_ member as pointer
 {
+    getLogger()->debug("[{}] RS232Communication constructor for '{}'", static_cast<void*>(this), communicationName_);
 }
 
 RS232Communication::RS232Communication(RS232Communication&& other) noexcept
     : eventQueue_(other.eventQueue_),
       communicationName_(std::move(other.communicationName_)),
       receiving_(other.receiving_.load()),
+      stopRequested_(other.stopRequested_.load()),
       hSerial_(other.hSerial_),
       config_(other.config_),
       port_(std::move(other.port_)),
@@ -24,6 +27,7 @@ RS232Communication::RS232Communication(RS232Communication&& other) noexcept
 {
     other.hSerial_ = INVALID_HANDLE_VALUE;
     other.receiving_ = false;
+    other.stopRequested_ = false;
 }
 
 RS232Communication& RS232Communication::operator=(RS232Communication&& other) noexcept
@@ -35,6 +39,7 @@ RS232Communication& RS232Communication::operator=(RS232Communication&& other) no
         eventQueue_ = other.eventQueue_;
         communicationName_ = std::move(other.communicationName_);
         receiving_ = other.receiving_.load();
+        stopRequested_ = other.stopRequested_.load();
         hSerial_ = other.hSerial_;
         config_ = other.config_;
         port_ = std::move(other.port_);
@@ -42,21 +47,24 @@ RS232Communication& RS232Communication::operator=(RS232Communication&& other) no
         
         other.hSerial_ = INVALID_HANDLE_VALUE;
         other.receiving_ = false;
+        other.stopRequested_ = false;
     }
     return *this;
 }
 
 RS232Communication::~RS232Communication()
 {
+    getLogger()->debug("[{}] RS232Communication destructor for '{}'", __PRETTY_FUNCTION__, communicationName_);
     close();
 }
 
 bool RS232Communication::initialize()
 {
+    getLogger()->debug("[{}] RS232Communication initialize() started for '{}'", __PRETTY_FUNCTION__, communicationName_);
     // If already initialized, close first to ensure clean state
     if (hSerial_ != INVALID_HANDLE_VALUE) {
-        getLogger()->debug("Port {} already open, closing before reinitializing", communicationName_);
-        close();
+        getLogger()->warn("[{}] Port {} already open in initialize(), but close() is not called here by design. This should not happen.", __PRETTY_FUNCTION__, communicationName_);
+
     }
 
     // Read configuration values from JSON.
@@ -373,135 +381,300 @@ std::string RS232Communication::receive()
 
 void RS232Communication::close()
 {
+    getLogger()->debug("[{}] RS232Communication close() started for '{}'", static_cast<void*>(this), communicationName_);
     // Use a mutex to ensure thread safety during close operations
     static std::mutex closeMutex;
     std::lock_guard<std::mutex> lock(closeMutex);
     
+    // --- Set stop flag early ---
+    stopRequested_ = true;
+    // ---
+
     // Check if already closed
     if (hSerial_ == INVALID_HANDLE_VALUE && !receiving_ && !receiveThread_.joinable()) {
-        getLogger()->debug("Port {} already closed, skipping close operation", communicationName_);
+        getLogger()->debug("[{}] Port {} already closed, skipping close operation", __PRETTY_FUNCTION__, communicationName_);
         return;
     }
     
-    getLogger()->debug("Closing port {}", communicationName_);
+    getLogger()->debug("[{}] Closing port {}", __PRETTY_FUNCTION__, communicationName_);
     
     // Signal the receive thread to stop
     receiving_ = false;
     
-    // Cancel any pending I/O operations to unblock the receive thread
-    if (hSerial_ != INVALID_HANDLE_VALUE)
-    {
-        // Cancel any pending I/O operations
-        CancelIo(hSerial_);
-        
-        // Add a small delay to allow the thread to react to cancellation
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    // Attempt to cancel pending I/O operations
+    if (hSerial_ != INVALID_HANDLE_VALUE) {
+        if (!CancelIoEx(hSerial_, nullptr)) { // Cancel all I/O from this thread for the handle
+            DWORD error = GetLastError();
+            // ERROR_NOT_FOUND means there were no pending operations to cancel, which is fine.
+            if (error != ERROR_NOT_FOUND) {
+                getLogger()->error("[{}] Error cancelling I/O operations for {}: {}", __PRETTY_FUNCTION__, communicationName_, error);
+            }
+        }
     }
-    
+
+    // Close the handle *before* joining the thread.
+    // Closing the handle should also cause blocking operations on it to fail/return.
+    if (hSerial_ != INVALID_HANDLE_VALUE) {
+        getLogger()->debug("[{}] close: Closing handle for {}...", __PRETTY_FUNCTION__, communicationName_);
+        CloseHandle(hSerial_);
+        hSerial_ = INVALID_HANDLE_VALUE; // Mark as closed
+    }
+
     // Now it's safe to join the thread
     if (receiveThread_.joinable())
     {
+        getLogger()->debug("Attempting to join receive thread for {}", communicationName_);
+        getLogger()->flush(); // Explicitly flush logs before joining thread
         try {
             receiveThread_.join();
+            getLogger()->debug("Successfully joined receive thread for {}", communicationName_);
         } catch (const std::exception& e) {
             getLogger()->error("Exception while joining receive thread for {}: {}", communicationName_, e.what());
         }
     }
 
-    // Close the handle after the thread has been joined
-    if (hSerial_ != INVALID_HANDLE_VALUE)
-    {
-        CloseHandle(hSerial_);
-        hSerial_ = INVALID_HANDLE_VALUE;
-    }
-    
     // Clear the receive buffer
     receiveBuffer_.clear();
     
-    getLogger()->debug("Port {} closed successfully", communicationName_);
+    getLogger()->debug("[{}] RS232Communication close() finished for '{}' Port closed successfully", __PRETTY_FUNCTION__, communicationName_);
 }
 
 void RS232Communication::receiveLoop()
 {
-    // Create an overlapped structure for asynchronous event notification.
+    getLogger()->debug("[{}] RS232Communication receiveLoop() started for '{}'", __PRETTY_FUNCTION__, communicationName_);
+
     OVERLAPPED overlapped = {0};
     overlapped.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
-    if (overlapped.hEvent == NULL)
-    {
-        getLogger()->error("Failed to create overlapped event for {}", communicationName_);
+    if (overlapped.hEvent == NULL) {
+        getLogger()->error("[{}] Failed to create overlapped event for {}: {}", __PRETTY_FUNCTION__, communicationName_, GetLastError());
         return;
     }
 
-    getLogger()->debug("Started receive loop for {}", communicationName_);
-    DWORD dwEventMask = 0;
-    while (receiving_)
-    {
-        // Check if handle is valid before proceeding
-        if (hSerial_ == INVALID_HANDLE_VALUE) {
-            getLogger()->error("Serial handle invalid in receive loop for {}", communicationName_);
-            break;
-        }
-
-        // Reset the overlapped event.
-        ResetEvent(overlapped.hEvent);
-
-        // Initiate waiting for a communication event (e.g., EV_RXCHAR) in overlapped mode.
-        if (!WaitCommEvent(hSerial_, &dwEventMask, &overlapped))
-        {
-            DWORD error = GetLastError();
-            if (error != ERROR_IO_PENDING)
-            {
-                getLogger()->error("WaitCommEvent failed for {} with error {}", communicationName_, error);
-                break;
-            }
-        }
-
-        // Wait for the event to be signaled with a timeout to allow checking receiving_ flag
-        DWORD waitResult = WaitForSingleObject(overlapped.hEvent, 100); // 100ms timeout
-        
-        // Check if we should exit the loop
-        if (!receiving_) {
-            getLogger()->debug("Receive loop for {} terminating due to receiving_ flag", communicationName_);
-            break;
-        }
-
-        // Process the result based on the wait outcome
-        if (waitResult == WAIT_OBJECT_0) {
-            // Event was signaled, get the result
-            DWORD bytesTransferred;
-            if (!GetOverlappedResult(hSerial_, &overlapped, &bytesTransferred, FALSE))
-            {
-                DWORD error = GetLastError();
-                if (error != ERROR_OPERATION_ABORTED) { // Ignore aborted operations (normal during shutdown)
-                    getLogger()->error("GetOverlappedResult failed for {} with error {}", communicationName_, error);
-                }
-                continue;
-            }
-
-            if (dwEventMask & EV_RXCHAR)
-            {
-                std::string msg = receive();
-                if (!msg.empty())
-                {
-                    // Create a CommEvent with communication name and message.
-                    CommEvent event;
-                    event.communicationName = communicationName_; // Communication channel identifier
-                    event.message = msg;
-                    eventQueue_->push(event); // eventQueue_ should be thread-safe.
-                }
-            }
-        }
-        else if (waitResult == WAIT_TIMEOUT) {
-            // Timeout occurred, just continue the loop
-            continue;
-        }
-        else {
-            // Some other error occurred
-            getLogger()->error("WaitForSingleObject failed for {} with result {}", communicationName_, waitResult);
-            break;
-        }
+    // Set the event mask to wait for data arrival (EV_RXCHAR)
+    if (!SetCommMask(hSerial_, EV_RXCHAR)) {
+        getLogger()->error("[{}] Failed to set comm mask for {}: {}", __PRETTY_FUNCTION__, communicationName_, GetLastError());
+        CloseHandle(overlapped.hEvent);
+        return;
     }
 
+    DWORD dwCommEvent;
+    DWORD dwRead;
+    char buffer[1024]; // Local buffer for reading
+
+    // Use stopRequested_ as main loop condition
+    while (!stopRequested_) {
+        // Wait for a communication event (e.g., data arrival)
+        if (!WaitCommEvent(hSerial_, &dwCommEvent, &overlapped)) {
+            DWORD error = GetLastError();
+            if (error == ERROR_IO_PENDING) {
+                // Use non-blocking GetOverlappedResult and manual wait
+                DWORD bytesTransferred = 0;
+                bool operationCompleted = false;
+
+                // Check initial status without waiting
+                if (GetOverlappedResult(hSerial_, &overlapped, &bytesTransferred, FALSE)) {
+                     operationCompleted = true; // Completed synchronously or already finished
+                } else {
+                    error = GetLastError();
+                    if (error == ERROR_IO_INCOMPLETE) {
+                        // Operation is pending, wait manually
+                        while (!stopRequested_) {
+                            DWORD waitResult = WaitForSingleObject(overlapped.hEvent, 100); // 100ms timeout
+                             if (waitResult == WAIT_OBJECT_0) {
+                                 operationCompleted = true;
+                                 break; // Event signaled, operation finished or cancelled
+                            } else if (waitResult == WAIT_TIMEOUT) {
+                                 continue;
+                            } else { // WAIT_FAILED or other error
+                                 error = GetLastError();
+                                 break; // Exit wait loop on error
+                            }
+                        }
+
+                        // If we finished waiting (or were stopped), check final status
+                        if (operationCompleted || stopRequested_) {
+                             // Call GetOverlappedResult again non-blockingly to get final status & error code
+                            if (!GetOverlappedResult(hSerial_, &overlapped, &bytesTransferred, FALSE)) {
+                                 error = GetLastError(); // Get the actual error (e.g., ABORTED)
+                                 // Error occurred during overlapped operation
+                                if (error == ERROR_OPERATION_ABORTED || error == ERROR_INVALID_HANDLE) {
+                                     getLogger()->debug("[{}] receiveLoop: WaitCommEvent aborted/cancelled for {}", __PRETTY_FUNCTION__, communicationName_);
+                                } else {
+                                     getLogger()->error("[{}] Error in final GetOverlappedResult for WaitCommEvent on {}: {}", __PRETTY_FUNCTION__, communicationName_, error);
+                                }
+                            } else {
+                                  // Operation completed successfully after wait
+                            }
+                        }
+                    } else { // GetOverlappedResult failed for reason other than PENDING
+                         if (error == ERROR_OPERATION_ABORTED || error == ERROR_INVALID_HANDLE) {
+                             getLogger()->debug("[{}] receiveLoop: WaitCommEvent aborted/cancelled (initial check) for {}", __PRETTY_FUNCTION__, communicationName_);
+                         } else {
+                             getLogger()->error("[{}] Error in initial GetOverlappedResult for WaitCommEvent on {}: {}", __PRETTY_FUNCTION__, communicationName_, error);
+                         }
+                    }
+                }
+
+                // Check stop flag after attempting to get result
+                if (stopRequested_) {
+                    getLogger()->debug("[{}] receiveLoop: Breaking after WaitCommEvent processing due to stop requested.", __PRETTY_FUNCTION__);
+                    break;
+                }
+
+                // If the operation failed with an error code other than ABORTED/INVALID_HANDLE,
+                // reset the event and continue the outer loop.
+                DWORD finalError = GetLastError(); // Check error status *after* potential wait
+                 if (!operationCompleted && finalError != ERROR_OPERATION_ABORTED && finalError != ERROR_INVALID_HANDLE && finalError != ERROR_IO_INCOMPLETE) {
+                     ResetEvent(overlapped.hEvent);
+                     continue;
+                 }
+                 // Reset event if operation completed or aborted/invalid handle
+                 ResetEvent(overlapped.hEvent);
+
+            } else {
+                 // Error in WaitCommEvent (not pending)
+                 if (error == ERROR_OPERATION_ABORTED || error == ERROR_INVALID_HANDLE) {
+                     getLogger()->debug("[{}] receiveLoop: WaitCommEvent aborted/cancelled (sync error check) for {}", __PRETTY_FUNCTION__, communicationName_);
+                 } else {
+                     getLogger()->error("[{}] Error in WaitCommEvent for {}: {}", __PRETTY_FUNCTION__, communicationName_, error);
+                 }
+                  // Check stop flag even on error/abort
+                  if(stopRequested_) {
+                     getLogger()->debug("[{}] receiveLoop: Breaking after WaitCommEvent error due to stop requested.", __PRETTY_FUNCTION__);
+                     break;
+                  }
+                 std::this_thread::sleep_for(std::chrono::milliseconds(10)); // Avoid busy-waiting on error
+                 ResetEvent(overlapped.hEvent); // Reset event before continuing
+                 continue;
+             }
+        } else {
+              // WaitCommEvent completed synchronously
+              // Check stop flag after synchronous completion
+              if(stopRequested_) {
+                  getLogger()->debug("[{}] receiveLoop: Breaking after synchronous WaitCommEvent due to stop requested.", __PRETTY_FUNCTION__);
+                  break;
+              }
+         }
+
+        // If data has arrived (EV_RXCHAR event bit is set in the result of WaitCommEvent)
+        if (dwCommEvent & EV_RXCHAR) {
+            do {
+                  // Check stop flag before reading
+                  if (stopRequested_) {
+                     getLogger()->debug("[{}] receiveLoop: Breaking before ReadFile due to stop requested.", __PRETTY_FUNCTION__);
+                     break;
+                  }
+
+                 // Reset overlapped struct for ReadFile
+                 ResetEvent(overlapped.hEvent);
+                 dwRead = 0;
+
+                // Read the data
+                 if (!ReadFile(hSerial_, buffer, sizeof(buffer), &dwRead, &overlapped)) {
+                     DWORD error = GetLastError();
+                     if (error == ERROR_IO_PENDING) {
+                         // Use non-blocking GetOverlappedResult and manual wait
+                         DWORD bytesRead = 0;
+                         bool operationCompleted = false;
+
+                         // Check initial status without waiting
+                         if (GetOverlappedResult(hSerial_, &overlapped, &bytesRead, FALSE)) {
+                             operationCompleted = true;
+                             dwRead = bytesRead;
+                         } else {
+                             error = GetLastError();
+                             if (error == ERROR_IO_INCOMPLETE) {
+                                 // Operation is pending, wait manually
+                                 while (!stopRequested_) {
+                                     DWORD waitResult = WaitForSingleObject(overlapped.hEvent, 100); // 100ms timeout
+                                     if (waitResult == WAIT_OBJECT_0) {
+                                         operationCompleted = true;
+                                         break; // Event signaled
+                                     } else if (waitResult == WAIT_TIMEOUT) {
+                                         continue;
+                                     } else { // WAIT_FAILED or other error
+                                         error = GetLastError();
+                                         break; // Exit wait loop on error
+                                     }
+                                 }
+
+                                 // If we finished waiting (or were stopped), check final status
+                                 if (operationCompleted || stopRequested_) {
+                                      // Call GetOverlappedResult again non-blockingly to get final status & error code
+                                     if (!GetOverlappedResult(hSerial_, &overlapped, &bytesRead, FALSE)) {
+                                         error = GetLastError(); // Get the actual error (e.g., ABORTED)
+                                         if (error == ERROR_OPERATION_ABORTED || error == ERROR_INVALID_HANDLE) {
+                                             getLogger()->debug("[{}] receiveLoop: ReadFile aborted/cancelled for {}", __PRETTY_FUNCTION__, communicationName_);
+                                         } else {
+                                             getLogger()->error("[{}] Error in final GetOverlappedResult (ReadFile) for {}: {}", __PRETTY_FUNCTION__, communicationName_, error);
+                                         }
+                                         dwRead = 0; // Ensure dwRead is 0 on error/abort
+                                     } else {
+                                         dwRead = bytesRead; // Success, update dwRead
+                                     }
+                                 }
+                             } else { // GetOverlappedResult failed for reason other than PENDING
+                                 if (error == ERROR_OPERATION_ABORTED || error == ERROR_INVALID_HANDLE) {
+                                    getLogger()->debug("[{}] receiveLoop: ReadFile aborted/cancelled (initial check) for {}", __PRETTY_FUNCTION__, communicationName_);
+                                 } else {
+                                     getLogger()->error("[{}] Error in initial GetOverlappedResult (ReadFile) for {}: {}", __PRETTY_FUNCTION__, communicationName_, error);
+                                 }
+                                 dwRead = 0; // Ensure dwRead is 0 on error
+                             }
+                         }
+
+                          // Check stop flag after ReadFile's overlapped result processing
+                          if (stopRequested_) {
+                             getLogger()->debug("[{}] receiveLoop: Breaking after GetOverlappedResult(ReadFile) processing due to stop requested.", __PRETTY_FUNCTION__);
+                             break;
+                          }
+
+                     } else {
+                         // Error in ReadFile (not pending)
+                          if (error == ERROR_OPERATION_ABORTED || error == ERROR_INVALID_HANDLE) {
+                             getLogger()->debug("[{}] receiveLoop: ReadFile aborted/cancelled (sync error check) for {}", __PRETTY_FUNCTION__, communicationName_);
+                          } else {
+                             getLogger()->error("[{}] Error in ReadFile for {}: {}", __PRETTY_FUNCTION__, communicationName_, error);
+                          }
+                         dwRead = 0; // Ensure dwRead is 0 on error
+                          // Check stop flag after non-pending ReadFile error
+                          if (stopRequested_) {
+                             getLogger()->debug("[{}] receiveLoop: Breaking after ReadFile error due to stop requested.", __PRETTY_FUNCTION__);
+                             break;
+                          }
+                     }
+                 }
+
+                 // Check stop flag after ReadFile attempt completes (sync or async)
+                 if (stopRequested_) {
+                    getLogger()->debug("[{}] receiveLoop: Breaking after ReadFile attempt due to stop requested.", __PRETTY_FUNCTION__);
+                    break;
+                 }
+
+                // If data was read, process it
+                if (dwRead > 0) {
+                    std::lock_guard<std::mutex> lock{bufferMutex_}; // Use uniform initialization
+                    receiveBuffer_.insert(receiveBuffer_.end(), buffer, buffer + dwRead);
+                    // Notify Logic (or whichever component) that data is available
+                    eventQueue_->push(CommEvent{communicationName_, "data_received"});
+                }
+            } while (dwRead > 0 && !stopRequested_); // Continue reading if more data might be available and not stopped
+
+             // Check stop flag after inner read loop finishes
+             if (stopRequested_) {
+                 getLogger()->debug("[{}] receiveLoop: Breaking after inner read loop due to stop requested.", __PRETTY_FUNCTION__);
+                 break;
+             }
+         }
+         // Reset the event after processing EV_RXCHAR or other events
+         ResetEvent(overlapped.hEvent);
+
+          // Check stop flag at end of outer loop iteration
+          if (stopRequested_) {
+             getLogger()->debug("[{}] receiveLoop: Breaking at end of outer loop due to stop requested.", __PRETTY_FUNCTION__);
+             break;
+          }
+     }
     CloseHandle(overlapped.hEvent);
-    getLogger()->debug("Exited receive loop for {}", communicationName_);
+    getLogger()->debug("[{}] RS232Communication receiveLoop() exited for '{}'", __PRETTY_FUNCTION__, communicationName_);
 }

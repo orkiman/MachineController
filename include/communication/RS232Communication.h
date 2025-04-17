@@ -56,8 +56,11 @@ private:
     void receiveLoop();
     EventQueue<EventVariant>* eventQueue_;
     std::string receiveBuffer_; // Buffer to accumulate received data
+    std::mutex bufferMutex_; // Mutex to protect receiveBuffer_
 
     const Config* config_;
+
+    std::atomic<bool> stopRequested_{false}; // Added stop flag
 
     bool validateSettings();
 

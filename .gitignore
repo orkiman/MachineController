@@ -8,5 +8,4 @@ build/
 *.a
 *.lib
 *.pdb
-logs/
 .cache/

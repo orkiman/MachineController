@@ -10,10 +10,16 @@ MainWindow::MainWindow(QWidget *parent, EventQueue<EventVariant>& eventQueue, co
       eventQueue_(eventQueue),
       config_(&config)
 {
+    getLogger()->debug("[MainWindow] Constructor started");
+
+    getLogger()->debug("[MainWindow] Calling ui->setupUi()...");
     ui->setupUi(this);
+    getLogger()->debug("[MainWindow] ui->setupUi() finished.");
 
     // Create the settings window once and pass the Config object
+    getLogger()->debug("[MainWindow] Creating SettingsWindow...");
     settingsWindow_ = new SettingsWindow(this, eventQueue_, config);
+    getLogger()->debug("[MainWindow] SettingsWindow created.");
 
     // no need to manuly connect signals to slots it's done automatically
     // Connect signals to slots using the ui pointer
@@ -23,7 +29,11 @@ MainWindow::MainWindow(QWidget *parent, EventQueue<EventVariant>& eventQueue, co
     // connect(ui->clearMessageAreaButton, &QPushButton::clicked, this, &MainWindow::on_clearMessageAreaButton_clicked);
     
     // Use Qt::QueuedConnection to ensure this runs after the event loop starts
+    getLogger()->debug("[MainWindow] Queuing emitWindowReady()...");
     QMetaObject::invokeMethod(this, "emitWindowReady", Qt::QueuedConnection);
+    getLogger()->debug("[MainWindow] emitWindowReady() queued.");
+
+    getLogger()->debug("[MainWindow] Constructor finished");
 }
 
 MainWindow::~MainWindow() {
@@ -90,5 +100,9 @@ void MainWindow::addMessage(const QString& message, const QString& identifier) {
 void MainWindow::emitWindowReady() {
     // This method is called after the window is fully initialized and shown
     // Emit the signal to notify other components that the window is ready
+    getLogger()->debug("[MainWindow] emitWindowReady() called.");
+    getLogger()->debug("[MainWindow] Emitting windowReady signal...");
     emit windowReady();
+    getLogger()->debug("[MainWindow] windowReady signal emitted.");
+    getLogger()->debug("[MainWindow] emitWindowReady() finished.");
 }

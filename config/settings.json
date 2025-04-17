@@ -7,14 +7,14 @@
       "description": "reader1",
       "etx": 3,
       "parity": "N",
-      "port": "COM1",
+      "port": "COM3",
       "stopBits": 1.0,
       "stx": 2,
       "trigger": "t",
       "type": "RS232"
     },
     "communication2": {
-      "active": false,
+      "active": true,
       "baudRate": 115200,
       "dataBits": 8,
       "description": "reader2",
@@ -27,7 +27,7 @@
       "type": "RS232"
     },
     "communication3": {
-      "active": true,
+      "active": false,
       "baudRate": 115200,
       "dataBits": 8,
       "description": "reader3",

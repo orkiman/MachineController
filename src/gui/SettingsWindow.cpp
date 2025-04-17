@@ -16,7 +16,8 @@ SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQ
       ui(new Ui::SettingsWindow),
       eventQueue_(eventQueue),
       config_(&config),
-      changedWidgets_()
+      changedWidgets_(),
+      initialLoadComplete_(false)
 {
     ui->setupUi(this);
     
@@ -1232,11 +1233,17 @@ bool SettingsWindow::saveSettingsToConfig() {
         if (mutableConfig->saveToFile()) {
             getLogger()->debug("Settings saved to configuration file");
             
-            // Send a ParameterChange event to notify Logic to initialize communication ports
-            GuiEvent paramEvent;
-            paramEvent.keyword = "ParameterChange";
-            paramEvent.data = "communication"; // Specify which settings were changed
-            eventQueue_.push(paramEvent);
+            // Only send ParameterChange event if initial load is complete
+            if (initialLoadComplete_) {
+                getLogger()->debug("[saveSettingsToConfig] Sending ParameterChange event for communication");
+                // Send a ParameterChange event to notify Logic to reinitialize affected components
+                GuiEvent paramEvent;
+                paramEvent.keyword = "ParameterChange";
+                paramEvent.data = "communication"; // Specify which settings were changed
+                eventQueue_.push(paramEvent);
+            } else {
+                 getLogger()->debug("[saveSettingsToConfig] Skipping ParameterChange event during initial load");
+            }
             
             return true;
         } else {
@@ -1790,4 +1797,10 @@ void SettingsWindow::saveCurrentCommunicationSettings() {
         // We don't want to trigger a save event in this case
         getLogger()->debug("Skipping config update while in refreshing mode");
     }
+}
+
+void SettingsWindow::onInitialLoadComplete()
+{
+    getLogger()->debug("SettingsWindow::onInitialLoadComplete() called.");
+    initialLoadComplete_ = true;
 }

@@ -147,6 +147,13 @@ bool PCI7248IO::initialize() {
         } else {
             getLogger()->debug("Polling Timer thread set to high priority.");
         }
+        // // Set thread affinity to CPU 0
+        // DWORD_PTR affinityMask = 1; // CPU 0
+        // if (SetThreadAffinityMask(threadHandle, affinityMask) == 0) {
+        //     getLogger()->warn("Failed to set timer thread affinity. Error: {}", GetLastError());
+        // } else {
+        //     getLogger()->debug("Polling Timer thread affinity set to CPU 0.");
+        // }
         LARGE_INTEGER dueTime;
         dueTime.QuadPart = -20000LL; // 2ms in 100ns units (negative for relative time)
 
@@ -240,10 +247,8 @@ void PCI7248IO::logConfiguredChannels() {
     }
      getLogger()->debug("---------------------------------");
 }
-
-
-// Timer callback worker function
 void PCI7248IO::pollingIteration() {
+    auto iterStart = std::chrono::steady_clock::now();
     const auto now = std::chrono::steady_clock::now();
     
     // Read inputs and detect changes.

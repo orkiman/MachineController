@@ -1370,18 +1370,6 @@ void SettingsWindow::on_communicationSendPushButton_clicked()
     getLogger()->debug("Sent message to {}: {}", currentCommunicationName_, message.toStdString());
 }
 
-// These methods are kept for backward compatibility with the UI file connections
-// They simply forward to the generic handler
-void SettingsWindow::on_communication1SendPushButton_clicked()
-{
-    on_communicationSendPushButton_clicked();
-}
-
-void SettingsWindow::on_communication2SendPushButton_clicked()
-{
-    on_communicationSendPushButton_clicked();
-}
-
 void SettingsWindow::updateCommunicationTypeVisibility(int index) {
     // Get the stacked widget to determine which communication is currently visible
     QStackedWidget* commStack = findChild<QStackedWidget*>("communicationStackedWidget");
@@ -1451,21 +1439,7 @@ void SettingsWindow::on_communicationActiveCheckBox_stateChanged(int state) {
     
     // Enable/disable all groups based on active state
     if (rs232Group) rs232Group->setEnabled(isActive);
-    if (tcpipGroup) tcpipGroup->setEnabled(isActive);
-}
-
-// These methods are kept for backward compatibility with the UI file connections
-// They simply forward to the generic handler
-void SettingsWindow::on_communication1ActiveCheckBox_stateChanged(int state) {
-    on_communicationActiveCheckBox_stateChanged(state);
-}
-
-void SettingsWindow::on_communication2ActiveCheckBox_stateChanged(int state) {
-    on_communicationActiveCheckBox_stateChanged(state);
-}
-
-void SettingsWindow::on_communication3ActiveCheckBox_stateChanged(int state) {
-    on_communicationActiveCheckBox_stateChanged(state);
+    if (tcpipGroup) rs232Group->setEnabled(isActive);
 }
 
 void SettingsWindow::onCommunicationSelectorChanged(int index) {

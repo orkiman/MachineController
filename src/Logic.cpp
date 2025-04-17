@@ -359,9 +359,9 @@ void Logic::handleEvent(const GuiEvent &event) {
       } else {
         getLogger()->debug("[{}] Message sent to {}: {}", __PRETTY_FUNCTION__, event.target, event.data);
         // Store the sent message in our communication data
-        communicationNewInputData_[event.target + "_sent"] = event.data;
-        commUpdated_ = true;
-        runLogicCycle = true;
+        // communicationNewInputData_[event.target + "_sent"] = event.data;
+        // commUpdated_ = true;
+        // runLogicCycle = true;
       }
     } else {
       getLogger()->error("[{}] Communication port {} not found or not active", __PRETTY_FUNCTION__, event.target);

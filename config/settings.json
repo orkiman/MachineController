@@ -2,15 +2,15 @@
   "communication": {
     "communication1": {
       "active": true,
-      "baudRate": 115200,
-      "dataBits": 7,
+      "baudRate": 9600,
+      "dataBits": 8,
       "description": "reader1",
       "etx": 3,
       "parity": "N",
       "port": "COM3",
       "stopBits": 1.0,
       "stx": 2,
-      "trigger": "t",
+      "trigger": "bb3",
       "type": "RS232"
     },
     "communication2": {

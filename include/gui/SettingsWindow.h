@@ -57,13 +57,7 @@ private slots:
     
     // Communication related slots
     void on_communicationActiveCheckBox_stateChanged(int state);
-    void on_communication1ActiveCheckBox_stateChanged(int state);
-    void on_communication2ActiveCheckBox_stateChanged(int state);
-    void on_communication3ActiveCheckBox_stateChanged(int state);
-    
     void on_communicationSendPushButton_clicked();
-    void on_communication1SendPushButton_clicked();
-    void on_communication2SendPushButton_clicked();
     
     void on_refreshButton_clicked();
     

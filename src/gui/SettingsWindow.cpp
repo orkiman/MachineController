@@ -94,21 +94,11 @@ SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQ
         }
         
         // Connect the active checkbox to our handler
-        QCheckBox* activeCheckBox = commPage->findChild<QCheckBox*>("communicationActiveCheckBox");
-        if (activeCheckBox) {
-            connect(activeCheckBox, &QCheckBox::stateChanged,
-                    this, &SettingsWindow::on_communicationActiveCheckBox_stateChanged);
-        }
+        // (Removed manual connection for communicationActiveCheckBox; handled by Qt auto-connect)
     }
     
     // Connect send button slots
-    QWidget* currentPage = commStack->currentWidget();
-    if (currentPage) {
-        QPushButton* sendButton = currentPage->findChild<QPushButton*>("communicationSendPushButton");
-        if (sendButton) {
-            connect(sendButton, &QPushButton::clicked, this, &SettingsWindow::on_communicationSendPushButton_clicked);
-        }
-    }
+    // (Removed manual connection for communicationSendPushButton; handled by Qt auto-connect)
 }
 
 SettingsWindow::~SettingsWindow() {

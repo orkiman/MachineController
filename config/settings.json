@@ -10,7 +10,7 @@
       "port": "COM3",
       "stopBits": 1.0,
       "stx": 2,
-      "trigger": "bb3",
+      "trigger": "123",
       "type": "RS232"
     },
     "communication2": {

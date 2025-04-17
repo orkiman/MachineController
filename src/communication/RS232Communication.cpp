@@ -110,7 +110,7 @@ bool RS232Communication::initialize()
                            0, // exclusive access
                            NULL,
                            OPEN_EXISTING,
-                           0,
+                           FILE_FLAG_OVERLAPPED,
                            NULL);
     if (hSerial_ == INVALID_HANDLE_VALUE)
     {
@@ -129,6 +129,16 @@ bool RS232Communication::initialize()
 
     dcbSerialParams.BaudRate = baudRate_;
     dcbSerialParams.ByteSize = dataBits_; // Use configured data bits.
+
+    // Explicitly disable hardware flow control
+    dcbSerialParams.fOutxCtsFlow = FALSE;
+    dcbSerialParams.fRtsControl = RTS_CONTROL_ENABLE;
+    dcbSerialParams.fOutxDsrFlow = FALSE;
+    dcbSerialParams.fDtrControl = DTR_CONTROL_ENABLE;
+
+    // Explicitly disable software flow control (XON/XOFF)
+    dcbSerialParams.fInX = FALSE;
+    dcbSerialParams.fOutX = FALSE;
 
     // Convert stopBits_ to the proper constant.
     if (stopBits_ == 1)
@@ -158,6 +168,8 @@ bool RS232Communication::initialize()
         std::cerr << "Error setting serial state." << std::endl;
         return false;
     }
+
+
 
     // Set timeouts.
     COMMTIMEOUTS timeouts = {0};
@@ -279,14 +291,54 @@ char RS232Communication::parseCharSetting(const nlohmann::json &settings, const 
 
 bool RS232Communication::send(const std::string &message)
 {
-    if (hSerial_ == INVALID_HANDLE_VALUE)
-        return false;
-    DWORD bytesWritten;
-    if (!WriteFile(hSerial_, message.c_str(), static_cast<DWORD>(message.size()), &bytesWritten, NULL))
-    {
-        std::cerr << "Error writing to serial port." << std::endl;
+    if (hSerial_ == INVALID_HANDLE_VALUE) {
+        getLogger()->error("[send] Invalid serial handle for port {}", port_);
         return false;
     }
+
+    OVERLAPPED overlapped = {0};
+    overlapped.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+    if (!overlapped.hEvent) {
+        getLogger()->error("[send] Failed to create overlapped event for port {}", port_);
+        return false;
+    }
+
+    DWORD bytesWritten = 0;
+    BOOL writeResult = WriteFile(hSerial_, message.c_str(), static_cast<DWORD>(message.size()), &bytesWritten, &overlapped);
+    DWORD lastError = GetLastError();
+    if (!writeResult && lastError == ERROR_IO_PENDING) {
+        DWORD waitRes = WaitForSingleObject(overlapped.hEvent, 500);
+        if (waitRes == WAIT_OBJECT_0) {
+            if (!GetOverlappedResult(hSerial_, &overlapped, &bytesWritten, FALSE)) {
+                DWORD err = GetLastError();
+                getLogger()->error("[send] Overlapped write failed on port {}: {}", port_, err);
+                CloseHandle(overlapped.hEvent);
+                return false;
+            }
+        } else if (waitRes == WAIT_TIMEOUT) {
+            getLogger()->error("[send] WriteFile timed out after 500 ms on port {}", port_);
+            CancelIo(hSerial_);
+            CloseHandle(overlapped.hEvent);
+            return false;
+        } else {
+            DWORD err = GetLastError();
+            getLogger()->error("[send] WaitForSingleObject failed on port {}: {}", port_, err);
+            CloseHandle(overlapped.hEvent);
+            return false;
+        }
+    } else if (!writeResult) {
+        getLogger()->error("[send] WriteFile failed on port {}: {}", port_, lastError);
+        CloseHandle(overlapped.hEvent);
+        return false;
+    }
+
+    if (!FlushFileBuffers(hSerial_)) {
+        DWORD err = GetLastError();
+        getLogger()->error("[send] Error flushing serial port buffers for {}: {}", port_, err);
+        CloseHandle(overlapped.hEvent);
+        return false;
+    }
+    CloseHandle(overlapped.hEvent);
     return bytesWritten == message.size();
 }
 

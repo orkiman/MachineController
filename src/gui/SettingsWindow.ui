@@ -273,23 +273,51 @@ QDialog[overrideOutputs=&quot;true&quot;] {
             </widget>
            </item>
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_6">
+            <layout class="QVBoxLayout" name="verticalLayout_communicationExtras">
              <item>
-              <widget class="QLabel" name="label_15">
-               <property name="text">
-                <string>Trigger:</string>
-               </property>
-              </widget>
+              <layout class="QHBoxLayout" name="horizontalLayout_offset">
+               <item>
+                <widget class="QLabel" name="offsetLabel">
+                 <property name="text">
+                  <string>Offset:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QSpinBox" name="offsetSpinBox">
+                 <property name="minimum">
+                  <number>0</number>
+                 </property>
+                 <property name="maximum">
+                  <number>1024</number>
+                 </property>
+                 <property name="value">
+                  <number>0</number>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </item>
              <item>
-              <widget class="QLineEdit" name="communicationTriggerLineEdit"/>
-             </item>
-             <item>
-              <widget class="QPushButton" name="communicationSendPushButton">
-               <property name="text">
-                <string>Send</string>
-               </property>
-              </widget>
+              <layout class="QHBoxLayout" name="horizontalLayout_trigger">
+               <item>
+                <widget class="QLabel" name="label_15">
+                 <property name="text">
+                  <string>Trigger:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="communicationTriggerLineEdit"/>
+               </item>
+               <item>
+                <widget class="QPushButton" name="communicationSendPushButton">
+                 <property name="text">
+                  <string>Send</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </item>
             </layout>
            </item>

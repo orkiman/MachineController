@@ -1603,6 +1603,13 @@ void SettingsWindow::onCommunicationSelectorChanged(int index) {
                 if (timeoutSpinBox && tcpip.contains("timeout_ms")) {
                     timeoutSpinBox->setValue(tcpip["timeout_ms"].get<int>());
                 }
+                
+            }
+            
+            // Update the offset field
+            QSpinBox* offsetSpinBox = currentPage->findChild<QSpinBox*>("offsetSpinBox");
+            if (offsetSpinBox && commData.contains("offset")) {
+                offsetSpinBox->setValue(commData["offset"].get<int>());
             }
         }
         
@@ -1737,6 +1744,12 @@ void SettingsWindow::saveCurrentCommunicationSettings() {
         }
         
         commSettings["tcpip"] = tcpipSettings;
+    }
+
+    // Save offset (top-level, for all types)
+    QSpinBox* offsetSpinBox = currentPage->findChild<QSpinBox*>("offsetSpinBox");
+    if (offsetSpinBox) {
+        commSettings["offset"] = offsetSpinBox->value();
     }
     
     // Update the settings in the config only if we're not in refreshing mode

@@ -6,6 +6,7 @@
       "dataBits": 8,
       "description": "reader1",
       "etx": 3,
+      "offset": 1,
       "parity": "N",
       "port": "COM3",
       "stopBits": 1.0,
@@ -19,6 +20,7 @@
       "dataBits": 8,
       "description": "reader2",
       "etx": 3,
+      "offset": 2,
       "parity": "N",
       "port": "COM1",
       "stopBits": 1.0,
@@ -27,17 +29,15 @@
       "type": "RS232"
     },
     "communication3": {
-      "active": false,
-      "baudRate": 115200,
-      "dataBits": 8,
+      "active": true,
       "description": "reader3",
-      "etx": 3,
-      "parity": "N",
-      "port": "COM3",
-      "stopBits": 1.0,
-      "stx": 2,
-      "trigger": "t",
-      "type": "RS232"
+      "offset": 8,
+      "tcpip": {
+        "ip": "127.0.0.1",
+        "port": 502,
+        "timeout_ms": 1000
+      },
+      "type": "TCP/IP"
     },
     "communication4": {
       "active": false,
@@ -45,6 +45,7 @@
       "dataBits": 8,
       "description": "reader4",
       "etx": 3,
+      "offset": 5,
       "parity": "N",
       "port": "COM1",
       "stopBits": 1.0,

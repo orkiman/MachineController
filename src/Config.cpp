@@ -178,6 +178,7 @@ void Config::ensureDefaultCommunicationSettings()
         if (!comm1.contains("stx")) comm1["stx"] = 2;
         if (!comm1.contains("etx")) comm1["etx"] = 3;
         if (!comm1.contains("trigger")) comm1["trigger"] = "t";
+        if (!comm1.contains("offset")) comm1["offset"] = 0;
         
         // Ensure communication2 settings exist with defaults
         if (!configJson_["communication"].contains("communication2") || !configJson_["communication"]["communication2"].is_object()) {
@@ -194,6 +195,7 @@ void Config::ensureDefaultCommunicationSettings()
         if (!comm2.contains("stx")) comm2["stx"] = 2;
         if (!comm2.contains("etx")) comm2["etx"] = 3;
         if (!comm2.contains("trigger")) comm2["trigger"] = "t";
+        if (!comm2.contains("offset")) comm2["offset"] = 0;
         
         getLogger()->debug("Default communication settings ensured");
     } catch (const std::exception& e) {

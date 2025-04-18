@@ -41,6 +41,7 @@ private:
     int timeout_ms_;
     char stx_; // Start of text character
     char etx_; // End of text character
+    int offset_; // Offset within the received message for data placement
 
     SOCKET socket_;
     bool connected_;

@@ -43,6 +43,7 @@ private:
     int stopBits_;
     char stx_; // Changed to char
     char etx_;
+    int offset_; // Offset within the received message for data placement
 
     HANDLE hSerial_;    
 

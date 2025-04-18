@@ -348,6 +348,15 @@ void TCPIPCommunication::close()
     }
 }
 
+void TCPIPCommunication::startReceiving()
+{
+    // Start the receive thread if not already running
+    if (!receiving_ && !receiveThread_.joinable()) {
+        receiving_ = true;
+        receiveThread_ = std::thread(&TCPIPCommunication::receiveLoop, this);
+    }
+}
+
 void TCPIPCommunication::receiveLoop()
 {
     // Create a socket set for select() to monitor our socket

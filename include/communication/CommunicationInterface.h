@@ -12,8 +12,8 @@ public:
     // Send a message; returns true if successful.
     virtual bool send(const std::string& message) = 0;
 
-    // Receive a message.
-    virtual std::string receive() = 0;
+    // Start the asynchronous/event-driven receive loop.
+    virtual void startReceiving() = 0;
 
     // Close the communication channel.
     virtual void close() = 0;

@@ -4,6 +4,7 @@
 #include <thread>
 #include <windows.h> // For Windows API functions
 
+
 RS232Communication::RS232Communication(EventQueue<EventVariant>& eventQueue, const std::string& communicationName, const Config& config)
     : eventQueue_(&eventQueue),
       communicationName_(communicationName),
@@ -342,95 +343,6 @@ bool RS232Communication::send(const std::string &message)
     return bytesWritten == message.size();
 }
 
-std::string RS232Communication::receive()
-{
-    std::string completeMessage;
-    char buffer[256];
-    DWORD bytesRead;
-    DWORD commErrors;
-    COMSTAT commStatus;
-
-    if (hSerial_ == INVALID_HANDLE_VALUE)
-        return "";
-
-    // Check if there's any data available to read
-    if (!ClearCommError(hSerial_, &commErrors, &commStatus) || commStatus.cbInQue == 0) {
-        // No data available or error occurred
-        return "";
-    }
-
-    // Set up a non-blocking read with timeout
-    COMMTIMEOUTS timeouts;
-    if (GetCommTimeouts(hSerial_, &timeouts)) {
-        // Save original timeouts
-        COMMTIMEOUTS originalTimeouts = timeouts;
-        
-        // Set short timeouts for non-blocking behavior
-        timeouts.ReadIntervalTimeout = MAXDWORD;
-        timeouts.ReadTotalTimeoutConstant = 0;
-        timeouts.ReadTotalTimeoutMultiplier = 0;
-        
-        SetCommTimeouts(hSerial_, &timeouts);
-        
-        // Read available data
-        if (!ReadFile(hSerial_, buffer, sizeof(buffer) - 1, &bytesRead, NULL)) {
-            getLogger()->error("Error reading from serial port: {}", GetLastError());
-            // Restore original timeouts
-            SetCommTimeouts(hSerial_, &originalTimeouts);
-            return "";
-        }
-        
-        // Restore original timeouts
-        SetCommTimeouts(hSerial_, &originalTimeouts);
-        
-        if (bytesRead == 0) {
-            // No data read
-            return "";
-        }
-        
-        // Process the data
-        buffer[bytesRead] = '\0'; // Null-terminate the buffer
-        receiveBuffer_ += buffer;
-    } else {
-        getLogger()->error("Failed to get comm timeouts: {}", GetLastError());
-        return "";
-    }
-
-    // Process the receive buffer to extract complete messages
-    size_t stxPos = std::string::npos;
-    if (stx_ != 0) {
-        stxPos = receiveBuffer_.find(stx_);
-    }
-    size_t etxPos = receiveBuffer_.find(etx_);
-
-    if (stx_ == 0) {
-        if (etxPos != std::string::npos) {
-            // No STX, but ETX found. Return everything up to ETX.
-            completeMessage = receiveBuffer_.substr(0, etxPos);
-            receiveBuffer_.erase(0, etxPos + 1);
-            return completeMessage;
-        }
-    } else {
-        if (stxPos != std::string::npos && etxPos != std::string::npos) {
-            if (etxPos > stxPos) {
-                // STX and ETX found, ETX after STX. Return the message between them.
-                completeMessage = receiveBuffer_.substr(stxPos + 1, etxPos - stxPos - 1);
-                receiveBuffer_.erase(0, etxPos + 1);
-                return completeMessage;
-            } else {
-                // ETX before STX. Discard everything up to STX.
-                receiveBuffer_.erase(0, stxPos);
-            }
-        } else if (stxPos != std::string::npos && etxPos == std::string::npos) {
-            // STX found, but no ETX. Discard everything before STX.
-            receiveBuffer_.erase(0, stxPos);
-        }
-    }
-    
-    // If we get here, no complete message was found
-    return "";
-}
-
 void RS232Communication::close()
 {
     getLogger()->debug("[{}] RS232Communication close() started for '{}'", static_cast<void*>(this), communicationName_);
@@ -489,6 +401,16 @@ void RS232Communication::close()
     receiveBuffer_.clear();
     
     getLogger()->debug("[{}] RS232Communication close() finished for '{}' Port closed successfully", __PRETTY_FUNCTION__, communicationName_);
+}
+
+void RS232Communication::startReceiving()
+{
+    // Start the receive thread if not already running
+    if (!receiving_ && !stopRequested_ && !receiveThread_.joinable()) {
+        receiving_ = true;
+        stopRequested_ = false;
+        receiveThread_ = std::thread(&RS232Communication::receiveLoop, this);
+    }
 }
 
 void RS232Communication::receiveLoop()
@@ -705,10 +627,52 @@ void RS232Communication::receiveLoop()
 
                 // If data was read, process it
                 if (dwRead > 0) {
-                    std::lock_guard<std::mutex> lock{bufferMutex_}; // Use uniform initialization
+                    std::lock_guard<std::mutex> lock{bufferMutex_};
                     receiveBuffer_.insert(receiveBuffer_.end(), buffer, buffer + dwRead);
-                    // Notify Logic (or whichever component) that data is available
-                    eventQueue_->push(CommEvent{communicationName_, "data_received"});
+
+                    // Message framing logic
+                    while (!receiveBuffer_.empty()) {
+                        size_t msgStart = 0;
+                        size_t msgEnd = receiveBuffer_.size();
+                        bool foundMessage = false;
+
+                        // If STX is set, look for STX
+                        if (stx_ != 0) {
+                            auto stxIt = std::find(receiveBuffer_.begin(), receiveBuffer_.end(), stx_);
+                            if (stxIt != receiveBuffer_.end()) {
+                                msgStart = std::distance(receiveBuffer_.begin(), stxIt);
+                            } else {
+                                // No STX in buffer, discard all before next read
+                                receiveBuffer_.clear();
+                                break;
+                            }
+                        }
+
+                        // If ETX is set, look for ETX after msgStart
+                        if (etx_ != 0) {
+                            auto etxIt = std::find(receiveBuffer_.begin() + msgStart, receiveBuffer_.end(), etx_);
+                            if (etxIt != receiveBuffer_.end()) {
+                                msgEnd = std::distance(receiveBuffer_.begin(), etxIt) + 1; // include ETX
+                                foundMessage = true;
+                            } else {
+                                // ETX not found yet, wait for more data
+                                break;
+                            }
+                        } else {
+                            // No ETX configured, deliver all available data after STX logic
+                            foundMessage = true;
+                        }
+
+                        if (foundMessage) {
+                            // Push the message
+                            std::string msg(receiveBuffer_.begin() + msgStart, receiveBuffer_.begin() + msgEnd);
+                            eventQueue_->push(CommEvent{communicationName_, msg});
+                            // Remove delivered message from buffer
+                            receiveBuffer_.erase(receiveBuffer_.begin(), receiveBuffer_.begin() + msgEnd);
+                        } else {
+                            break;
+                        }
+                    }
                 }
             } while (dwRead > 0 && !stopRequested_); // Continue reading if more data might be available and not stopped
 

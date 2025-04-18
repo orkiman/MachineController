@@ -31,7 +31,7 @@ public:
 
     virtual bool initialize() override;
     virtual bool send(const std::string & message) override;
-    virtual std::string receive() override;
+    virtual void startReceiving() override;
     virtual void close() override;
 
 private:

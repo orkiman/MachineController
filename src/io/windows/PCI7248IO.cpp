@@ -137,15 +137,15 @@ bool PCI7248IO::initialize() {
         return false;
     }
 
-    // Start timer thread with real-time priority
+    // Start polling thread with real-time priority
     timerRunning_ = true;
-    std::thread timerThread([this]() {
+    std::thread pollingThread([this]() {
         // Set thread to high priority
         HANDLE threadHandle = GetCurrentThread();
         if (!SetThreadPriority(threadHandle, THREAD_PRIORITY_TIME_CRITICAL)) {
-            getLogger()->warn("Failed to set timer thread to high priority. Error: {}", GetLastError());
+            getLogger()->warn("Failed to set polling thread to high priority. Error: {}", GetLastError());
         } else {
-            getLogger()->debug("Polling Timer thread set to high priority.");
+            getLogger()->debug("Polling thread set to high priority.");
         }
         // // Set thread affinity to CPU 0
         // DWORD_PTR affinityMask = 1; // CPU 0
@@ -154,6 +154,9 @@ bool PCI7248IO::initialize() {
         // } else {
         //     getLogger()->debug("Polling Timer thread affinity set to CPU 0.");
         // }
+
+        // --- Timer-based scheduling code (commented out for fast polling mode) ---    
+        /*
         LARGE_INTEGER dueTime;
         dueTime.QuadPart = -20000LL; // 2ms in 100ns units (negative for relative time)
 
@@ -176,11 +179,25 @@ bool PCI7248IO::initialize() {
                 }
             }
         }
+        */
+
+        // --- Fast polling mode with _mm_pause() ---
+        #include <immintrin.h> // for _mm_pause
+        while (timerRunning_) {
+            if (!stopPolling_) {
+                pollingIteration();
+            }
+            // Give CPU a minor relief in tight loop
+            for (int i = 0; i < 100000; ++i) {
+                _mm_pause();
+            } 
+        }
+
+
     });
-    timerThread.detach(); // Let the thread run independently
+    pollingThread.detach(); // Let the thread run independently
 
     getLogger()->debug("PCI7248IO initialized successfully. High-resolution timer started with 2ms interval.");
-    return true;
     return true;
 }
 

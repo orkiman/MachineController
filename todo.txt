@@ -4,5 +4,9 @@ organize logging
 orginize gui massages to eventQueue
 add specific machine tab in gui settings?
 display communication data in gui
-fix / check tcpip
+done - fix / check tcpip
+
+understand how to manage massages in logic
+think ouw to handle variable communication data in mainwindow
+
 

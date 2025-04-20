@@ -91,147 +91,7 @@ void Logic::stop() {
 }
 
 // Central logic cycle function - called after state changes from any event
-void Logic::oneLogicCycle() {
-  // Handle LED blinking separately from timer state
-  if (blinkLed0_) {
-    // If timer1 triggered, toggle the LED
-    if (timers_["timer1"].state_ == 1 &&
-        timers_["timer1"].eventType_ == IOEventType::Rising) {
-      outputChannels_["o0"].state = !outputChannels_["o0"].state;
-      timers_["timer1"].state_ = 0;
-      timers_["timer1"].eventType_ = IOEventType::None;
-      timers_["timer1"].start(
-          std::chrono::milliseconds(timers_["timer1"].getDuration()), [this]() {
-            // Push the event to the queue
-            eventQueue_.push(TimerEvent{"timer1"});
-          });
-    }
-  } else {
-    // If blinking is disabled, turn off the LED
-    outputChannels_["o0"].state = 0;
-  }
 
-  if(!overrideOutputs_) {
-    writeOutputs();
-  }
-  
-  // Process communication data if available
-  if (commUpdated_) {
-    // First, populate communicationDataLists_ from communicationLatestInputData_
-    for (const auto& [commName, message] : communicationNewInputData_) {
-      // Only add messages for active communication ports
-      if (activeCommPorts_.find(commName) != activeCommPorts_.end() && 
-          !message.empty() && 
-          commName.find("_sent") == std::string::npos) { // Skip sent messages
-        
-        // Add the message to this channel's data list
-        communicationDataLists_[commName].push_back(message);
-      }
-    }
-    
-    // Now process data from all active communication ports
-    for (auto& [portName, messageList] : communicationDataLists_) {
-      if (!messageList.empty()) {
-        getLogger()->debug("[{}] Processing {} messages from {}", __PRETTY_FUNCTION__, messageList.size(), portName);
-        
-        // Machine-specific logic for each port
-        // This is where you would implement custom handling for different ports
-        for (const auto& message : messageList) {
-          // Example of port-specific processing:
-          // if (portName == "COM1") {
-          //   // Handle barcode data
-          //   processBarcode(message);
-          // } else if (portName == "COM2") {
-          //   // Handle sensor data
-          //   processSensorData(message);
-          // } else {
-          //   // Default handling for other ports
-          //   processGenericMessage(portName, message);
-          // }
-          
-          // For now, just log the message
-          getLogger()->debug("[{}] Message from {}: {}", __PRETTY_FUNCTION__, portName, message);
-        }
-        
-        // Clear the list after processing
-        messageList.clear();
-      }
-    }
-    
-    // Reset the flag after processing all communication data
-    commUpdated_ = false;
-  }
-  
-  // reset timers edge
-  for (auto& [name, timer] : timers_) {
-    timer.setEventType(IOEventType::None);
-  }
-  
-  return;
-
-
-
-
-  // i didnt deal with this bottom yet
-  // Log the start of a logic cycle
-  getLogger()->debug("[{}] Starting logic cycle", __PRETTY_FUNCTION__);
-
-  // Process input changes if inputs were updated
-  if (inputsUpdated_) {
-    getLogger()->debug("[{}] Processing input changes", __PRETTY_FUNCTION__);
-
-    // Example of machine-specific logic based on input states
-    // Check for specific input conditions
-    if (inputChannels_.count("i8") > 0 && inputChannels_.count("i9") > 0) {
-      if (inputChannels_["i8"].eventType == IOEventType::Rising &&
-          inputChannels_["i9"].state == 0) {
-        std::cout << "start process started" << std::endl;
-        // Add machine-specific actions here
-      }
-    }
-
-    inputsUpdated_ = false; // Reset the flag
-  }
-
-  // Process communication data if it was updated
-  if (commUpdated_) {
-    getLogger()->debug("[{}] Processing communication updates", __PRETTY_FUNCTION__);
-
-    // Example: Process messages from different ports
-    for (const auto &[port, messageList] : communicationDataLists_) {
-      // Add machine-specific communication handling here
-      // Example: Parse commands, update registers, etc.
-      getLogger()->debug("[{}] Processing {} messages from {}", __PRETTY_FUNCTION__, messageList.size(), port);
-      
-      // Process each message in the list
-      for (const auto& message : messageList) {
-        getLogger()->debug("[{}] Message from {}: {}", __PRETTY_FUNCTION__, port, message);
-        // Add your machine-specific message handling here
-      }
-    }
-
-    commUpdated_ = false; // Reset the flag
-  }
-
-  // Process timer events if any timer was updated
-  if (timerUpdated_) {
-    getLogger()->debug("[{}] Processing timer updates", __PRETTY_FUNCTION__);
-
-    // Add machine-specific timer handling here
-
-    timerUpdated_ = false; // Reset the flag
-  }
-
-  // Apply output changes if needed
-  if (outputsUpdated_) {
-    getLogger()->debug("[{}] Applying output changes", __PRETTY_FUNCTION__);
-    writeOutputs();
-    outputsUpdated_ = false; // Reset the flag
-  }
-
-  // Log the end of a logic cycle
-  getLogger()->debug("[{}] Logic cycle completed", __PRETTY_FUNCTION__);
-}
 
 // **Event Handlers**
 void Logic::handleEvent(const IOEvent &event) {
@@ -271,16 +131,28 @@ void Logic::handleEvent(const CommEvent &event) {
   std::cout << "[Communication] Received from " << event.communicationName << ": "
             << event.message << std::endl;
 
-  // Store the received message in our latest input data map
-  communicationNewInputData_[event.communicationName] = event.message;
-  
+  // Insert the received message directly into the correct offset in communicationDataLists_
+  int offset = 0;
+  auto commSettings = config_.getCommunicationSettings();
+  if (commSettings.contains(event.communicationName) && commSettings[event.communicationName].contains("offset")) {
+    offset = commSettings[event.communicationName]["offset"].get<int>();
+  }
+  auto& dataVec = communicationDataLists_[event.communicationName];
+  if (dataVec.size() <= static_cast<size_t>(offset)) {
+    dataVec.resize(offset + 1);
+  }
+  dataVec[offset] = event.message;
+  // print dataVec[offset] + dataVec[offset].length
+  getLogger()->debug("[{}] Received communication from {}: {}", __PRETTY_FUNCTION__,
+     event.communicationName, dataVec[offset] , dataVec[offset].length());
+
+
   // Set flag to indicate communication data was updated
   commUpdated_ = true;
 
   // Run the central logic cycle
   oneLogicCycle();
 }
-
 
 void Logic::handleEvent(const GuiEvent &event) {
   bool runLogicCycle = false; // Flag to determine if we should run the logic cycle
@@ -666,6 +538,155 @@ bool Logic::initTimers() {
     emit guiMessage(QString::fromStdString(errorMsg), "timer_error");
     return false;
   }
+}
+
+void Logic::oneLogicCycle() {
+  // Handle LED blinking separately from timer state
+  if (blinkLed0_) {
+    // If timer1 triggered, toggle the LED
+    if (timers_["timer1"].state_ == 1 &&
+        timers_["timer1"].eventType_ == IOEventType::Rising) {
+      outputChannels_["o0"].state = !outputChannels_["o0"].state;
+      timers_["timer1"].state_ = 0;
+      timers_["timer1"].eventType_ = IOEventType::None;
+      timers_["timer1"].start(
+          std::chrono::milliseconds(timers_["timer1"].getDuration()), [this]() {
+            // Push the event to the queue
+            eventQueue_.push(TimerEvent{"timer1"});
+          });
+    }
+  } else {
+    // If blinking is disabled, turn off the LED
+    outputChannels_["o0"].state = 0;
+  }
+
+  if(!overrideOutputs_) {
+    writeOutputs();
+  }
+  
+  // Process communication data if available
+  if (commUpdated_) {
+    // Now process data from all active communication ports
+    for (auto& [portName, messageList] : communicationDataLists_) {
+      if (!messageList.empty()) {
+        getLogger()->debug("[{}] Processing {} messages from {}", __PRETTY_FUNCTION__, messageList.size(), portName);
+        
+        // Machine-specific logic for each port
+        // This is where you would implement custom handling for different ports
+        for (const auto& message : messageList) {
+          // Example of port-specific processing:
+          // if (portName == "COM1") {
+          //   // Handle barcode data
+          //   processBarcode(message);
+          // } else if (portName == "COM2") {
+          //   // Handle sensor data
+          //   processSensorData(message);
+          // } else {
+          //   // Default handling for other ports
+          //   processGenericMessage(portName, message);
+          // }
+          
+          // For now, just log the message
+          getLogger()->debug("[{}] Message from {}: {}", __PRETTY_FUNCTION__, portName, message);
+        }
+        // After processing, for each active communication port, check the message at the configured offset
+        // and print it or print "no message yet"
+        
+        // Find offset for this port
+        int offset = 0;
+        auto commSettings = config_.getCommunicationSettings();
+        if (commSettings.contains(portName) && commSettings[portName].contains("offset")) {
+          offset = commSettings[portName]["offset"].get<int>();
+        }
+        // Check if message exists at offset
+        if (messageList.size() > static_cast<size_t>(offset) && !messageList[offset].empty()) {
+          const std::string& msg = messageList[offset];
+          getLogger()->info("[{}] Port '{}' message at offset {}: '{}' (len={})", __PRETTY_FUNCTION__, portName, offset, msg, msg.length());
+        } else {
+          getLogger()->info("[{}] Port '{}' message at offset {}: no message yet", __PRETTY_FUNCTION__, portName, offset);
+        }
+
+        // Clear the list after processing
+        messageList.clear();
+      }else{  
+        getLogger()->debug("[{}] no messages in{}", __PRETTY_FUNCTION__, portName);
+      }
+    }
+
+    
+    // Reset the flag after processing all communication data
+    commUpdated_ = false;
+  }
+  
+  // reset timers edge
+  for (auto& [name, timer] : timers_) {
+    timer.setEventType(IOEventType::None);
+  }
+  
+  return;
+
+
+
+
+  // i didnt deal with this bottom yet
+  // Log the start of a logic cycle
+  getLogger()->debug("[{}] Starting logic cycle", __PRETTY_FUNCTION__);
+
+  // Process input changes if inputs were updated
+  if (inputsUpdated_) {
+    getLogger()->debug("[{}] Processing input changes", __PRETTY_FUNCTION__);
+
+    // Example of machine-specific logic based on input states
+    // Check for specific input conditions
+    if (inputChannels_.count("i8") > 0 && inputChannels_.count("i9") > 0) {
+      if (inputChannels_["i8"].eventType == IOEventType::Rising &&
+          inputChannels_["i9"].state == 0) {
+        std::cout << "start process started" << std::endl;
+        // Add machine-specific actions here
+      }
+    }
+
+    inputsUpdated_ = false; // Reset the flag
+  }
+
+  // Process communication data if it was updated
+  if (commUpdated_) {
+    getLogger()->debug("[{}] Processing communication updates", __PRETTY_FUNCTION__);
+
+    // Example: Process messages from different ports
+    for (const auto &[port, messageList] : communicationDataLists_) {
+      // Add machine-specific communication handling here
+      // Example: Parse commands, update registers, etc.
+      getLogger()->debug("[{}] Processing {} messages from {}", __PRETTY_FUNCTION__, messageList.size(), port);
+      
+      // Process each message in the list
+      for (const auto& message : messageList) {
+        getLogger()->debug("[{}] Message from {}: {}", __PRETTY_FUNCTION__, port, message);
+        // Add your machine-specific message handling here
+      }
+    }
+
+    commUpdated_ = false; // Reset the flag
+  }
+
+  // Process timer events if any timer was updated
+  if (timerUpdated_) {
+    getLogger()->debug("[{}] Processing timer updates", __PRETTY_FUNCTION__);
+
+    // Add machine-specific timer handling here
+
+    timerUpdated_ = false; // Reset the flag
+  }
+
+  // Apply output changes if needed
+  if (outputsUpdated_) {
+    getLogger()->debug("[{}] Applying output changes", __PRETTY_FUNCTION__);
+    writeOutputs();
+    outputsUpdated_ = false; // Reset the flag
+  }
+
+  // Log the end of a logic cycle
+  getLogger()->debug("[{}] Logic cycle completed", __PRETTY_FUNCTION__);
 }
 
 #include "moc_Logic.cpp"

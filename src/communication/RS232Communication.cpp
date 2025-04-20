@@ -665,8 +665,32 @@ void RS232Communication::receiveLoop()
 
                         if (foundMessage) {
                             // Push the message
-                            std::string msg(receiveBuffer_.begin() + msgStart, receiveBuffer_.begin() + msgEnd);
-                            eventQueue_->push(CommEvent{communicationName_, msg});
+                            char stx = parseCharSetting(config_->getCommunicationSettings()[communicationName_], "stx", 2);
+                            char etx = parseCharSetting(config_->getCommunicationSettings()[communicationName_], "etx", 3);
+                            std::string msg;
+                            if (stx != 0 && etx != 0) {
+                                // Both STX and ETX configured: skip STX, stop before ETX
+                                if (msgEnd > msgStart + 1) {
+                                    msg.assign(receiveBuffer_.begin() + msgStart + 1, receiveBuffer_.begin() + msgEnd - 1);
+                                }
+                            } else if (stx == 0 && etx != 0) {
+                                // Only ETX: from buffer start to just before ETX
+                                if (msgEnd > 0) {
+                                    msg.assign(receiveBuffer_.begin(), receiveBuffer_.begin() + msgEnd - 1);
+                                }
+                            } else if (stx != 0 && etx == 0) {
+                                // Only STX: from after STX to buffer end
+                                if (msgStart + 1 < msgEnd) {
+                                    msg.assign(receiveBuffer_.begin() + msgStart + 1, receiveBuffer_.begin() + msgEnd);
+                                }
+                            } else {
+                                // Neither: whole buffer
+                                msg.assign(receiveBuffer_.begin(), receiveBuffer_.begin() + msgEnd);
+                            }
+                            CommEvent event;
+                            event.communicationName = communicationName_;
+                            event.message = msg;
+                            eventQueue_->push(event);
                             // Remove delivered message from buffer
                             receiveBuffer_.erase(receiveBuffer_.begin(), receiveBuffer_.begin() + msgEnd);
                         } else {

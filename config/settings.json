@@ -2,11 +2,11 @@
   "communication": {
     "communication1": {
       "active": true,
-      "baudRate": 9600,
+      "baudRate": 115200,
       "dataBits": 8,
       "description": "reader1",
       "etx": 3,
-      "offset": 1,
+      "offset": 3,
       "parity": "N",
       "port": "COM3",
       "stopBits": 1.0,

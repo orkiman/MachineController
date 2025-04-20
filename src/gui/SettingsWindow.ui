@@ -279,7 +279,7 @@ QDialog[overrideOutputs=&quot;true&quot;] {
                <item>
                 <widget class="QLabel" name="offsetLabel">
                  <property name="text">
-                  <string>Offset:</string>
+                  <string>Device Offset:</string>
                  </property>
                 </widget>
                </item>

@@ -390,11 +390,14 @@ void TCPIPCommunication::receiveLoop()
             std::string msg = receive();
             if (!msg.empty())
             {
+                // Strip leading STX and trailing ETX if present
+                if (!msg.empty() && stx_ != 0 && msg.front() == stx_) msg.erase(0, 1);
+                if (!msg.empty() && etx_ != 0 && msg.back() == etx_) msg.pop_back();
                 // Create a CommEvent with communication name and message
                 CommEvent event;
-                event.communicationName = communicationName_; // Use the existing communication name
+                event.communicationName = communicationName_;
                 event.message = msg;
-                eventQueue_->push(event); // eventQueue_ should be thread-safe
+                eventQueue_->push(event);
             }
         }
     }

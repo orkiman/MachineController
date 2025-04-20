@@ -78,7 +78,6 @@ private:
     // State tracking
     std::unordered_map<std::string, IOChannel> inputChannels_;  // Current input states
     std::unordered_map<std::string, IOChannel> outputChannels_; // Current output states
-    std::unordered_map<std::string, std::string> communicationNewInputData_;  // Latest data received from each comm port
     std::unordered_map<std::string, std::vector<std::string>> communicationDataLists_;  // Data lists for each port for processing in oneLogicCycle
     std::unordered_map<std::string, Timer> timers_; // Current timer states
     

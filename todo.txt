@@ -10,3 +10,4 @@ understand how to manage massages in logic
 think ouw to handle variable communication data in mainwindow
 
 
+file checks

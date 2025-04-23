@@ -2,6 +2,8 @@
 #include "ui_MainWindow.h"
 #include "gui/SettingsWindow.h"
 #include "Logger.h"
+#include <QFileDialog>
+#include <QMessageBox>
 #include <QDateTime>
 
 MainWindow::MainWindow(QWidget *parent, EventQueue<EventVariant>& eventQueue, const Config& config)
@@ -34,6 +36,20 @@ MainWindow::MainWindow(QWidget *parent, EventQueue<EventVariant>& eventQueue, co
     getLogger()->debug("[MainWindow] emitWindowReady() queued.");
 
     getLogger()->debug("[MainWindow] Constructor finished");
+}
+
+void MainWindow::on_selectBarcodeFileButton_clicked() {
+    QString filePath = QFileDialog::getOpenFileName(this, "Select Barcode File", "", "Text Files (*.txt);;All Files (*)");
+    if (!filePath.isEmpty()) {
+        if (barcodeFile_.loadFromFile(filePath)) {
+            barcodeFilePath_ = filePath;
+            ui->barcodeFilePathLabel->setText(filePath);
+        } else {
+            barcodeFilePath_ = "";
+            ui->barcodeFilePathLabel->setText("Failed to load file");
+            QMessageBox::warning(this, "File Load Error", "Failed to load the selected barcode file.");
+        }
+    }
 }
 
 MainWindow::~MainWindow() {

@@ -1,0 +1,41 @@
+Barcode File Checks Implementation Plan
+====================================
+
+1. BarcodeFile Class
+   - Handles file selection (Qt file dialog)
+   - Loads file content (reads lines, parses barcodes)
+   - Stores barcodes in a suitable container (e.g., std::vector)
+
+2. GUI Integration
+   - Add button for file selection
+   - Show selected file name/path
+   - Add checkboxes for "Existence" and "Sequence" tests
+   - Add selector for master communication channel
+
+3. File Parsing Logic
+   - Read file line by line
+   - Parse each line as barcode
+   - Store parsed barcodes in order
+
+4. Barcode Checking Logic
+   - On barcode received from communication (master):
+     - If "Existence" enabled: check if barcode exists in loaded list
+     - If "Sequence" enabled: check if barcode is in correct sequence
+
+5. Result Handling
+   - Provide feedback in GUI on test failures
+   - Optionally log/display check results
+
+6. Optional: Testing
+   - Unit tests for file loading/parsing
+   - Unit tests for existence/sequence checking logic
+
+Step-by-step breakdown:
+-----------------------
+1. Design and implement BarcodeFile class
+2. Integrate file selection into GUI
+3. Add checkboxes and master communication selector
+4. Implement barcode checking logic
+5. Connect communication data to checking logic
+6. Display/log results in GUI
+7. (Optional) Add unit tests

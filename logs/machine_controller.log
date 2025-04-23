@@ -1,155 +1,118 @@
-12:50:49 [info] Application starting...
-12:50:49 [debug] [int main(int, char **)] Application started
-12:50:49 [debug] [int main(int, char **)] Multimedia timer resolution set to 1ms
-12:50:49 [debug] [int main(int, char **)] EventQueue created
-12:50:49 [debug] Default communication settings ensured
-12:50:49 [debug] Default timer settings ensured
-12:50:49 [debug] [int main(int, char **)] QApplication instance creating...
-12:50:49 [debug] [int main(int, char **)] QApplication instance created.
-12:50:49 [debug] [int main(int, char **)] MainWindow instance creating...
-12:50:49 [debug] [MainWindow] Constructor started
-12:50:49 [debug] [MainWindow] Calling ui->setupUi()...
-12:50:49 [debug] [MainWindow] ui->setupUi() finished.
-12:50:49 [debug] [MainWindow] Creating SettingsWindow...
-12:50:50 [debug] Communication settings updated
-12:50:50 [debug] Communication settings updated
-12:50:50 [debug] Timer settings updated
-12:50:50 [debug] Configuration successfully saved to: config/settings.json
-12:50:50 [debug] Settings saved to configuration file
-12:50:50 [debug] [saveSettingsToConfig] Skipping ParameterChange event during initial load
-12:50:50 [debug] Communication settings updated
-12:50:50 [debug] Communication settings updated
-12:50:50 [debug] Timer settings updated
-12:50:50 [debug] Configuration successfully saved to: config/settings.json
-12:50:50 [debug] Settings saved to configuration file
-12:50:50 [debug] [saveSettingsToConfig] Skipping ParameterChange event during initial load
-12:50:50 [debug] [MainWindow] SettingsWindow created.
-12:50:50 [debug] [MainWindow] Queuing emitWindowReady()...
-12:50:50 [debug] [MainWindow] emitWindowReady() queued.
-12:50:50 [debug] [MainWindow] Constructor finished
-12:50:50 [debug] [int main(int, char **)] MainWindow instance created.
-12:50:50 [debug] Initializing PCI-7248...
-12:50:50 [debug] PCI-7248 Card registered successfully (Card ID: 0).
-12:50:50 [debug] Configured Port A (0) as output
-12:50:50 [debug] Configured Port B (1) as input
-12:50:50 [debug] Configured Port CH (4) as input
-12:50:50 [debug] Configured Port CL (3) as output
-12:50:50 [trace] Initial state for Input 'i8' (Port B, Pin 8): 0
-12:50:50 [trace] Initial state for Input 'i13' (Port B, Pin 13): 0
-12:50:50 [trace] Initial state for Input 'i9' (Port B, Pin 9): 0
-12:50:50 [trace] Initial state for Input 'i12' (Port B, Pin 12): 0
-12:50:50 [trace] Initial state for Input 'i10' (Port B, Pin 10): 0
-12:50:50 [trace] Initial state for Input 'i11' (Port B, Pin 11): 0
-12:50:50 [trace] Initial state for Input 'i14' (Port B, Pin 14): 0
-12:50:50 [trace] Initial state for Input 'i15' (Port B, Pin 15): 0
-12:50:50 [trace] Initial state for Input 'i20' (Port CH, Pin 20): 0
-12:50:50 [trace] Initial state for Input 'i21' (Port CH, Pin 21): 0
-12:50:50 [trace] Initial state for Input 'i22' (Port CH, Pin 22): 0
-12:50:50 [trace] Initial state for Input 'i23' (Port CH, Pin 23): 0
-12:50:50 [debug] --- Configured Input Channels ---
-12:50:50 [debug] Input : i8 (Port B, Pin 8)
-12:50:50 [debug] Input : i13 (Port B, Pin 13)
-12:50:50 [debug] Input : i9 (Port B, Pin 9)
-12:50:50 [debug] Input : i12 (Port B, Pin 12)
-12:50:50 [debug] Input : i10 (Port B, Pin 10)
-12:50:50 [debug] Input : i11 (Port B, Pin 11)
-12:50:50 [debug] Input : i14 (Port B, Pin 14)
-12:50:50 [debug] Input : i15 (Port B, Pin 15)
-12:50:50 [debug] Input : i20 (Port CH, Pin 20)
-12:50:50 [debug] Input : i21 (Port CH, Pin 21)
-12:50:50 [debug] Input : i22 (Port CH, Pin 22)
-12:50:50 [debug] Input : i23 (Port CH, Pin 23)
-12:50:50 [debug] --- Configured Output Channels ---
-12:50:50 [debug] Output: o0 (Port A, Pin 0)
-12:50:50 [debug] Output: o1 (Port A, Pin 1)
-12:50:50 [debug] Output: o7 (Port A, Pin 7)
-12:50:50 [debug] ---------------------------------
-12:50:50 [debug] Resetting configured output ports to OFF state.
-12:50:50 [trace] Writing value 0xff (raw aggregate 0x00) to Port A
-12:50:50 [trace] Writing value 0xff (raw aggregate 0x00) to Port CL
-12:50:50 [debug] Timer capabilities - Min: 1ms, Max: 1000000ms
-12:50:50 [debug] PCI7248IO initialized successfully. High-resolution timer started with 2ms interval.
-12:50:50 [debug] Polling thread set to high priority.
-12:50:50 [debug] [Logic::Logic(EventQueue<EventVariant> &, const Config &)] Logic initialized
-12:50:50 [debug] [int main(int, char **)] Showing MainWindow...
-12:50:50 [debug] [bool Logic::initTimers()] Initializing timers...
-12:50:50 [debug] [bool Logic::initTimers()] Initialized timer: timer1 with duration: 333ms
-12:50:50 [debug] [bool Logic::initTimers()] Initialized timer: timer2 with duration: 2222ms
-12:50:50 [debug] [bool Logic::initTimers()] Initialized timer: timer3 with duration: 5000ms
-12:50:50 [debug] [bool Logic::initTimers()] 3 timer(s) initialized successfully
-12:50:50 [debug] [void Logic::initialize()] Timers initialized successfully
-12:50:50 [debug] [bool Logic::initializeCommunicationPorts()] Initializing communication ports...
-12:50:50 [debug] [0x2a9ce9ddc48] RS232Communication constructor for 'communication1'
-12:50:50 [debug] [virtual bool RS232Communication::initialize()] RS232Communication initialize() started for 'communication1'
-12:50:50 [debug] Started receive thread for port communication1
-12:50:50 [debug] [bool Logic::initializeCommunicationPorts()] Communication port 'communication1' initialized successfully
-12:50:50 [debug] [0x2a9ce9efa18] RS232Communication constructor for 'communication2'
-12:50:50 [debug] [virtual bool RS232Communication::initialize()] RS232Communication initialize() started for 'communication2'
-12:50:50 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() started for 'communication1'
-12:50:50 [debug] Started receive thread for port communication2
-12:50:50 [debug] [bool Logic::initializeCommunicationPorts()] Communication port 'communication2' initialized successfully
-12:50:50 [debug] [0x2a9ce9df6e8] RS232Communication constructor for 'communication3'
-12:50:50 [debug] [virtual bool RS232Communication::initialize()] RS232Communication initialize() started for 'communication3'
-12:50:50 [warning] Port name is empty. Please specify a valid port.
-12:50:50 [warning] Communication settings validation failed for communication3. Aborting initialization.
-12:50:50 [warning] [bool Logic::initializeCommunicationPorts()] Communication port 'communication3' initialization failed
-12:50:50 [debug] [virtual RS232Communication::~RS232Communication()] RS232Communication destructor for 'communication3'
-12:50:50 [debug] [0x2a9ce9df6e8] RS232Communication close() started for 'communication3'
-12:50:50 [debug] [virtual void RS232Communication::close()] Port communication3 already closed, skipping close operation
-12:50:50 [debug] [bool Logic::initializeCommunicationPorts()] Communication port 'communication4' is not active in config, skipping
-12:50:50 [warning] [bool Logic::initializeCommunicationPorts()] 2 of 3 active communication ports initialized
-12:50:50 [debug] [void Logic::initialize()] Communication ports initialized successfully
-12:50:50 [debug] [void Logic::handleEvent(const GuiEvent &)] GUI Event] Received: keyword='GuiMessage', data='Communication settings for communication1 updated', target='info', intValue=0
-12:50:50 [debug] [void Logic::handleEvent(const GuiEvent &)] GUI Event] Received: keyword='GuiMessage', data='Communication settings for communication1 updated', target='info', intValue=0
-12:50:50 [debug] [void Logic::handleEvent(const GuiEvent &)] GUI Event] Received: keyword='GuiMessage', data='Communication settings loaded from JSON', target='info', intValue=0
-12:50:50 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() started for 'communication2'
-12:50:51 [debug] [int main(int, char **)] MainWindow show() called.
-12:50:51 [debug] [int main(int, char **)] Starting QApplication event loop (app.exec())...
-12:50:51 [debug] [MainWindow] emitWindowReady() called.
-12:50:51 [debug] [MainWindow] Emitting windowReady signal...
-12:50:51 [debug] SettingsWindow::onInitialLoadComplete() called.
-12:50:51 [debug] [MainWindow] windowReady signal emitted.
-12:50:51 [debug] [MainWindow] emitWindowReady() finished.
-12:51:00 [trace] [Poll Stats] Min: 0.000ms | Max: 39.560ms | Avg: 0.794ms | Samples: 12454 (1245.4/s, 0.803ms interval) | >5ms: 17
-12:51:05 [debug] [int main(int, char **)] QApplication event loop finished with result: 0
-12:51:05 [debug] Application closing
-12:51:05 [trace] [Final Poll Stats] Min: 0.445ms | Max: 3.303ms | Avg: 0.755ms | Samples: 6211 | >5ms: 0
-12:51:05 [debug] [void Logic::run()] Termination event received
-12:51:05 [debug] [void Logic::closeAllPorts()] Closing all active communication ports...
-12:51:05 [debug] Closing port 'communication1' from Logic::closeAllPorts
-12:51:05 [debug] [0x2a9ce9ddc48] RS232Communication close() started for 'communication1'
-12:51:05 [debug] [virtual void RS232Communication::close()] Closing port communication1
-12:51:05 [debug] Stop polling signal set.
-12:51:05 [debug] [virtual void RS232Communication::close()] close: Closing handle for communication1...
-12:51:05 [debug] Attempting to join receive thread for communication1
-12:51:05 [debug] [void RS232Communication::receiveLoop()] receiveLoop: WaitCommEvent aborted/cancelled for communication1
-12:51:05 [debug] [void RS232Communication::receiveLoop()] receiveLoop: Breaking after WaitCommEvent processing due to stop requested.
-12:51:05 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() exited for 'communication1'
-12:51:05 [debug] Successfully joined receive thread for communication1
-12:51:05 [debug] [virtual void RS232Communication::close()] RS232Communication close() finished for 'communication1' Port closed successfully
-12:51:05 [debug] Closing port 'communication2' from Logic::closeAllPorts
-12:51:05 [debug] [0x2a9ce9efa18] RS232Communication close() started for 'communication2'
-12:51:05 [debug] [virtual void RS232Communication::close()] Closing port communication2
-12:51:05 [error] [void RS232Communication::receiveLoop()] Error in final GetOverlappedResult for WaitCommEvent on communication2: 996
-12:51:05 [debug] [virtual void RS232Communication::close()] close: Closing handle for communication2...
-12:51:05 [debug] [void RS232Communication::receiveLoop()] receiveLoop: Breaking after WaitCommEvent processing due to stop requested.
-12:51:05 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() exited for 'communication2'
-12:51:05 [debug] Attempting to join receive thread for communication2
-12:51:05 [debug] Successfully joined receive thread for communication2
-12:51:05 [debug] [virtual void RS232Communication::close()] RS232Communication close() finished for 'communication2' Port closed successfully
-12:51:05 [debug] [void Logic::closeAllPorts()] Finished closing communication ports.
-12:51:05 [debug] [void Logic::run()] Exiting event loop
-12:51:05 [debug] Logic destructor finished.
-12:51:05 [debug] [virtual RS232Communication::~RS232Communication()] RS232Communication destructor for 'communication1'
-12:51:05 [debug] [0x2a9ce9ddc48] RS232Communication close() started for 'communication1'
-12:51:05 [debug] [virtual void RS232Communication::close()] Port communication1 already closed, skipping close operation
-12:51:05 [debug] [virtual RS232Communication::~RS232Communication()] RS232Communication destructor for 'communication2'
-12:51:05 [debug] [0x2a9ce9efa18] RS232Communication close() started for 'communication2'
-12:51:05 [debug] [virtual void RS232Communication::close()] Port communication2 already closed, skipping close operation
-12:51:05 [debug] Shutting down PCI7248IO...
-12:51:05 [trace] [Final Poll Stats] Min: 0.445ms | Max: 3.303ms | Avg: 0.755ms | Samples: 6211 | >5ms: 0
-12:51:05 [debug] Stop polling signal set.
-12:51:05 [debug] Resetting configured output ports to OFF state.
-12:51:05 [trace] Writing value 0xff (raw aggregate 0x00) to Port A
-12:51:05 [trace] Writing value 0xff (raw aggregate 0x00) to Port CL
-12:51:05 [debug] PCI-7248 Card (0) released.
+16:24:26 [info] Application starting...
+16:24:26 [debug] [int main(int, char **)] Application started
+16:24:26 [debug] [int main(int, char **)] Multimedia timer resolution set to 1ms
+16:24:26 [debug] [int main(int, char **)] EventQueue created
+16:24:26 [debug] Default communication settings ensured
+16:24:26 [debug] Default timer settings ensured
+16:24:26 [debug] [int main(int, char **)] QApplication instance creating...
+16:24:26 [debug] [int main(int, char **)] QApplication instance created.
+16:24:26 [debug] [int main(int, char **)] MainWindow instance creating...
+16:24:26 [debug] [MainWindow] Constructor started
+16:24:26 [debug] [MainWindow] Calling ui->setupUi()...
+16:24:27 [debug] [MainWindow] ui->setupUi() finished.
+16:24:27 [debug] [MainWindow] Creating SettingsWindow...
+16:24:27 [debug] Communication settings updated
+16:24:27 [debug] Communication settings updated
+16:24:27 [debug] Timer settings updated
+16:24:27 [debug] Configuration successfully saved to: config/settings.json
+16:24:27 [debug] Settings saved to configuration file
+16:24:27 [debug] [saveSettingsToConfig] Skipping ParameterChange event during initial load
+16:24:27 [debug] Communication settings updated
+16:24:27 [debug] Communication settings updated
+16:24:27 [debug] Timer settings updated
+16:24:27 [debug] Configuration successfully saved to: config/settings.json
+16:24:27 [debug] Settings saved to configuration file
+16:24:27 [debug] [saveSettingsToConfig] Skipping ParameterChange event during initial load
+16:24:27 [debug] [MainWindow] SettingsWindow created.
+16:24:27 [debug] [MainWindow] Queuing emitWindowReady()...
+16:24:27 [debug] [MainWindow] emitWindowReady() queued.
+16:24:27 [debug] [MainWindow] Constructor finished
+16:24:27 [debug] [int main(int, char **)] MainWindow instance created.
+16:24:27 [debug] Initializing PCI-7248...
+16:24:27 [debug] PCI-7248 Card registered successfully (Card ID: 0).
+16:24:27 [debug] Configured Port A (0) as output
+16:24:27 [debug] Configured Port B (1) as input
+16:24:27 [debug] Configured Port CH (4) as input
+16:24:27 [debug] Configured Port CL (3) as output
+16:24:27 [trace] Initial state for Input 'i8' (Port B, Pin 8): 0
+16:24:27 [trace] Initial state for Input 'i13' (Port B, Pin 13): 0
+16:24:27 [trace] Initial state for Input 'i9' (Port B, Pin 9): 0
+16:24:27 [trace] Initial state for Input 'i12' (Port B, Pin 12): 0
+16:24:27 [trace] Initial state for Input 'i10' (Port B, Pin 10): 0
+16:24:27 [trace] Initial state for Input 'i11' (Port B, Pin 11): 0
+16:24:27 [trace] Initial state for Input 'i14' (Port B, Pin 14): 0
+16:24:27 [trace] Initial state for Input 'i15' (Port B, Pin 15): 0
+16:24:27 [trace] Initial state for Input 'i20' (Port CH, Pin 20): 0
+16:24:27 [trace] Initial state for Input 'i21' (Port CH, Pin 21): 0
+16:24:27 [trace] Initial state for Input 'i22' (Port CH, Pin 22): 0
+16:24:27 [trace] Initial state for Input 'i23' (Port CH, Pin 23): 0
+16:24:27 [debug] --- Configured Input Channels ---
+16:24:27 [debug] Input : i8 (Port B, Pin 8)
+16:24:27 [debug] Input : i13 (Port B, Pin 13)
+16:24:27 [debug] Input : i9 (Port B, Pin 9)
+16:24:27 [debug] Input : i12 (Port B, Pin 12)
+16:24:27 [debug] Input : i10 (Port B, Pin 10)
+16:24:27 [debug] Input : i11 (Port B, Pin 11)
+16:24:27 [debug] Input : i14 (Port B, Pin 14)
+16:24:27 [debug] Input : i15 (Port B, Pin 15)
+16:24:27 [debug] Input : i20 (Port CH, Pin 20)
+16:24:27 [debug] Input : i21 (Port CH, Pin 21)
+16:24:27 [debug] Input : i22 (Port CH, Pin 22)
+16:24:27 [debug] Input : i23 (Port CH, Pin 23)
+16:24:27 [debug] --- Configured Output Channels ---
+16:24:27 [debug] Output: o0 (Port A, Pin 0)
+16:24:27 [debug] Output: o1 (Port A, Pin 1)
+16:24:27 [debug] Output: o7 (Port A, Pin 7)
+16:24:27 [debug] ---------------------------------
+16:24:27 [debug] Resetting configured output ports to OFF state.
+16:24:27 [trace] Writing value 0xff (raw aggregate 0x00) to Port A
+16:24:27 [trace] Writing value 0xff (raw aggregate 0x00) to Port CL
+16:24:27 [debug] Timer capabilities - Min: 1ms, Max: 1000000ms
+16:24:27 [debug] PCI7248IO initialized successfully. High-resolution timer started with 2ms interval.
+16:24:27 [debug] Polling thread set to high priority.
+16:24:27 [debug] [Logic::Logic(EventQueue<EventVariant> &, const Config &)] Logic initialized
+16:24:27 [debug] [int main(int, char **)] Showing MainWindow...
+16:24:27 [debug] [bool Logic::initTimers()] Initializing timers...
+16:24:27 [debug] [bool Logic::initTimers()] Initialized timer: timer1 with duration: 333ms
+16:24:27 [debug] [bool Logic::initTimers()] Initialized timer: timer2 with duration: 2222ms
+16:24:27 [debug] [bool Logic::initTimers()] Initialized timer: timer3 with duration: 5000ms
+16:24:27 [debug] [bool Logic::initTimers()] 3 timer(s) initialized successfully
+16:24:27 [debug] [void Logic::initialize()] Timers initialized successfully
+16:24:27 [debug] [bool Logic::initializeCommunicationPorts()] Initializing communication ports...
+16:24:27 [debug] [0x1710d19bf88] RS232Communication constructor for 'communication1'
+16:24:27 [debug] [virtual bool RS232Communication::initialize()] RS232Communication initialize() started for 'communication1'
+16:24:27 [debug] Started receive thread for port communication1
+16:24:27 [debug] [bool Logic::initializeCommunicationPorts()] Communication port 'communication1' initialized successfully
+16:24:27 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() started for 'communication1'
+16:24:27 [debug] [0x1710d1bc758] RS232Communication constructor for 'communication2'
+16:24:27 [debug] [virtual bool RS232Communication::initialize()] RS232Communication initialize() started for 'communication2'
+16:24:27 [debug] Started receive thread for port communication2
+16:24:27 [debug] [bool Logic::initializeCommunicationPorts()] Communication port 'communication2' initialized successfully
+16:24:27 [debug] [0x1710d1c6ce8] RS232Communication constructor for 'communication3'
+16:24:27 [debug] [virtual bool RS232Communication::initialize()] RS232Communication initialize() started for 'communication3'
+16:24:27 [warning] Port name is empty. Please specify a valid port.
+16:24:27 [warning] Communication settings validation failed for communication3. Aborting initialization.
+16:24:27 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() started for 'communication2'
+16:24:27 [warning] [bool Logic::initializeCommunicationPorts()] Communication port 'communication3' initialization failed
+16:24:27 [debug] [virtual RS232Communication::~RS232Communication()] RS232Communication destructor for 'communication3'
+16:24:27 [debug] [0x1710d1c6ce8] RS232Communication close() started for 'communication3'
+16:24:27 [debug] [virtual void RS232Communication::close()] Port communication3 already closed, skipping close operation
+16:24:27 [debug] [bool Logic::initializeCommunicationPorts()] Communication port 'communication4' is not active in config, skipping
+16:24:27 [warning] [bool Logic::initializeCommunicationPorts()] 2 of 3 active communication ports initialized
+16:24:27 [debug] [void Logic::initialize()] Communication ports initialized successfully
+16:24:27 [debug] [void Logic::handleEvent(const GuiEvent &)] GUI Event] Received: keyword='GuiMessage', data='Communication settings for communication1 updated', target='info', intValue=0
+16:24:27 [debug] [void Logic::handleEvent(const GuiEvent &)] GUI Event] Received: keyword='GuiMessage', data='Communication settings for communication1 updated', target='info', intValue=0
+16:24:27 [debug] [void Logic::handleEvent(const GuiEvent &)] GUI Event] Received: keyword='GuiMessage', data='Communication settings loaded from JSON', target='info', intValue=0
+16:24:27 [debug] [int main(int, char **)] MainWindow show() called.
+16:24:27 [debug] [int main(int, char **)] Starting QApplication event loop (app.exec())...
+16:24:27 [debug] [MainWindow] emitWindowReady() called.
+16:24:27 [debug] [MainWindow] Emitting windowReady signal...
+16:24:27 [debug] SettingsWindow::onInitialLoadComplete() called.
+16:24:27 [debug] [MainWindow] windowReady signal emitted.
+16:24:27 [debug] [MainWindow] emitWindowReady() finished.
+16:24:37 [trace] [Poll Stats] Min: 4.384ms | Max: 70.632ms | Avg: 5.408ms | Samples: 1844 (184.4/s, 5.423ms interval) | >5ms: 603
+16:24:47 [trace] [Poll Stats] Min: 4.434ms | Max: 6.642ms | Avg: 4.921ms | Samples: 2032 (203.2/s, 4.921ms interval) | >5ms: 606
+16:24:57 [trace] [Poll Stats] Min: 4.391ms | Max: 7.277ms | Avg: 4.922ms | Samples: 2032 (203.2/s, 4.921ms interval) | >5ms: 647
+16:26:05 [trace] [Poll Stats] Min: 4.475ms | Max: 65358.507ms | Avg: 145.502ms | Samples: 465 (46.5/s, 21.505ms interval) | >5ms: 78
+16:27:34 [trace] [Poll Stats] Min: 4.429ms | Max: 81336.771ms | Avg: 56.535ms | Samples: 1577 (157.7/s, 6.341ms interval) | >5ms: 599
+16:28:14 [trace] [Poll Stats] Min: 40271.197ms | Max: 40271.197ms | Avg: 40271.197ms | Samples: 1 (0.1/s, 10000.000ms interval) | >5ms: 1

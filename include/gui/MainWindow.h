@@ -2,6 +2,10 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <vector>
+#include <string>
+#include <QString>
+#include "datafile/BarcodeFile.h"
 #include "Event.h"
 #include "EventQueue.h"
 #include "gui/SettingsWindow.h"
@@ -31,6 +35,8 @@ public:
     void addMessage(const QString& message, const QString& identifier = "");
 
 private slots:
+    void on_selectBarcodeFileButton_clicked();
+
     // Method to signal that the window is fully initialized and ready
     void emitWindowReady();
     
@@ -41,6 +47,9 @@ private slots:
     void on_testButton_clicked();
 
 private:
+    QString barcodeFilePath_;
+    BarcodeFile barcodeFile_;
+
     Ui::MainWindow *ui;
     EventQueue<EventVariant> &eventQueue_;
     SettingsWindow *settingsWindow_;

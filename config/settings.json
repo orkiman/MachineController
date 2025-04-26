@@ -54,6 +54,13 @@
       "type": "RS232"
     }
   },
+  "dataFile": {
+    "endPosition": 10,
+    "existenceCheck": false,
+    "sequenceCheck": true,
+    "sequenceDirection": "Up",
+    "startPosition": 0
+  },
   "io": {
     "device": "PCI7248",
     "inputs": [

@@ -7,22 +7,67 @@
 #include "Logger.h"
 #include "io/IOChannel.h"
 
+void Config::setDataFileSettings(const DataFileSettings& settings)
+{
+    std::lock_guard<std::mutex> lock(configMutex_);
+    nlohmann::json dataFileJson;
+    dataFileJson["startPosition"] = settings.startPosition;
+    dataFileJson["endPosition"] = settings.endPosition;
+    dataFileJson["sequenceCheck"] = settings.sequenceCheck;
+    dataFileJson["existenceCheck"] = settings.existenceCheck;
+    dataFileJson["sequenceDirection"] = settings.sequenceDirection;
+    configJson_["dataFile"] = dataFileJson;
+}
+
+Config::DataFileSettings Config::getDataFileSettings() const
+{
+    std::lock_guard<std::mutex> lock(configMutex_);
+    DataFileSettings settings;
+    if (configJson_.contains("dataFile")) {
+        const auto& dataFileJson = configJson_["dataFile"];
+        if (dataFileJson.contains("startPosition"))
+            settings.startPosition = dataFileJson["startPosition"].get<int>();
+        if (dataFileJson.contains("endPosition"))
+            settings.endPosition = dataFileJson["endPosition"].get<int>();
+        if (dataFileJson.contains("sequenceCheck"))
+            settings.sequenceCheck = dataFileJson["sequenceCheck"].get<bool>();
+        if (dataFileJson.contains("existenceCheck"))
+            settings.existenceCheck = dataFileJson["existenceCheck"].get<bool>();
+        if (dataFileJson.contains("sequenceDirection"))
+            settings.sequenceDirection = dataFileJson["sequenceDirection"].get<std::string>();
+    }
+    return settings;
+}
+
 Config::Config(const std::string &filePath)
 {
-    filePath_ = filePath;
+    // Inline the file loading logic from loadFromFile here
+    std::lock_guard<std::mutex> lock(configMutex_);
     std::ifstream file(filePath);
-    if (!file)
-    {
-        throw std::runtime_error("Unable to open configuration file: " + filePath);
+    if (!file) {
+        getLogger()->warn("[Config] Unable to open configuration file: {}", filePath);
+        // If file doesn't exist, set defaults and return
+        ensureDefaultCommunicationSettings();
+        ensureDefaultTimerSettings();
+        filePath_ = filePath;
+        return;
     }
-    file >> configJson_;
-    
-    // Ensure default communication settings exist
-    ensureDefaultCommunicationSettings();
-    
-    // Ensure default timer settings exist
-    ensureDefaultTimerSettings();
+    try {
+        file >> configJson_;
+        filePath_ = filePath;
+        // Ensure defaults after loading
+        ensureDefaultCommunicationSettings();
+        ensureDefaultTimerSettings();
+    } catch (const std::exception& e) {
+        getLogger()->warn("[Config] Failed to parse configuration file: {}", e.what());
+        // If parsing fails, set defaults
+        ensureDefaultCommunicationSettings();
+        ensureDefaultTimerSettings();
+        filePath_ = filePath;
+    }
 }
+
+
 
 std::string Config::getIODevice() const
 {

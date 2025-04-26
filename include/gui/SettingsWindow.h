@@ -30,6 +30,9 @@ public:
     
     // Fill timers tab fields with values from settings.json
     void fillTimersTabFields();
+
+    // Fill Data File tab fields with values from config
+    void fillDataFileTabFields();
     
     // Fill IO tab with inputs and outputs from config
     void fillIOTabFields();
@@ -39,7 +42,7 @@ public:
     void updateInputStates(const std::unordered_map<std::string, IOChannel>& inputs);
     
     // Load settings from JSON file
-    bool loadSettingsFromJson(const QString& filePath = "config/settings.json");
+
     
     // Slot to indicate initial loading is done
     void onInitialLoadComplete();

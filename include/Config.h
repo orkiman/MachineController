@@ -40,9 +40,32 @@ public:
     
     // Updates timer settings with new values
     void updateTimerSettings(const nlohmann::json& timerSettings);
+
+    // Fine-grained setters for communication and timer settings
+
+    void removeCommunicationSetting(const std::string& channel);
+
+    void removeTimerSetting(const std::string& timerName);
     
     // Saves the current configuration to a file
     bool saveToFile(const std::string& filePath = "") const;
+
+public:
+    // DataFileSettings struct for Data File tab
+    struct DataFileSettings {
+        int startPosition = 0;
+        int endPosition = 0;
+        bool sequenceCheck = false;
+        bool existenceCheck = false;
+        std::string sequenceDirection = "Forward";
+    };
+
+    // Get/set methods for Data File settings
+    void setDataFileSettings(const DataFileSettings& settings);
+    DataFileSettings getDataFileSettings() const;
+
+    // Loads the configuration from a file after construction
+
 
 private:
     nlohmann::json configJson_;

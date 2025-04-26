@@ -18,9 +18,10 @@
 #include <QTimer>
 
 // ============================================================================
-//  Data File Tab Population
+//  UI Setup Helper Functions
 // ============================================================================
 
+// Populate the Data File tab with settings from config
 void SettingsWindow::fillDataFileTabFields() {
     if (!config_) return;
     auto settings = config_->getDataFileSettings();
@@ -44,9 +45,12 @@ void SettingsWindow::fillDataFileTabFields() {
 }
 
 // ============================================================================
-//  Constructor & Destructor
+//  Constructor, Destructor, and Initialization
 // ============================================================================
 
+// ----------------------------------------------------------------------------
+// SettingsWindow Constructor
+// ----------------------------------------------------------------------------
 SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQueue, const Config& config)
     : QDialog(parent),
       ui(new Ui::SettingsWindow),
@@ -55,12 +59,14 @@ SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQ
       changedWidgets_(),
       initialLoadComplete_(false)
 {
-    isRefreshing_ = true; // Prevent change signals from saving during all initial UI setup
+    // Prevent change signals from saving during all initial UI setup
+    isRefreshing_ = true;
     ui->setupUi(this);
 
+    // Style for timers table selection
     ui->timersTable->setStyleSheet("QTableWidget::item:selected { color: black; background-color: #c0c0ff; }");
 
-
+    // Setup communication selector and defaults button
     QComboBox* commSelector = findChild<QComboBox*>("communicationSelectorComboBox");
     QStackedWidget* commStack = findChild<QStackedWidget*>("communicationStackedWidget");
     if (commSelector && commStack) {
@@ -75,7 +81,7 @@ SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQ
         }
     }
 
-
+    // Setup timers defaults button
     QPushButton* timersDefaultsButton = new QPushButton("Set Defaults", this);
     timersDefaultsButton->setToolTip("Reset timer settings to defaults");
     QVBoxLayout* timersLayout = ui->timersTab->findChild<QVBoxLayout*>();
@@ -87,14 +93,16 @@ SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQ
         connect(timersDefaultsButton, &QPushButton::clicked, this, &SettingsWindow::onTimersDefaultsButtonClicked);
     }
 
-
+    // Fill all tab fields with current config values
     fillCommunicationTabFields();
     fillTimersTabFields();
     fillIOTabFields();
     fillDataFileTabFields();
 
+    // Connect change signals/slots
     connectChangeEvents();
 
+    // Timers table: auto-save on duration edit
     connect(ui->timersTable, &QTableWidget::itemChanged, this, [this](QTableWidgetItem* item) {
         // Only handle duration column (column 1) and only if not refreshing
         if (item && item->column() == 1 && !isRefreshing_) {
@@ -105,7 +113,7 @@ SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQ
     isRefreshing_ = false;
     resetChangedFields();
 
-
+    // Ensure communication type visibility is correct after setup
     QMetaObject::invokeMethod(this, [this]() { updateCommunicationTypeVisibility(-1); }, Qt::QueuedConnection);
     QWidget* commPage = commStack->widget(0);
     if (commPage) {
@@ -119,7 +127,9 @@ SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQ
 
     isRefreshing_ = false;
 }
-
+// ----------------------------------------------------------------------------
+// SettingsWindow Destructor
+// ----------------------------------------------------------------------------
 SettingsWindow::~SettingsWindow() {
     delete ui;
 }
@@ -128,6 +138,7 @@ SettingsWindow::~SettingsWindow() {
 // Directly call fillTimersTabFields() and fillDataFileTabFields() in initialization or refresh logic as needed.
 
 
+// Populate the Communication tab with settings from config
 void SettingsWindow::fillCommunicationTabFields() {
 
     QComboBox* commSelector = findChild<QComboBox*>("communicationSelectorComboBox");
@@ -534,6 +545,7 @@ void SettingsWindow::on_overrideOutputsCheckBox_stateChanged(int state) {
     }
 }
 
+// Reset the current communication channel settings to their defaults
 void SettingsWindow::onCommunicationDefaultsButtonClicked() {
     getLogger()->debug("Communication defaults button clicked");
     
@@ -610,6 +622,7 @@ void SettingsWindow::onCommunicationDefaultsButtonClicked() {
     isRefreshing_ = false;
 }
 
+// Reset all timer settings to their defaults
 void SettingsWindow::onTimersDefaultsButtonClicked() {
     getLogger()->debug("Timers defaults button clicked");
     
@@ -677,11 +690,13 @@ void SettingsWindow::on_refreshButton_clicked()
     fillIOTabFields();
     GuiEvent event;
 event.keyword = "GuiMessage";
-event.data = "IO states refreshed";
-event.target = "info";
-eventQueue_.push(event);
 }
 
+// ============================================================================
+//  Helper Methods
+// ============================================================================
+
+// Update the UI with the latest input states from the logic layer
 void SettingsWindow::updateInputStates(const std::unordered_map<std::string, IOChannel>& inputs)
 {
     // Only update the states in the input table, don't recreate the entire table
@@ -723,6 +738,7 @@ void SettingsWindow::updateInputStates(const std::unordered_map<std::string, IOC
 }
 
 
+// Populate the IO tab with settings from config
 void SettingsWindow::fillIOTabFields() {
     if (!config_) {
         getLogger()->warn("[fillIOTabFields] Config object is null. Cannot load IO settings.");
@@ -820,13 +836,13 @@ void SettingsWindow::fillIOTabFields() {
                     checkbox->setEnabled(enableOverrides);
                     
                     // Disconnect any existing connections to avoid duplicates
-                    disconnect(checkbox, &QCheckBox::stateChanged, nullptr, nullptr);
+                    disconnect(checkbox, &QCheckBox::checkStateChanged, nullptr, nullptr);
                     
                     // Connect checkbox state change to handle output overrides
                     // We use a lambda to capture the checkbox for each connection
                     // Note: Using stateChanged instead of checkStateChanged for compatibility
                     // with the existing UI connections, despite it being deprecated
-                    connect(checkbox, &QCheckBox::stateChanged, [this, checkbox](int state) {
+                    connect(checkbox, &QCheckBox::checkStateChanged, [this, checkbox](int state) {
                         QString outputName = checkbox->property("outputName").toString();
                         if (!outputName.isEmpty()) {
                             // Call the handler method to process the output state change
@@ -842,6 +858,7 @@ void SettingsWindow::fillIOTabFields() {
     }
 }
 
+// Collect and send current output states to Logic
 // Collect and send current output states to Logic
 void SettingsWindow::sendCurrentOutputStates() {
     // Create a map to hold the output states
@@ -883,6 +900,7 @@ void SettingsWindow::sendCurrentOutputStates() {
 }
 
 // Handle individual output checkbox state changes
+// Handle individual output checkbox state changes
 void SettingsWindow::handleOutputCheckboxStateChanged(const QString& outputName, int state) {
     getLogger()->debug("Output override for {}: {}", outputName.toStdString(), (state == Qt::Checked ? "ON" : "OFF"));
     
@@ -890,6 +908,7 @@ void SettingsWindow::handleOutputCheckboxStateChanged(const QString& outputName,
     sendCurrentOutputStates();
 }
 
+// Populate the Timers tab with settings from config
 void SettingsWindow::fillTimersTabFields()
 {
     isRefreshing_ = true;
@@ -957,6 +976,7 @@ void SettingsWindow::fillTimersTabFields()
 
 }
 
+// Fill all tabs with default values (used when config is missing or invalid)
 void SettingsWindow::fillWithDefaults()
 {
     // Fill Communication settings with default values
@@ -1099,6 +1119,11 @@ int SettingsWindow::parseCharSetting(const nlohmann::json &settings, const std::
     }
 }
 
+// ============================================================================
+//  Settings Management Functions
+// ============================================================================
+
+// Save all settings from the UI to the config and persist to file
 bool SettingsWindow::saveSettingsToConfig() {
     if (!config_) {
         getLogger()->warn("[saveSettingsToConfig] Config object is null. Cannot save settings.");
@@ -1126,6 +1151,8 @@ bool SettingsWindow::saveSettingsToConfig() {
 
     
     // Update timer settings via fine-grained setters
+    // Gather all timer settings from the UI and update the config
+    nlohmann::json timersJson = nlohmann::json::object();
     if (ui->timersTable->rowCount() > 0) {
         for (int row = 0; row < ui->timersTable->rowCount(); ++row) {
             QTableWidgetItem* nameItem = ui->timersTable->item(row, 0);
@@ -1135,9 +1162,13 @@ bool SettingsWindow::saveSettingsToConfig() {
                 std::string timerName = nameItem->text().toStdString();
                 int duration = durationItem->text().toInt();
                 std::string description = descriptionItem->text().toStdString();
-                /* setTimerSetting call removed: implement timer update logic directly if needed */(timerName, duration, description);
+                timersJson[timerName] = {
+                    {"duration", duration},
+                    {"description", description}
+                };
             }
         }
+        mutableConfig->updateTimerSettings(timersJson);
     }
     
     // --- Save Data File Tab Values ---
@@ -1187,17 +1218,24 @@ bool SettingsWindow::saveSettingsToConfig() {
     }
 }
 
+// ============================================================================
+//  UI Event Handler Functions
+// ============================================================================
+
+// Mark a widget as changed (legacy, now a no-op)
 void SettingsWindow::markAsChanged(QWidget* widget) {
     // This method is kept for backward compatibility but no longer changes the widget appearance
     // since we're saving changes immediately
     Q_UNUSED(widget);
 }
 
+// Reset all changed field markers (legacy, now a no-op)
 void SettingsWindow::resetChangedFields() {
     // This method is kept for backward compatibility but no longer does anything
     // since we're saving changes immediately and not marking fields as changed
 }
 
+// Connect UI change events to save logic
 void SettingsWindow::connectChangeEvents() {
     // Connect change events for all combo boxes
     QList<QComboBox*> comboBoxes = findChildren<QComboBox*>();
@@ -1238,7 +1276,7 @@ void SettingsWindow::connectChangeEvents() {
             continue;
         }
         
-        connect(checkBox, &QCheckBox::stateChanged, [this, checkBox](int) {
+        connect(checkBox, &QCheckBox::checkStateChanged, [this, checkBox](int) {
             // Skip if we're refreshing the UI
             if (isRefreshing_) return;
             
@@ -1562,6 +1600,7 @@ void SettingsWindow::onCommunicationSelectorChanged(int index) {
     }
 }
 
+// Gather and update the current communication settings in the config
 void SettingsWindow::saveCurrentCommunicationSettings() {
     if (currentCommunicationName_.empty()) {
         return; // Nothing to save
@@ -1697,7 +1736,10 @@ void SettingsWindow::saveCurrentCommunicationSettings() {
     // This prevents sending events when just switching between communication channels
     if (!isRefreshing_) {
         Config* mutableConfig = const_cast<Config*>(config_);
-        /* setCommunicationSetting call removed: implement communication update logic directly if needed */(currentCommunicationName_, commSettings);
+        // Update only the current communication channel in the config JSON
+        nlohmann::json allCommSettings = mutableConfig->getCommunicationSettings();
+        allCommSettings[currentCommunicationName_] = commSettings;
+        mutableConfig->updateCommunicationSettings(allCommSettings);
         // Only notify that settings have been updated when not in refreshing mode
         GuiEvent event;
         event.keyword = "GuiMessage";

@@ -1,193 +1,393 @@
-13:15:49 [info] Application starting...
-13:15:49 [debug] [int main(int, char **)] Application started
-13:15:49 [debug] [int main(int, char **)] Multimedia timer resolution set to 1ms
-13:15:49 [debug] [int main(int, char **)] EventQueue created
-13:15:49 [error] Error ensuring default communication settings: resource deadlock would occur: resource deadlock would occur
-13:15:49 [error] Error ensuring default timer settings: resource deadlock would occur: resource deadlock would occur
-13:15:49 [debug] [int main(int, char **)] QApplication instance creating...
-13:15:49 [debug] [int main(int, char **)] QApplication instance created.
-13:15:49 [debug] [int main(int, char **)] MainWindow instance creating...
-13:15:49 [debug] [MainWindow] Constructor started
-13:15:49 [debug] [MainWindow] Calling ui->setupUi()...
-13:15:49 [debug] [MainWindow] ui->setupUi() finished.
-13:15:49 [debug] [MainWindow] Creating SettingsWindow...
-13:15:50 [debug] [MainWindow] SettingsWindow created.
-13:15:50 [debug] [MainWindow] Queuing emitWindowReady()...
-13:15:50 [debug] [MainWindow] emitWindowReady() queued.
-13:15:50 [debug] [MainWindow] Constructor finished
-13:15:50 [debug] [int main(int, char **)] MainWindow instance created.
-13:15:50 [debug] Initializing PCI-7248...
-13:15:50 [debug] PCI-7248 Card registered successfully (Card ID: 0).
-13:15:50 [debug] Configured Port A (0) as output
-13:15:50 [debug] Configured Port B (1) as input
-13:15:50 [debug] Configured Port CH (4) as input
-13:15:50 [debug] Configured Port CL (3) as output
-13:15:50 [debug] --- Configured Input Channels ---
-13:15:50 [debug] Input : i8 (Port B, Pin 8)
-13:15:50 [debug] Input : i13 (Port B, Pin 13)
-13:15:50 [debug] Input : i9 (Port B, Pin 9)
-13:15:50 [debug] Input : i12 (Port B, Pin 12)
-13:15:50 [debug] Input : i10 (Port B, Pin 10)
-13:15:50 [debug] Input : i11 (Port B, Pin 11)
-13:15:50 [debug] Input : i14 (Port B, Pin 14)
-13:15:50 [debug] Input : i15 (Port B, Pin 15)
-13:15:50 [debug] Input : i20 (Port CH, Pin 20)
-13:15:50 [debug] Input : i21 (Port CH, Pin 21)
-13:15:50 [debug] Input : i22 (Port CH, Pin 22)
-13:15:50 [debug] Input : i23 (Port CH, Pin 23)
-13:15:50 [debug] --- Configured Output Channels ---
-13:15:50 [debug] Output: o0 (Port A, Pin 0)
-13:15:50 [debug] Output: o1 (Port A, Pin 1)
-13:15:50 [debug] Output: o7 (Port A, Pin 7)
-13:15:50 [debug] ---------------------------------
-13:15:50 [debug] Resetting configured output ports to OFF state.
-13:15:50 [debug] Timer capabilities - Min: 1ms, Max: 1000000ms
-13:15:50 [debug] PCI7248IO initialized successfully. High-resolution timer started with 2ms interval.
-13:15:50 [debug] Polling thread set to high priority.
-13:15:50 [debug] [Logic::Logic(EventQueue<EventVariant> &, const Config &)] Logic initialized
-13:15:50 [debug] [int main(int, char **)] Showing MainWindow...
-13:15:50 [debug] [bool Logic::initTimers()] Initializing timers...
-13:15:50 [debug] [bool Logic::initTimers()] Initialized timer: timer1 with duration: 1111ms
-13:15:50 [debug] [bool Logic::initTimers()] Initialized timer: timer2 with duration: 2000ms
-13:15:50 [debug] [bool Logic::initTimers()] Initialized timer: timer3 with duration: 5000ms
-13:15:50 [debug] [bool Logic::initTimers()] 3 timer(s) initialized successfully
-13:15:50 [debug] [void Logic::initialize()] Timers initialized successfully
-13:15:50 [debug] [bool Logic::initializeCommunicationPorts()] Initializing communication ports...
-13:15:50 [debug] [0x21245d8db08] RS232Communication constructor for 'communication1'
-13:15:50 [debug] [virtual bool RS232Communication::initialize()] RS232Communication initialize() started for 'communication1'
-13:15:50 [debug] Started receive thread for port communication1
-13:15:50 [debug] [bool Logic::initializeCommunicationPorts()] Communication port 'communication1' initialized successfully
-13:15:50 [debug] [0x21245da75f8] RS232Communication constructor for 'communication2'
-13:15:50 [debug] [virtual bool RS232Communication::initialize()] RS232Communication initialize() started for 'communication2'
-13:15:50 [debug] Started receive thread for port communication2
-13:15:50 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() started for 'communication2'
-13:15:50 [debug] [bool Logic::initializeCommunicationPorts()] Communication port 'communication2' initialized successfully
-13:15:50 [debug] [0x21245d90fc8] RS232Communication constructor for 'communication3'
-13:15:50 [debug] [virtual bool RS232Communication::initialize()] RS232Communication initialize() started for 'communication3'
-13:15:50 [warning] Port name is empty. Please specify a valid port.
-13:15:50 [warning] Communication settings validation failed for communication3. Aborting initialization.
-13:15:50 [warning] [bool Logic::initializeCommunicationPorts()] Communication port 'communication3' initialization failed
-13:15:50 [debug] [virtual RS232Communication::~RS232Communication()] RS232Communication destructor for 'communication3'
-13:15:50 [debug] [0x21245d90fc8] RS232Communication close() started for 'communication3'
-13:15:50 [debug] [virtual void RS232Communication::close()] Port communication3 already closed, skipping close operation
-13:15:50 [debug] [bool Logic::initializeCommunicationPorts()] Communication port 'communication4' is not active in config, skipping
-13:15:50 [warning] [bool Logic::initializeCommunicationPorts()] 2 of 3 active communication ports initialized
-13:15:50 [debug] [void Logic::initialize()] Communication ports initialized successfully
-13:15:50 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() started for 'communication1'
-13:15:50 [debug] [void Logic::handleEvent(const GuiEvent &)] GUI Event] Received: keyword='GuiMessage', data='Communication settings loaded from JSON', target='info', intValue=0
-13:15:50 [debug] [int main(int, char **)] MainWindow show() called.
-13:15:50 [debug] [int main(int, char **)] Starting QApplication event loop (app.exec())...
-13:15:51 [debug] [MainWindow] emitWindowReady() called.
-13:15:51 [debug] [MainWindow] Emitting windowReady signal...
-13:15:51 [debug] SettingsWindow::onInitialLoadComplete() called.
-13:15:51 [debug] [MainWindow] windowReady signal emitted.
-13:15:51 [debug] [MainWindow] emitWindowReady() finished.
-13:15:56 [debug] [void Logic::handleEvent(const GuiEvent &)] GUI Event] Received: keyword='SetVariable', data='', target='blinkLed0', intValue=0
-13:15:56 [debug] [void Logic::handleEvent(const GuiEvent &)] Setting variable blinkLed0
-13:15:56 [debug] [void Logic::handleEvent(const GuiEvent &)] LED blinking enabled
-13:15:57 [debug] [Timer Event] Timer: timer1 triggered.
-13:15:58 [debug] [Timer Event] Timer: timer1 triggered.
-13:15:59 [debug] [void Logic::handleEvent(const GuiEvent &)] GUI Event] Received: keyword='SetVariable', data='', target='blinkLed0', intValue=0
-13:15:59 [debug] [void Logic::handleEvent(const GuiEvent &)] Setting variable blinkLed0
-13:15:59 [debug] [void Logic::handleEvent(const GuiEvent &)] LED blinking disabled
-13:16:04 [info] [saveSettingsToConfig] Saving settings to config
-13:16:04 [debug] Communication settings updated
-13:16:04 [debug] [void Logic::handleEvent(const GuiEvent &)] GUI Event] Received: keyword='GuiMessage', data='Communication settings for communication1 updated', target='info', intValue=0
-13:16:04 [debug] Timer settings updated
-13:16:04 [debug] Configuration successfully saved to: config/settings.json
-13:16:04 [debug] Settings saved to configuration file
-13:16:04 [debug] [saveSettingsToConfig] Sending ParameterChange event for communication
-13:16:04 [debug] [void Logic::handleEvent(const GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='communication', target='', intValue=0
-13:16:04 [debug] [void Logic::handleEvent(const GuiEvent &)] Parameters changed: communication
-13:16:04 [debug] [void Logic::handleEvent(const GuiEvent &)] Reinitializing communication ports due to parameter changes
-13:16:04 [debug] [bool Logic::initializeCommunicationPorts()] Initializing communication ports...
-13:16:04 [debug] [0x21245d8db08] RS232Communication close() started for 'communication1'
-13:16:04 [debug] [virtual void RS232Communication::close()] Closing port communication1
-13:16:04 [debug] [virtual void RS232Communication::close()] close: Closing handle for communication1...
-13:16:04 [debug] [void RS232Communication::receiveLoop()] receiveLoop: WaitCommEvent aborted/cancelled for communication1
-13:16:04 [debug] [void RS232Communication::receiveLoop()] receiveLoop: Breaking after WaitCommEvent processing due to stop requested.
-13:16:04 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() exited for 'communication1'
-13:16:04 [debug] Attempting to join receive thread for communication1
-13:16:04 [debug] Successfully joined receive thread for communication1
-13:16:04 [debug] [virtual void RS232Communication::close()] RS232Communication close() finished for 'communication1' Port closed successfully
-13:16:04 [debug] [0x21245da75f8] RS232Communication close() started for 'communication2'
-13:16:04 [debug] [virtual void RS232Communication::close()] Closing port communication2
-13:16:04 [debug] [void RS232Communication::receiveLoop()] receiveLoop: WaitCommEvent aborted/cancelled for communication2
-13:16:04 [debug] [void RS232Communication::receiveLoop()] receiveLoop: Breaking after WaitCommEvent processing due to stop requested.
-13:16:04 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() exited for 'communication2'
-13:16:04 [debug] [virtual void RS232Communication::close()] close: Closing handle for communication2...
-13:16:04 [debug] Attempting to join receive thread for communication2
-13:16:04 [debug] Successfully joined receive thread for communication2
-13:16:04 [debug] [virtual void RS232Communication::close()] RS232Communication close() finished for 'communication2' Port closed successfully
-13:16:04 [debug] [virtual RS232Communication::~RS232Communication()] RS232Communication destructor for 'communication1'
-13:16:04 [debug] [0x21245d8db08] RS232Communication close() started for 'communication1'
-13:16:04 [debug] [virtual void RS232Communication::close()] Port communication1 already closed, skipping close operation
-13:16:04 [debug] [virtual RS232Communication::~RS232Communication()] RS232Communication destructor for 'communication2'
-13:16:04 [debug] [0x21245da75f8] RS232Communication close() started for 'communication2'
-13:16:04 [debug] [virtual void RS232Communication::close()] Port communication2 already closed, skipping close operation
-13:16:04 [debug] [0x21245d935d8] RS232Communication constructor for 'communication1'
-13:16:04 [debug] [virtual bool RS232Communication::initialize()] RS232Communication initialize() started for 'communication1'
-13:16:04 [debug] Started receive thread for port communication1
-13:16:04 [debug] [bool Logic::initializeCommunicationPorts()] Communication port 'communication1' initialized successfully
-13:16:04 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() started for 'communication1'
-13:16:04 [debug] [0x21245dab468] RS232Communication constructor for 'communication2'
-13:16:04 [debug] [virtual bool RS232Communication::initialize()] RS232Communication initialize() started for 'communication2'
-13:16:04 [debug] Started receive thread for port communication2
-13:16:04 [debug] [bool Logic::initializeCommunicationPorts()] Communication port 'communication2' initialized successfully
-13:16:04 [debug] [0x21245da8c28] RS232Communication constructor for 'communication3'
-13:16:04 [debug] [virtual bool RS232Communication::initialize()] RS232Communication initialize() started for 'communication3'
-13:16:04 [warning] Port name is empty. Please specify a valid port.
-13:16:04 [warning] Communication settings validation failed for communication3. Aborting initialization.
-13:16:04 [warning] [bool Logic::initializeCommunicationPorts()] Communication port 'communication3' initialization failed
-13:16:04 [debug] [virtual RS232Communication::~RS232Communication()] RS232Communication destructor for 'communication3'
-13:16:04 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() started for 'communication2'
-13:16:04 [debug] [0x21245da8c28] RS232Communication close() started for 'communication3'
-13:16:04 [debug] [virtual void RS232Communication::close()] Port communication3 already closed, skipping close operation
-13:16:04 [debug] [bool Logic::initializeCommunicationPorts()] Communication port 'communication4' is not active in config, skipping
-13:16:04 [warning] [bool Logic::initializeCommunicationPorts()] 2 of 3 active communication ports initialized
-13:16:04 [debug] [void Logic::handleEvent(const GuiEvent &)] Skipping timers reinitialization as parameters don't affect them
-13:16:05 [debug] [void Logic::handleEvent(const GuiEvent &)] GUI Event] Received: keyword='SetVariable', data='', target='blinkLed0', intValue=0
-13:16:05 [debug] [void Logic::handleEvent(const GuiEvent &)] Setting variable blinkLed0
-13:16:05 [debug] [void Logic::handleEvent(const GuiEvent &)] LED blinking enabled
-13:16:07 [debug] [Timer Event] Timer: timer1 triggered.
-13:16:07 [debug] [void Logic::handleEvent(const GuiEvent &)] GUI Event] Received: keyword='SetVariable', data='', target='blinkLed0', intValue=0
-13:16:07 [debug] [void Logic::handleEvent(const GuiEvent &)] Setting variable blinkLed0
-13:16:07 [debug] [void Logic::handleEvent(const GuiEvent &)] LED blinking disabled
-13:16:14 [debug] [int main(int, char **)] QApplication event loop finished with result: 0
-13:16:14 [debug] Application closing
-13:16:14 [debug] Stop polling signal set.
-13:16:14 [debug] [void Logic::run()] Termination event received
-13:16:14 [debug] [void Logic::closeAllPorts()] Closing all active communication ports...
-13:16:14 [debug] Closing port 'communication1' from Logic::closeAllPorts
-13:16:14 [debug] [0x21245d935d8] RS232Communication close() started for 'communication1'
-13:16:14 [debug] [virtual void RS232Communication::close()] Closing port communication1
-13:16:14 [debug] [void RS232Communication::receiveLoop()] receiveLoop: WaitCommEvent aborted/cancelled for communication1
-13:16:14 [debug] [virtual void RS232Communication::close()] close: Closing handle for communication1...
-13:16:14 [debug] [void RS232Communication::receiveLoop()] receiveLoop: Breaking after WaitCommEvent processing due to stop requested.
-13:16:14 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() exited for 'communication1'
-13:16:14 [debug] Attempting to join receive thread for communication1
-13:16:14 [debug] Successfully joined receive thread for communication1
-13:16:14 [debug] [virtual void RS232Communication::close()] RS232Communication close() finished for 'communication1' Port closed successfully
-13:16:14 [debug] Closing port 'communication2' from Logic::closeAllPorts
-13:16:14 [debug] [0x21245dab468] RS232Communication close() started for 'communication2'
-13:16:14 [debug] [virtual void RS232Communication::close()] Closing port communication2
-13:16:14 [debug] [virtual void RS232Communication::close()] close: Closing handle for communication2...
-13:16:14 [debug] [void RS232Communication::receiveLoop()] receiveLoop: WaitCommEvent aborted/cancelled for communication2
-13:16:14 [debug] [void RS232Communication::receiveLoop()] receiveLoop: Breaking after WaitCommEvent processing due to stop requested.
-13:16:14 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() exited for 'communication2'
-13:16:14 [debug] Attempting to join receive thread for communication2
-13:16:14 [debug] Successfully joined receive thread for communication2
-13:16:14 [debug] [virtual void RS232Communication::close()] RS232Communication close() finished for 'communication2' Port closed successfully
-13:16:14 [debug] [void Logic::closeAllPorts()] Finished closing communication ports.
-13:16:14 [debug] [void Logic::run()] Exiting event loop
-13:16:14 [debug] Logic destructor finished.
-13:16:14 [debug] [virtual RS232Communication::~RS232Communication()] RS232Communication destructor for 'communication1'
-13:16:14 [debug] [0x21245d935d8] RS232Communication close() started for 'communication1'
-13:16:14 [debug] [virtual void RS232Communication::close()] Port communication1 already closed, skipping close operation
-13:16:14 [debug] [virtual RS232Communication::~RS232Communication()] RS232Communication destructor for 'communication2'
-13:16:14 [debug] [0x21245dab468] RS232Communication close() started for 'communication2'
-13:16:14 [debug] [virtual void RS232Communication::close()] Port communication2 already closed, skipping close operation
-13:16:14 [debug] Shutting down PCI7248IO...
-13:16:14 [debug] Stop polling signal set.
-13:16:14 [debug] Resetting configured output ports to OFF state.
-13:16:14 [debug] PCI-7248 Card (0) released.
+15:45:57 [info] Application starting...
+15:45:57 [debug] [int main(int, char **)] Application started
+15:45:57 [debug] [int main(int, char **)] Multimedia timer resolution set to 1ms
+15:45:57 [debug] [int main(int, char **)] EventQueue created
+15:45:57 [error] Error ensuring default communication settings: resource deadlock would occur: resource deadlock would occur
+15:45:57 [error] Error ensuring default timer settings: resource deadlock would occur: resource deadlock would occur
+15:45:57 [debug] [int main(int, char **)] QApplication instance creating...
+15:45:57 [debug] [int main(int, char **)] QApplication instance created.
+15:45:57 [debug] [int main(int, char **)] MainWindow instance creating...
+15:45:57 [debug] [MainWindow] Constructor started
+15:45:57 [debug] [MainWindow] Calling ui->setupUi()...
+15:45:57 [debug] [MainWindow] ui->setupUi() finished.
+15:45:57 [debug] [MainWindow] Creating SettingsWindow...
+15:45:58 [debug] [MainWindow] SettingsWindow created.
+15:45:58 [debug] [MainWindow] Queuing emitWindowReady()...
+15:45:58 [debug] [MainWindow] emitWindowReady() queued.
+15:45:58 [debug] [MainWindow] Constructor finished
+15:45:58 [debug] [int main(int, char **)] MainWindow instance created.
+15:45:58 [debug] Initializing PCI-7248...
+15:45:58 [debug] PCI-7248 Card registered successfully (Card ID: 0).
+15:45:58 [debug] Configured Port A (0) as output
+15:45:58 [debug] Configured Port B (1) as input
+15:45:58 [debug] Configured Port CH (4) as input
+15:45:58 [debug] Configured Port CL (3) as output
+15:45:58 [debug] --- Configured Input Channels ---
+15:45:58 [debug] Input : i8 (Port B, Pin 8)
+15:45:58 [debug] Input : i13 (Port B, Pin 13)
+15:45:58 [debug] Input : i9 (Port B, Pin 9)
+15:45:58 [debug] Input : i12 (Port B, Pin 12)
+15:45:58 [debug] Input : i10 (Port B, Pin 10)
+15:45:58 [debug] Input : i11 (Port B, Pin 11)
+15:45:58 [debug] Input : i14 (Port B, Pin 14)
+15:45:58 [debug] Input : i15 (Port B, Pin 15)
+15:45:58 [debug] Input : i20 (Port CH, Pin 20)
+15:45:58 [debug] Input : i21 (Port CH, Pin 21)
+15:45:58 [debug] Input : i22 (Port CH, Pin 22)
+15:45:58 [debug] Input : i23 (Port CH, Pin 23)
+15:45:58 [debug] --- Configured Output Channels ---
+15:45:58 [debug] Output: o0 (Port A, Pin 0)
+15:45:58 [debug] Output: o1 (Port A, Pin 1)
+15:45:58 [debug] Output: o7 (Port A, Pin 7)
+15:45:58 [debug] ---------------------------------
+15:45:58 [debug] Resetting configured output ports to OFF state.
+15:45:58 [debug] Timer capabilities - Min: 1ms, Max: 1000000ms
+15:45:58 [debug] PCI7248IO initialized successfully. High-resolution timer started with 2ms interval.
+15:45:58 [debug] Polling thread set to high priority.
+15:45:58 [debug] [Logic::Logic(EventQueue<EventVariant> &, const Config &)] Logic initialized
+15:45:58 [debug] [int main(int, char **)] Showing MainWindow...
+15:45:58 [debug] [bool Logic::initTimers()] Initializing timers...
+15:45:58 [debug] [bool Logic::initTimers()] Initialized timer: timer1 with duration: 77ms
+15:45:58 [debug] [bool Logic::initTimers()] Initialized timer: timer2 with duration: 2000ms
+15:45:58 [debug] [bool Logic::initTimers()] Initialized timer: timer3 with duration: 5000ms
+15:45:58 [debug] [bool Logic::initTimers()] 3 timer(s) initialized successfully
+15:45:58 [debug] [void Logic::initialize()] Timers initialized successfully
+15:45:58 [debug] [bool Logic::initializeCommunicationPorts()] Initializing communication ports...
+15:45:58 [debug] [0x1dce6a5f958] RS232Communication constructor for 'communication1'
+15:45:58 [debug] [virtual bool RS232Communication::initialize()] RS232Communication initialize() started for 'communication1'
+15:45:58 [debug] Started receive thread for port communication1
+15:45:58 [debug] [bool Logic::initializeCommunicationPorts()] Communication port 'communication1' initialized successfully
+15:45:58 [debug] [0x1dce4746438] RS232Communication constructor for 'communication2'
+15:45:58 [debug] [virtual bool RS232Communication::initialize()] RS232Communication initialize() started for 'communication2'
+15:45:58 [debug] Started receive thread for port communication2
+15:45:58 [debug] [bool Logic::initializeCommunicationPorts()] Communication port 'communication2' initialized successfully
+15:45:58 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() started for 'communication2'
+15:45:58 [debug] [0x1dce6a60228] RS232Communication constructor for 'communication3'
+15:45:58 [debug] [virtual bool RS232Communication::initialize()] RS232Communication initialize() started for 'communication3'
+15:45:58 [warning] Port name is empty. Please specify a valid port.
+15:45:58 [warning] Communication settings validation failed for communication3. Aborting initialization.
+15:45:58 [warning] [bool Logic::initializeCommunicationPorts()] Communication port 'communication3' initialization failed
+15:45:58 [debug] [virtual RS232Communication::~RS232Communication()] RS232Communication destructor for 'communication3'
+15:45:58 [debug] [0x1dce6a60228] RS232Communication close() started for 'communication3'
+15:45:58 [debug] [virtual void RS232Communication::close()] Port communication3 already closed, skipping close operation
+15:45:58 [debug] [bool Logic::initializeCommunicationPorts()] Communication port 'communication4' is not active in config, skipping
+15:45:58 [warning] [bool Logic::initializeCommunicationPorts()] 2 of 3 active communication ports initialized
+15:45:58 [debug] [void Logic::initialize()] Communication ports initialized successfully
+15:46:04 [debug] [void Logic::handleEvent(const GuiEvent &)] GUI Event] Received: keyword='GuiMessage', data='Communication settings loaded from JSON', target='info', intValue=0
+15:46:04 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() started for 'communication1'
+15:46:04 [debug] [int main(int, char **)] MainWindow show() called.
+15:46:04 [debug] [int main(int, char **)] Starting QApplication event loop (app.exec())...
+15:46:04 [debug] [MainWindow] emitWindowReady() called.
+15:46:04 [debug] [MainWindow] Emitting windowReady signal...
+15:46:04 [debug] SettingsWindow::onInitialLoadComplete() called.
+15:46:04 [debug] [MainWindow] windowReady signal emitted.
+15:46:04 [debug] [MainWindow] emitWindowReady() finished.
+15:46:26 [info] [saveSettingsToConfig] Saving settings to config
+15:46:26 [debug] Communication settings updated
+15:46:26 [debug] Timer settings updated
+15:46:29 [debug] [void Logic::handleEvent(const GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='communication', intValue=0
+15:46:29 [debug] [void Logic::handleEvent(const GuiEvent &)] Parameters changed: 
+15:46:29 [debug] [void Logic::handleEvent(const GuiEvent &)] Reinitializing communication ports due to parameter changes
+15:46:29 [debug] [bool Logic::initializeCommunicationPorts()] Initializing communication ports...
+15:46:29 [debug] [0x1dce6a5f958] RS232Communication close() started for 'communication1'
+15:46:29 [debug] [virtual void RS232Communication::close()] Closing port communication1
+15:46:29 [error] [void RS232Communication::receiveLoop()] Error in final GetOverlappedResult for WaitCommEvent on communication1: 996
+15:46:29 [debug] [virtual void RS232Communication::close()] close: Closing handle for communication1...
+15:46:29 [debug] Configuration successfully saved to: config/settings.json
+15:46:29 [debug] [void RS232Communication::receiveLoop()] receiveLoop: Breaking after WaitCommEvent processing due to stop requested.
+15:46:29 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() exited for 'communication1'
+15:46:29 [debug] Settings saved to configuration file
+15:46:29 [debug] Attempting to join receive thread for communication1
+15:46:29 [debug] Successfully joined receive thread for communication1
+15:46:29 [debug] [virtual void RS232Communication::close()] RS232Communication close() finished for 'communication1' Port closed successfully
+15:46:29 [debug] [0x1dce4746438] RS232Communication close() started for 'communication2'
+15:46:29 [debug] [virtual void RS232Communication::close()] Closing port communication2
+15:46:29 [debug] [virtual void RS232Communication::close()] close: Closing handle for communication2...
+15:46:29 [debug] [void RS232Communication::receiveLoop()] receiveLoop: WaitCommEvent aborted/cancelled for communication2
+15:46:29 [debug] [void RS232Communication::receiveLoop()] receiveLoop: Breaking after WaitCommEvent processing due to stop requested.
+15:46:29 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() exited for 'communication2'
+15:46:29 [debug] Attempting to join receive thread for communication2
+15:46:29 [debug] Successfully joined receive thread for communication2
+15:46:29 [debug] [virtual void RS232Communication::close()] RS232Communication close() finished for 'communication2' Port closed successfully
+15:46:29 [debug] [virtual RS232Communication::~RS232Communication()] RS232Communication destructor for 'communication1'
+15:46:29 [debug] [0x1dce6a5f958] RS232Communication close() started for 'communication1'
+15:46:29 [debug] [virtual void RS232Communication::close()] Port communication1 already closed, skipping close operation
+15:46:29 [debug] [virtual RS232Communication::~RS232Communication()] RS232Communication destructor for 'communication2'
+15:46:29 [debug] [0x1dce4746438] RS232Communication close() started for 'communication2'
+15:46:29 [debug] [virtual void RS232Communication::close()] Port communication2 already closed, skipping close operation
+15:46:29 [debug] [0x1dce6a67088] RS232Communication constructor for 'communication1'
+15:46:29 [debug] [virtual bool RS232Communication::initialize()] RS232Communication initialize() started for 'communication1'
+15:46:29 [debug] Started receive thread for port communication1
+15:46:29 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() started for 'communication1'
+15:46:29 [debug] [bool Logic::initializeCommunicationPorts()] Communication port 'communication1' initialized successfully
+15:46:29 [debug] [0x1dce6a838b8] RS232Communication constructor for 'communication2'
+15:46:29 [debug] [virtual bool RS232Communication::initialize()] RS232Communication initialize() started for 'communication2'
+15:46:29 [debug] Started receive thread for port communication2
+15:46:29 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() started for 'communication2'
+15:46:29 [debug] [bool Logic::initializeCommunicationPorts()] Communication port 'communication2' initialized successfully
+15:46:29 [debug] [0x1dce6a81b68] RS232Communication constructor for 'communication3'
+15:46:29 [debug] [virtual bool RS232Communication::initialize()] RS232Communication initialize() started for 'communication3'
+15:46:29 [warning] Port name is empty. Please specify a valid port.
+15:46:29 [warning] Communication settings validation failed for communication3. Aborting initialization.
+15:46:29 [warning] [bool Logic::initializeCommunicationPorts()] Communication port 'communication3' initialization failed
+15:46:29 [debug] [virtual RS232Communication::~RS232Communication()] RS232Communication destructor for 'communication3'
+15:46:29 [debug] [0x1dce6a81b68] RS232Communication close() started for 'communication3'
+15:46:29 [debug] [virtual void RS232Communication::close()] Port communication3 already closed, skipping close operation
+15:46:29 [debug] [bool Logic::initializeCommunicationPorts()] Communication port 'communication4' is not active in config, skipping
+15:46:29 [warning] [bool Logic::initializeCommunicationPorts()] 2 of 3 active communication ports initialized
+15:46:29 [debug] [void Logic::handleEvent(const GuiEvent &)] Skipping timers reinitialization as parameters don't affect them
+15:46:31 [debug] [void Logic::handleEvent(const GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='timer', intValue=0
+15:46:31 [debug] [void Logic::handleEvent(const GuiEvent &)] Parameters changed: 
+15:46:31 [debug] [void Logic::handleEvent(const GuiEvent &)] Skipping communication ports reinitialization as parameters don't affect them
+15:46:31 [debug] [void Logic::handleEvent(const GuiEvent &)] Reinitializing timers due to parameter changes
+15:46:31 [debug] [bool Logic::initTimers()] Initializing timers...
+15:46:31 [debug] [bool Logic::initTimers()] Initialized timer: timer1 with duration: 77ms
+15:46:31 [debug] [bool Logic::initTimers()] Initialized timer: timer2 with duration: 2000ms
+15:46:31 [debug] [bool Logic::initTimers()] Initialized timer: timer3 with duration: 5000ms
+15:46:31 [debug] [bool Logic::initTimers()] 3 timer(s) initialized successfully
+15:46:45 [info] [saveSettingsToConfig] Saving settings to config
+15:46:45 [debug] Communication settings updated
+15:46:45 [debug] [void Logic::handleEvent(const GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='communication', intValue=0
+15:46:45 [debug] Timer settings updated
+15:46:45 [debug] [void Logic::handleEvent(const GuiEvent &)] Parameters changed: 
+15:46:45 [debug] [void Logic::handleEvent(const GuiEvent &)] Reinitializing communication ports due to parameter changes
+15:46:45 [debug] [bool Logic::initializeCommunicationPorts()] Initializing communication ports...
+15:46:45 [debug] [0x1dce6a67088] RS232Communication close() started for 'communication1'
+15:46:45 [debug] [virtual void RS232Communication::close()] Closing port communication1
+15:46:45 [debug] Configuration successfully saved to: config/settings.json
+15:46:45 [debug] [virtual void RS232Communication::close()] close: Closing handle for communication1...
+15:46:45 [debug] [void RS232Communication::receiveLoop()] receiveLoop: WaitCommEvent aborted/cancelled for communication1
+15:46:45 [debug] Settings saved to configuration file
+15:46:45 [debug] [void RS232Communication::receiveLoop()] receiveLoop: Breaking after WaitCommEvent processing due to stop requested.
+15:46:45 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() exited for 'communication1'
+15:46:45 [debug] Attempting to join receive thread for communication1
+15:46:45 [debug] Successfully joined receive thread for communication1
+15:46:45 [debug] [virtual void RS232Communication::close()] RS232Communication close() finished for 'communication1' Port closed successfully
+15:46:45 [debug] [0x1dce6a838b8] RS232Communication close() started for 'communication2'
+15:46:45 [debug] [virtual void RS232Communication::close()] Closing port communication2
+15:46:45 [debug] [void RS232Communication::receiveLoop()] receiveLoop: WaitCommEvent aborted/cancelled for communication2
+15:46:45 [debug] [void RS232Communication::receiveLoop()] receiveLoop: Breaking after WaitCommEvent processing due to stop requested.
+15:46:45 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() exited for 'communication2'
+15:46:45 [debug] [virtual void RS232Communication::close()] close: Closing handle for communication2...
+15:46:45 [debug] Attempting to join receive thread for communication2
+15:46:45 [debug] Successfully joined receive thread for communication2
+15:46:45 [debug] [virtual void RS232Communication::close()] RS232Communication close() finished for 'communication2' Port closed successfully
+15:46:45 [debug] [virtual RS232Communication::~RS232Communication()] RS232Communication destructor for 'communication1'
+15:46:45 [debug] [0x1dce6a67088] RS232Communication close() started for 'communication1'
+15:46:45 [debug] [virtual void RS232Communication::close()] Port communication1 already closed, skipping close operation
+15:46:45 [debug] [virtual RS232Communication::~RS232Communication()] RS232Communication destructor for 'communication2'
+15:46:45 [debug] [0x1dce6a838b8] RS232Communication close() started for 'communication2'
+15:46:45 [debug] [virtual void RS232Communication::close()] Port communication2 already closed, skipping close operation
+15:46:45 [debug] [0x1dce6aeead8] RS232Communication constructor for 'communication1'
+15:46:45 [debug] [virtual bool RS232Communication::initialize()] RS232Communication initialize() started for 'communication1'
+15:46:46 [debug] Started receive thread for port communication1
+15:46:46 [debug] [bool Logic::initializeCommunicationPorts()] Communication port 'communication1' initialized successfully
+15:46:46 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() started for 'communication1'
+15:46:46 [debug] [0x1dce6a6b858] RS232Communication constructor for 'communication2'
+15:46:46 [debug] [virtual bool RS232Communication::initialize()] RS232Communication initialize() started for 'communication2'
+15:46:46 [debug] Started receive thread for port communication2
+15:46:46 [debug] [bool Logic::initializeCommunicationPorts()] Communication port 'communication2' initialized successfully
+15:46:46 [debug] [0x1dce69ea808] RS232Communication constructor for 'communication3'
+15:46:46 [debug] [virtual bool RS232Communication::initialize()] RS232Communication initialize() started for 'communication3'
+15:46:46 [warning] Port name is empty. Please specify a valid port.
+15:46:46 [warning] Communication settings validation failed for communication3. Aborting initialization.
+15:46:46 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() started for 'communication2'
+15:46:46 [warning] [bool Logic::initializeCommunicationPorts()] Communication port 'communication3' initialization failed
+15:46:46 [debug] [virtual RS232Communication::~RS232Communication()] RS232Communication destructor for 'communication3'
+15:46:46 [debug] [0x1dce69ea808] RS232Communication close() started for 'communication3'
+15:46:46 [debug] [virtual void RS232Communication::close()] Port communication3 already closed, skipping close operation
+15:46:46 [debug] [bool Logic::initializeCommunicationPorts()] Communication port 'communication4' is not active in config, skipping
+15:46:46 [warning] [bool Logic::initializeCommunicationPorts()] 2 of 3 active communication ports initialized
+15:46:46 [debug] [void Logic::handleEvent(const GuiEvent &)] Skipping timers reinitialization as parameters don't affect them
+15:46:46 [debug] [void Logic::handleEvent(const GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='timer', intValue=0
+15:46:46 [debug] [void Logic::handleEvent(const GuiEvent &)] Parameters changed: 
+15:46:46 [debug] [void Logic::handleEvent(const GuiEvent &)] Skipping communication ports reinitialization as parameters don't affect them
+15:46:46 [debug] [void Logic::handleEvent(const GuiEvent &)] Reinitializing timers due to parameter changes
+15:46:46 [debug] [bool Logic::initTimers()] Initializing timers...
+15:46:46 [debug] [bool Logic::initTimers()] Initialized timer: timer1 with duration: 77ms
+15:46:46 [debug] [bool Logic::initTimers()] Initialized timer: timer2 with duration: 2000ms
+15:46:46 [debug] [bool Logic::initTimers()] Initialized timer: timer3 with duration: 5000ms
+15:46:46 [debug] [bool Logic::initTimers()] 3 timer(s) initialized successfully
+15:47:15 [debug] Sent message to communication1: 1234
+15:47:15 [debug] [void Logic::handleEvent(const GuiEvent &)] GUI Event] Received: keyword='SendCommunicationMessage', data='1234', target='communication1', intValue=0
+15:47:15 [debug] [void Logic::handleEvent(const GuiEvent &)] Message sent to communication1: 1234
+15:47:27 [debug] Sent message to communication1: 1234
+15:47:27 [debug] [void Logic::handleEvent(const GuiEvent &)] GUI Event] Received: keyword='SendCommunicationMessage', data='1234', target='communication1', intValue=0
+15:47:27 [debug] [void Logic::handleEvent(const GuiEvent &)] Message sent to communication1: 1234
+15:47:34 [debug] [void Logic::handleEvent(const CommEvent &)] Received communication from communication1: jj
+15:47:34 [debug] [void Logic::handleEvent(const CommEvent &)] Received communication from communication1: jj
+15:47:34 [debug] [void Logic::oneLogicCycle()] Processing 4 messages from communication1
+15:47:34 [debug] [void Logic::oneLogicCycle()] Message from communication1: 
+15:47:34 [debug] [void Logic::oneLogicCycle()] Message from communication1: 
+15:47:34 [debug] [void Logic::oneLogicCycle()] Message from communication1: 
+15:47:34 [debug] [void Logic::oneLogicCycle()] Message from communication1: jj
+15:47:34 [info] [void Logic::oneLogicCycle()] Port 'communication1' message at offset 3: 'jj' (len=2)
+15:47:40 [info] [saveSettingsToConfig] Saving settings to config
+15:47:41 [debug] Communication settings updated
+15:47:41 [debug] [void Logic::handleEvent(const GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='communication', intValue=0
+15:47:41 [debug] Timer settings updated
+15:47:41 [debug] [void Logic::handleEvent(const GuiEvent &)] Parameters changed: 
+15:47:41 [debug] [void Logic::handleEvent(const GuiEvent &)] Reinitializing communication ports due to parameter changes
+15:47:41 [debug] [bool Logic::initializeCommunicationPorts()] Initializing communication ports...
+15:47:41 [debug] [0x1dce6aeead8] RS232Communication close() started for 'communication1'
+15:47:41 [debug] [virtual void RS232Communication::close()] Closing port communication1
+15:47:41 [debug] Configuration successfully saved to: config/settings.json
+15:47:41 [debug] Settings saved to configuration file
+15:47:41 [debug] [virtual void RS232Communication::close()] close: Closing handle for communication1...
+15:47:41 [debug] [void RS232Communication::receiveLoop()] receiveLoop: ReadFile aborted/cancelled for communication1
+15:47:41 [debug] [void RS232Communication::receiveLoop()] receiveLoop: Breaking after GetOverlappedResult(ReadFile) processing due to stop requested.
+15:47:41 [debug] [void RS232Communication::receiveLoop()] receiveLoop: Breaking after inner read loop due to stop requested.
+15:47:41 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() exited for 'communication1'
+15:47:41 [debug] Attempting to join receive thread for communication1
+15:47:41 [debug] Successfully joined receive thread for communication1
+15:47:41 [debug] [virtual void RS232Communication::close()] RS232Communication close() finished for 'communication1' Port closed successfully
+15:47:41 [debug] [0x1dce6a6b858] RS232Communication close() started for 'communication2'
+15:47:41 [debug] [virtual void RS232Communication::close()] Closing port communication2
+15:47:41 [debug] [void RS232Communication::receiveLoop()] receiveLoop: WaitCommEvent aborted/cancelled for communication2
+15:47:41 [debug] [virtual void RS232Communication::close()] close: Closing handle for communication2...
+15:47:41 [debug] [void RS232Communication::receiveLoop()] receiveLoop: Breaking after WaitCommEvent processing due to stop requested.
+15:47:41 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() exited for 'communication2'
+15:47:41 [debug] Attempting to join receive thread for communication2
+15:47:41 [debug] Successfully joined receive thread for communication2
+15:47:41 [debug] [virtual void RS232Communication::close()] RS232Communication close() finished for 'communication2' Port closed successfully
+15:47:41 [debug] [virtual RS232Communication::~RS232Communication()] RS232Communication destructor for 'communication1'
+15:47:41 [debug] [0x1dce6aeead8] RS232Communication close() started for 'communication1'
+15:47:41 [debug] [virtual void RS232Communication::close()] Port communication1 already closed, skipping close operation
+15:47:41 [debug] [virtual RS232Communication::~RS232Communication()] RS232Communication destructor for 'communication2'
+15:47:41 [debug] [0x1dce6a6b858] RS232Communication close() started for 'communication2'
+15:47:41 [debug] [virtual void RS232Communication::close()] Port communication2 already closed, skipping close operation
+15:47:41 [debug] [0x1dce6b51b58] RS232Communication constructor for 'communication1'
+15:47:41 [debug] [virtual bool RS232Communication::initialize()] RS232Communication initialize() started for 'communication1'
+15:47:41 [warning] [bool Logic::initializeCommunicationPorts()] Communication port 'communication1' initialization failed
+15:47:41 [debug] [virtual RS232Communication::~RS232Communication()] RS232Communication destructor for 'communication1'
+15:47:41 [debug] [0x1dce6b51b58] RS232Communication close() started for 'communication1'
+15:47:41 [debug] [virtual void RS232Communication::close()] Port communication1 already closed, skipping close operation
+15:47:41 [debug] [0x1dce6b51b58] RS232Communication constructor for 'communication2'
+15:47:41 [debug] [virtual bool RS232Communication::initialize()] RS232Communication initialize() started for 'communication2'
+15:47:41 [debug] Started receive thread for port communication2
+15:47:41 [debug] [bool Logic::initializeCommunicationPorts()] Communication port 'communication2' initialized successfully
+15:47:41 [debug] [0x1dce6b0bb98] RS232Communication constructor for 'communication3'
+15:47:41 [debug] [virtual bool RS232Communication::initialize()] RS232Communication initialize() started for 'communication3'
+15:47:41 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() started for 'communication2'
+15:47:41 [warning] Port name is empty. Please specify a valid port.
+15:47:41 [warning] Communication settings validation failed for communication3. Aborting initialization.
+15:47:41 [warning] [bool Logic::initializeCommunicationPorts()] Communication port 'communication3' initialization failed
+15:47:41 [debug] [virtual RS232Communication::~RS232Communication()] RS232Communication destructor for 'communication3'
+15:47:41 [debug] [0x1dce6b0bb98] RS232Communication close() started for 'communication3'
+15:47:41 [debug] [virtual void RS232Communication::close()] Port communication3 already closed, skipping close operation
+15:47:41 [debug] [bool Logic::initializeCommunicationPorts()] Communication port 'communication4' is not active in config, skipping
+15:47:41 [warning] [bool Logic::initializeCommunicationPorts()] 1 of 3 active communication ports initialized
+15:47:41 [debug] [void Logic::handleEvent(const GuiEvent &)] Skipping timers reinitialization as parameters don't affect them
+15:47:41 [debug] [void Logic::handleEvent(const GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='timer', intValue=0
+15:47:41 [debug] [void Logic::handleEvent(const GuiEvent &)] Parameters changed: 
+15:47:41 [debug] [void Logic::handleEvent(const GuiEvent &)] Skipping communication ports reinitialization as parameters don't affect them
+15:47:41 [debug] [void Logic::handleEvent(const GuiEvent &)] Reinitializing timers due to parameter changes
+15:47:41 [debug] [bool Logic::initTimers()] Initializing timers...
+15:47:41 [debug] [bool Logic::initTimers()] Initialized timer: timer1 with duration: 77ms
+15:47:41 [debug] [bool Logic::initTimers()] Initialized timer: timer2 with duration: 2000ms
+15:47:41 [debug] [bool Logic::initTimers()] Initialized timer: timer3 with duration: 5000ms
+15:47:41 [debug] [bool Logic::initTimers()] 3 timer(s) initialized successfully
+15:47:42 [debug] Sent message to communication1: 1234
+15:47:42 [debug] [void Logic::handleEvent(const GuiEvent &)] GUI Event] Received: keyword='SendCommunicationMessage', data='1234', target='communication1', intValue=0
+15:47:42 [error] [void Logic::handleEvent(const GuiEvent &)] Communication port communication1 not found or not active
+15:47:49 [info] [saveSettingsToConfig] Saving settings to config
+15:47:49 [debug] Communication settings updated
+15:47:49 [debug] [void Logic::handleEvent(const GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='communication', intValue=0
+15:47:49 [debug] [void Logic::handleEvent(const GuiEvent &)] Parameters changed: 
+15:47:49 [debug] [void Logic::handleEvent(const GuiEvent &)] Reinitializing communication ports due to parameter changes
+15:47:49 [debug] [bool Logic::initializeCommunicationPorts()] Initializing communication ports...
+15:47:49 [debug] [0x1dce6b51b58] RS232Communication close() started for 'communication2'
+15:47:49 [debug] [virtual void RS232Communication::close()] Closing port communication2
+15:47:49 [debug] Timer settings updated
+15:47:49 [debug] [void RS232Communication::receiveLoop()] receiveLoop: WaitCommEvent aborted/cancelled for communication2
+15:47:49 [debug] [virtual void RS232Communication::close()] close: Closing handle for communication2...
+15:47:49 [debug] [void RS232Communication::receiveLoop()] receiveLoop: Breaking after WaitCommEvent processing due to stop requested.
+15:47:49 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() exited for 'communication2'
+15:47:49 [debug] Configuration successfully saved to: config/settings.json
+15:47:49 [debug] Attempting to join receive thread for communication2
+15:47:49 [debug] Successfully joined receive thread for communication2
+15:47:49 [debug] [virtual void RS232Communication::close()] RS232Communication close() finished for 'communication2' Port closed successfully
+15:47:49 [debug] [virtual RS232Communication::~RS232Communication()] RS232Communication destructor for 'communication2'
+15:47:49 [debug] [0x1dce6b51b58] RS232Communication close() started for 'communication2'
+15:47:49 [debug] [virtual void RS232Communication::close()] Port communication2 already closed, skipping close operation
+15:47:49 [debug] Settings saved to configuration file
+15:47:49 [debug] [0x1dce6af7798] RS232Communication constructor for 'communication1'
+15:47:49 [debug] [virtual bool RS232Communication::initialize()] RS232Communication initialize() started for 'communication1'
+15:47:49 [debug] Started receive thread for port communication1
+15:47:49 [debug] [bool Logic::initializeCommunicationPorts()] Communication port 'communication1' initialized successfully
+15:47:49 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() started for 'communication1'
+15:47:49 [debug] [0x1dce6a6b858] RS232Communication constructor for 'communication2'
+15:47:49 [debug] [virtual bool RS232Communication::initialize()] RS232Communication initialize() started for 'communication2'
+15:47:49 [debug] Started receive thread for port communication2
+15:47:49 [debug] [bool Logic::initializeCommunicationPorts()] Communication port 'communication2' initialized successfully
+15:47:49 [debug] [0x1dce6af5218] RS232Communication constructor for 'communication3'
+15:47:49 [debug] [virtual bool RS232Communication::initialize()] RS232Communication initialize() started for 'communication3'
+15:47:49 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() started for 'communication2'
+15:47:49 [warning] Port name is empty. Please specify a valid port.
+15:47:49 [warning] Communication settings validation failed for communication3. Aborting initialization.
+15:47:49 [warning] [bool Logic::initializeCommunicationPorts()] Communication port 'communication3' initialization failed
+15:47:49 [debug] [virtual RS232Communication::~RS232Communication()] RS232Communication destructor for 'communication3'
+15:47:49 [debug] [0x1dce6af5218] RS232Communication close() started for 'communication3'
+15:47:49 [debug] [virtual void RS232Communication::close()] Port communication3 already closed, skipping close operation
+15:47:49 [debug] [bool Logic::initializeCommunicationPorts()] Communication port 'communication4' is not active in config, skipping
+15:47:49 [warning] [bool Logic::initializeCommunicationPorts()] 2 of 3 active communication ports initialized
+15:47:49 [debug] [void Logic::handleEvent(const GuiEvent &)] Skipping timers reinitialization as parameters don't affect them
+15:47:49 [debug] [void Logic::handleEvent(const GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='timer', intValue=0
+15:47:49 [debug] [void Logic::handleEvent(const GuiEvent &)] Parameters changed: 
+15:47:49 [debug] [void Logic::handleEvent(const GuiEvent &)] Skipping communication ports reinitialization as parameters don't affect them
+15:47:49 [debug] [void Logic::handleEvent(const GuiEvent &)] Reinitializing timers due to parameter changes
+15:47:49 [debug] [bool Logic::initTimers()] Initializing timers...
+15:47:49 [debug] [bool Logic::initTimers()] Initialized timer: timer1 with duration: 77ms
+15:47:49 [debug] [bool Logic::initTimers()] Initialized timer: timer2 with duration: 2000ms
+15:47:49 [debug] [bool Logic::initTimers()] Initialized timer: timer3 with duration: 5000ms
+15:47:49 [debug] [bool Logic::initTimers()] 3 timer(s) initialized successfully
+15:47:51 [debug] [void Logic::handleEvent(const CommEvent &)] Received communication from communication1: jj
+15:47:51 [debug] [void Logic::handleEvent(const CommEvent &)] Received communication from communication1: jj
+15:47:51 [debug] [void Logic::oneLogicCycle()] Processing 4 messages from communication1
+15:47:51 [debug] [void Logic::oneLogicCycle()] Message from communication1: 
+15:47:51 [debug] [void Logic::oneLogicCycle()] Message from communication1: 
+15:47:51 [debug] [void Logic::oneLogicCycle()] Message from communication1: 
+15:47:51 [debug] [void Logic::oneLogicCycle()] Message from communication1: jj
+15:47:51 [info] [void Logic::oneLogicCycle()] Port 'communication1' message at offset 3: 'jj' (len=2)
+15:47:54 [debug] Sent message to communication1: 1234
+15:47:54 [debug] [void Logic::handleEvent(const GuiEvent &)] GUI Event] Received: keyword='SendCommunicationMessage', data='1234', target='communication1', intValue=0
+15:47:54 [debug] [void Logic::handleEvent(const GuiEvent &)] Message sent to communication1: 1234
+15:48:00 [debug] [int main(int, char **)] QApplication event loop finished with result: 0
+15:48:00 [debug] Application closing
+15:48:00 [debug] Stop polling signal set.
+15:48:00 [debug] [void Logic::run()] Termination event received
+15:48:00 [debug] [void Logic::closeAllPorts()] Closing all active communication ports...
+15:48:00 [debug] Closing port 'communication1' from Logic::closeAllPorts
+15:48:00 [debug] [0x1dce6af7798] RS232Communication close() started for 'communication1'
+15:48:00 [debug] [virtual void RS232Communication::close()] Closing port communication1
+15:48:00 [debug] [virtual void RS232Communication::close()] close: Closing handle for communication1...
+15:48:00 [debug] [void RS232Communication::receiveLoop()] receiveLoop: ReadFile aborted/cancelled for communication1
+15:48:00 [debug] [void RS232Communication::receiveLoop()] receiveLoop: Breaking after GetOverlappedResult(ReadFile) processing due to stop requested.
+15:48:00 [debug] [void RS232Communication::receiveLoop()] receiveLoop: Breaking after inner read loop due to stop requested.
+15:48:00 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() exited for 'communication1'
+15:48:01 [debug] Attempting to join receive thread for communication1
+15:48:01 [debug] Successfully joined receive thread for communication1
+15:48:01 [debug] [virtual void RS232Communication::close()] RS232Communication close() finished for 'communication1' Port closed successfully
+15:48:01 [debug] Closing port 'communication2' from Logic::closeAllPorts
+15:48:01 [debug] [0x1dce6a6b858] RS232Communication close() started for 'communication2'
+15:48:01 [debug] [virtual void RS232Communication::close()] Closing port communication2
+15:48:01 [debug] [void RS232Communication::receiveLoop()] receiveLoop: WaitCommEvent aborted/cancelled for communication2
+15:48:01 [debug] [void RS232Communication::receiveLoop()] receiveLoop: Breaking after WaitCommEvent processing due to stop requested.
+15:48:01 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() exited for 'communication2'
+15:48:01 [debug] [virtual void RS232Communication::close()] close: Closing handle for communication2...
+15:48:01 [debug] Attempting to join receive thread for communication2
+15:48:01 [debug] Successfully joined receive thread for communication2
+15:48:01 [debug] [virtual void RS232Communication::close()] RS232Communication close() finished for 'communication2' Port closed successfully
+15:48:01 [debug] [void Logic::closeAllPorts()] Finished closing communication ports.
+15:48:01 [debug] [void Logic::run()] Exiting event loop
+15:48:01 [debug] Logic destructor finished.
+15:48:01 [debug] [virtual RS232Communication::~RS232Communication()] RS232Communication destructor for 'communication1'
+15:48:01 [debug] [0x1dce6af7798] RS232Communication close() started for 'communication1'
+15:48:01 [debug] [virtual void RS232Communication::close()] Port communication1 already closed, skipping close operation
+15:48:01 [debug] [virtual RS232Communication::~RS232Communication()] RS232Communication destructor for 'communication2'
+15:48:01 [debug] [0x1dce6a6b858] RS232Communication close() started for 'communication2'
+15:48:01 [debug] [virtual void RS232Communication::close()] Port communication2 already closed, skipping close operation
+15:48:01 [debug] Shutting down PCI7248IO...
+15:48:01 [debug] Stop polling signal set.
+15:48:01 [debug] Resetting configured output ports to OFF state.
+15:48:01 [debug] PCI-7248 Card (0) released.

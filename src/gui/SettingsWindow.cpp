@@ -1141,15 +1141,6 @@ bool SettingsWindow::saveSettingsToConfig() {
     // This will ensure that all settings are saved properly
     saveCurrentCommunicationSettings();
     
-    // No need to bulk update communication settings here; handled by fine-grained setter
-
-
-    // The rest of the method is handled by saveCurrentCommunicationSettings
-    
-
-    
-
-    
     // Update timer settings via fine-grained setters
     // Gather all timer settings from the UI and update the config
     nlohmann::json timersJson = nlohmann::json::object();
@@ -1169,6 +1160,11 @@ bool SettingsWindow::saveSettingsToConfig() {
             }
         }
         mutableConfig->updateTimerSettings(timersJson);
+        // Send a ParameterChange event to notify Logic to reinitialize affected components
+        GuiEvent paramEvent;
+        paramEvent.keyword = "ParameterChange";
+        paramEvent.target = "timer";
+        eventQueue_.push(paramEvent);
     }
     
     // --- Save Data File Tab Values ---
@@ -1194,18 +1190,6 @@ bool SettingsWindow::saveSettingsToConfig() {
         // Save the configuration to file
         if (mutableConfig->saveToFile()) {
             getLogger()->debug("Settings saved to configuration file");
-            
-            // Only send ParameterChange event if initial load is complete
-            if (initialLoadComplete_) {
-                getLogger()->debug("[saveSettingsToConfig] Sending ParameterChange event for communication");
-                // Send a ParameterChange event to notify Logic to reinitialize affected components
-                GuiEvent paramEvent;
-                paramEvent.keyword = "ParameterChange";
-                paramEvent.data = "communication"; // Specify which settings were changed
-                eventQueue_.push(paramEvent);
-            } else {
-                 getLogger()->debug("[saveSettingsToConfig] Skipping ParameterChange event during initial load");
-            }
             
             return true;
         } else {
@@ -1263,7 +1247,6 @@ void SettingsWindow::connectChangeEvents() {
             if (isRefreshing_) return;
             
             // Save changes immediately
-            // saveCurrentCommunicationSettings() is called inside saveSettingsToConfig()
             saveSettingsToConfig();
         });
     }
@@ -1281,7 +1264,6 @@ void SettingsWindow::connectChangeEvents() {
             if (isRefreshing_) return;
             
             // Save changes immediately
-            // saveCurrentCommunicationSettings() is called inside saveSettingsToConfig()
             saveSettingsToConfig();
         });
     }
@@ -1294,7 +1276,6 @@ void SettingsWindow::connectChangeEvents() {
             if (isRefreshing_) return;
             
             // Save changes immediately
-            // saveCurrentCommunicationSettings() is called inside saveSettingsToConfig()
             saveSettingsToConfig();
         });
     }
@@ -1742,9 +1723,8 @@ void SettingsWindow::saveCurrentCommunicationSettings() {
         mutableConfig->updateCommunicationSettings(allCommSettings);
         // Only notify that settings have been updated when not in refreshing mode
         GuiEvent event;
-        event.keyword = "GuiMessage";
-        event.data = "Communication settings for " + currentCommunicationName_ + " updated";
-        event.target = "info";
+        event.keyword = "ParameterChange";
+        event.target = "communication";
         eventQueue_.push(event);
     } else {
         // We're just storing the settings in memory for later use

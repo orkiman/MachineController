@@ -1,15 +1,25 @@
+// SettingsWindow.cpp
+// Implementation of the SettingsWindow class for MachineController
+
+
+// --- Project Includes ---
 #include "gui/SettingsWindow.h"
 #include "ui_SettingsWindow.h"
 #include "Config.h"
 #include "Logger.h"
-#include <QJsonDocument>
 
+// --- Qt Includes ---
+#include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QFile>
 #include <QDir>
 #include <QStackedWidget>
 #include <QTimer>
+
+// ============================================================================
+//  Constructor & Destructor
+// ============================================================================
 
 SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQueue, const Config& config)
     : QDialog(parent),
@@ -19,22 +29,17 @@ SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQ
       changedWidgets_(),
       initialLoadComplete_(false)
 {
+    isRefreshing_ = true; // Prevent change signals from saving during all initial UI setup
     ui->setupUi(this);
-    
-    // Set style sheet for the timers table to ensure text is visible during editing
+
     ui->timersTable->setStyleSheet("QTableWidget::item:selected { color: black; background-color: #c0c0ff; }");
-    
-    // Set up connections for the communication selector
-    // This needs to be done after setupUi
+
+
     QComboBox* commSelector = findChild<QComboBox*>("communicationSelectorComboBox");
     QStackedWidget* commStack = findChild<QStackedWidget*>("communicationStackedWidget");
-    
     if (commSelector && commStack) {
-        // Connect the selector to our custom handler that will update all UI elements
         connect(commSelector, QOverload<int>::of(&QComboBox::currentIndexChanged),
                 this, &SettingsWindow::onCommunicationSelectorChanged);
-                
-        // Add a defaults button for the current communication
         QPushButton* commDefaultsButton = new QPushButton("Set Defaults", this);
         commDefaultsButton->setToolTip("Reset the current communication settings to defaults");
         QHBoxLayout* selectorLayout = findChild<QHBoxLayout*>("communicationSelectorLayout");
@@ -43,8 +48,8 @@ SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQ
             connect(commDefaultsButton, &QPushButton::clicked, this, &SettingsWindow::onCommunicationDefaultsButtonClicked);
         }
     }
-    
-    // Add a defaults button for the timers tab
+
+
     QPushButton* timersDefaultsButton = new QPushButton("Set Defaults", this);
     timersDefaultsButton->setToolTip("Reset timer settings to defaults");
     QVBoxLayout* timersLayout = ui->timersTab->findChild<QVBoxLayout*>();
@@ -55,50 +60,37 @@ SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQ
         timersLayout->insertLayout(0, buttonLayout);
         connect(timersDefaultsButton, &QPushButton::clicked, this, &SettingsWindow::onTimersDefaultsButtonClicked);
     }
-    
-    // Connect change events for all editable fields
-    connectChangeEvents();
-    
-    // Set the refreshing flag to prevent marking fields as changed during initial load
-    isRefreshing_ = true;
-    
-    // Fill the communication tab fields with default values
+
+
     fillCommunicationTabFields();
-    
-    // Fill the timers tab with default values
     fillTimersTabFields();
-    
-    // Fill the IO tab with inputs and outputs
     fillIOTabFields();
-    
-    // Buttons have been completely removed from the UI
-    // Individual defaults buttons at the top of each section provide the reset functionality
-    
-    // Reset the refreshing flag and clear any changed field markings
+
+    connectChangeEvents();
+
+    connect(ui->timersTable, &QTableWidget::itemChanged, this, [this](QTableWidgetItem* item) {
+        // Only handle duration column (column 1) and only if not refreshing
+        if (item && item->column() == 1 && !isRefreshing_) {
+            saveSettingsToConfig();
+            item->setForeground(QBrush(Qt::black));
+        }
+    });
     isRefreshing_ = false;
     resetChangedFields();
-    
-    // Call updateCommunicationTypeVisibility directly after all UI components are set up
-    // This ensures proper visibility of communication type-specific widgets
-    QMetaObject::invokeMethod(this, [this]() {
-        updateCommunicationTypeVisibility(-1);
-    }, Qt::QueuedConnection);
-    
-    // Connect the communication type combo box to updateCommunicationTypeVisibility
-    QWidget* commPage = commStack->widget(0); // Get the first page
+
+
+    QMetaObject::invokeMethod(this, [this]() { updateCommunicationTypeVisibility(-1); }, Qt::QueuedConnection);
+    QWidget* commPage = commStack->widget(0);
     if (commPage) {
         QComboBox* typeComboBox = commPage->findChild<QComboBox*>("communicationTypeComboBox");
         if (typeComboBox) {
             connect(typeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
                     this, &SettingsWindow::updateCommunicationTypeVisibility);
         }
-        
-        // Connect the active checkbox to our handler
-        // (Removed manual connection for communicationActiveCheckBox; handled by Qt auto-connect)
+        // CommunicationActiveCheckBox and SendPushButton handled by Qt auto-connect
     }
-    
-    // Connect send button slots
-    // (Removed manual connection for communicationSendPushButton; handled by Qt auto-connect)
+
+    isRefreshing_ = false;
 }
 
 SettingsWindow::~SettingsWindow() {
@@ -133,7 +125,6 @@ bool SettingsWindow::loadSettingsFromJson(const QString& filePath) {
     
     QJsonObject json = loadDoc.object();
     
-    // Check if communication settings exist
     if (!json.contains("communication") || !json["communication"].isObject()) {
         getLogger()->warn("[loadSettingsFromJson] No communication settings found in JSON");
         file.close();
@@ -149,7 +140,7 @@ bool SettingsWindow::loadSettingsFromJson(const QString& filePath) {
 }
 
 void SettingsWindow::fillCommunicationTabFields() {
-    // Access the communication selector using findChild
+
     QComboBox* commSelector = findChild<QComboBox*>("communicationSelectorComboBox");
     QStackedWidget* commStack = findChild<QStackedWidget*>("communicationStackedWidget");
     
@@ -158,59 +149,59 @@ void SettingsWindow::fillCommunicationTabFields() {
         return;
     }
     
-    // Clear the selector
+
     commSelector->clear();
     
-    // Get the communications from settings.json
+
     nlohmann::json commSettingsList = config_->getCommunicationSettings();
     
-    // Get the communication page
+
     QWidget* commPage = commStack->widget(0);
     if (!commPage) {
         getLogger()->warn("[fillCommunicationTabFields] Communication page not found");
         return;
     }
     
-    // Define a list of common COM ports
+
     QStringList portNames = {"COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", 
                             "COM9", "COM10", "COM11", "COM12", "COM13", "COM14", "COM15", "COM16"};
     
-    // Find the port name combo box and populate it
+
     QComboBox* portNameComboBox = commPage->findChild<QComboBox*>("portNameComboBox");
     if (portNameComboBox) {
         portNameComboBox->clear();
         portNameComboBox->addItems(portNames);
     }
     
-    // Find the baud rate combo box and populate it with common baud rates
+
     QComboBox* baudRateComboBox = commPage->findChild<QComboBox*>("baudRateComboBox");
     if (baudRateComboBox) {
         baudRateComboBox->clear();
         baudRateComboBox->addItems({"9600", "19200", "38400", "57600", "115200"});
     }
     
-    // Find the parity combo box and populate it
+
     QComboBox* parityComboBox = commPage->findChild<QComboBox*>("parityComboBox");
     if (parityComboBox) {
         parityComboBox->clear();
         parityComboBox->addItems({"None", "Even", "Odd", "Mark", "Space"});
     }
     
-    // Find the data bits combo box and populate it
+
     QComboBox* dataBitsComboBox = commPage->findChild<QComboBox*>("dataBitsComboBox");
     if (dataBitsComboBox) {
         dataBitsComboBox->clear();
         dataBitsComboBox->addItems({"5", "6", "7", "8"});
     }
     
-    // Find the stop bits combo box and populate it
+
     QComboBox* stopBitsComboBox = commPage->findChild<QComboBox*>("stopBitsComboBox");
     if (stopBitsComboBox) {
         stopBitsComboBox->clear();
         stopBitsComboBox->addItems({"1", "1.5", "2"});
     }
     
-    // Add all communications to the selector
+
     for (auto& [name, settings] : commSettingsList.items()) {
         QString displayName = QString::fromStdString(name);
         
@@ -223,11 +214,11 @@ void SettingsWindow::fillCommunicationTabFields() {
         commSelector->addItem(displayName);
     }
     
-    // If no communications found, add a default one
+
     if (commSelector->count() == 0) {
         commSelector->addItem("communication1 (Default)");
         
-        // Set default values for the UI elements
+
         QCheckBox* activeCheckBox = commPage->findChild<QCheckBox*>("communicationActiveCheckBox");
         if (activeCheckBox) {
             activeCheckBox->setChecked(true);
@@ -259,13 +250,13 @@ void SettingsWindow::fillCommunicationTabFields() {
         }
     }
     
-    // Select the first communication in the list
+
     if (commSelector->count() > 0) {
         commSelector->setCurrentIndex(0);
         // This will trigger onCommunicationSelectorChanged which will update the UI
     }
     
-    // Get communication settings from Config object
+
     if (!config_) {
         getLogger()->warn("[fillCommunicationTabFields] Config object is null. Using default values.");
         fillWithDefaults();
@@ -277,10 +268,10 @@ void SettingsWindow::fillCommunicationTabFields() {
         return;
     }
     
-    // Get communication settings using the same approach as RS232Communication
+
     auto commSettingsJson = config_->getCommunicationSettings();
     
-    // Check for communication1 key
+
     if (commSettingsJson.contains("communication1")) {
         auto comm1 = commSettingsJson["communication1"];
         
@@ -292,7 +283,7 @@ void SettingsWindow::fillCommunicationTabFields() {
                 typeComboBox->setCurrentText(type);
             }
         } else {
-            // Default to RS232 if not specified
+
             QComboBox* typeComboBox = commPage->findChild<QComboBox*>("communicationTypeComboBox");
             if (typeComboBox) {
                 typeComboBox->setCurrentText("RS232");
@@ -554,11 +545,6 @@ void SettingsWindow::on_overrideOutputsCheckBox_stateChanged(int state) {
     }
 }
 
-// Button handler methods for Apply, Cancel, and Defaults buttons have been removed
-// as the buttons themselves have been removed from the UI
-// Settings are now saved automatically when changed, and individual defaults buttons
-// provide more granular control over resetting settings
-
 void SettingsWindow::onCommunicationDefaultsButtonClicked() {
     getLogger()->debug("Communication defaults button clicked");
     
@@ -621,7 +607,6 @@ void SettingsWindow::onCommunicationDefaultsButtonClicked() {
         }
         
         // Save the default settings
-        saveCurrentCommunicationSettings();
         saveSettingsToConfig();
         
         // Notify user
@@ -918,12 +903,8 @@ void SettingsWindow::handleOutputCheckboxStateChanged(const QString& outputName,
 
 void SettingsWindow::fillTimersTabFields()
 {
-    // Set the refreshing flag to prevent marking items as changed during loading
     isRefreshing_ = true;
-    
-    // Temporarily disconnect the itemChanged signal to prevent items from being marked as changed
-    disconnect(ui->timersTable, &QTableWidget::itemChanged, nullptr, nullptr);
-    
+    ui->timersTable->blockSignals(true);
     if (!config_) {
         getLogger()->warn("[fillTimersTabFields] Config object is null. Cannot load timer settings.");
         isRefreshing_ = false; // Reset flag
@@ -982,21 +963,9 @@ void SettingsWindow::fillTimersTabFields()
     } catch (const std::exception& e) {
         getLogger()->warn("[fillTimersTabFields] Exception while loading timer settings: {}", e.what());
     }
-    
-    // Reset the refreshing flag
+    ui->timersTable->blockSignals(false);
     isRefreshing_ = false;
-    
-    // Reconnect the itemChanged signal to save changes immediately
-    connect(ui->timersTable, &QTableWidget::itemChanged, [this](QTableWidgetItem* item) {
-        // Only handle duration column (column 1) and only if not refreshing
-        if (item && item->column() == 1 && !isRefreshing_) {
-            // Save changes immediately
-            saveSettingsToConfig();
-            
-            // Ensure text is black and visible
-            item->setForeground(QBrush(Qt::black));
-        }
-    });
+
 }
 
 void SettingsWindow::fillWithDefaults()
@@ -1108,7 +1077,7 @@ eventQueue_.push(event);
     isRefreshing_ = true;
 }
 
-// Helper function to parse char settings (STX, ETX) similar to RS232Communication::parseCharSetting
+// Helper to parse char settings (STX, ETX) from int, hex string, or char string
 int SettingsWindow::parseCharSetting(const nlohmann::json &settings, const std::string &key, int defaultValue) {
     if (!settings.contains(key)) {
         return defaultValue;
@@ -1150,7 +1119,7 @@ bool SettingsWindow::saveSettingsToConfig() {
     // We need to cast away the const-ness of config_ to modify it
     // This is safe because we know the Config object is owned by MainWindow and outlives SettingsWindow
     Config* mutableConfig = const_cast<Config*>(config_);
-    
+    getLogger()->info("[saveSettingsToConfig] Saving settings to config");
     // Create a new JSON object for communication settings
     nlohmann::json commSettings = nlohmann::json::object();
     

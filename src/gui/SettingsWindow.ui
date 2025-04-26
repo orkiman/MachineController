@@ -330,6 +330,82 @@ QDialog[overrideOutputs=&quot;true&quot;] {
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="dataFileTab">
+      <attribute name="title">
+       <string>Data File</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_dataFile">
+       <item>
+        <layout class="QFormLayout" name="formLayout_dataFile">
+         <item row="0" column="0">
+          <widget class="QLabel" name="startPositionLabel">
+           <property name="text">
+            <string>Start Position:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QSpinBox" name="startPositionSpinBox">
+           <property name="minimum">
+            <number>0</number>
+           </property>
+           <property name="maximum">
+            <number>1000</number>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="endPositionLabel">
+           <property name="text">
+            <string>End Position:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QSpinBox" name="endPositionSpinBox">
+           <property name="minimum">
+            <number>0</number>
+           </property>
+           <property name="maximum">
+            <number>1000</number>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QCheckBox" name="sequenceCheckBox">
+           <property name="text">
+            <string>Sequence Check</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QComboBox" name="sequenceDirectionComboBox">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <item>
+            <property name="text">
+             <string>Forward</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Reverse</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QCheckBox" name="existenceCheckBox">
+           <property name="text">
+            <string>Existence Check</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
      <widget class="QWidget" name="timersTab">
       <attribute name="title">
        <string>Timers</string>

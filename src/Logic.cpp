@@ -154,14 +154,31 @@ void Logic::handleEvent(const CommEvent &event) {
   oneLogicCycle();
 }
 
+// =====================================================================================
+// GuiEvent Message Structure (see Event.h)
+// -------------------------------------------------------------------------------------
+// struct GuiEvent {
+//     std::string keyword;   // Command keyword (e.g., "SetOutput", "GuiMessage") [mandatory]
+//     std::string target;    // Target identifier (output name, comm port, message type)
+//     std::string data;      // Primary data or message content
+//     int intValue = 0;      // Numeric value when needed
+// };
+//
+// Supported keywords and their semantics:
+//   "SetOutput"                target = outputName, intValue = state
+//   "SetVariable"              target = variableName, data (optional) = var value
+//   "ParameterChange"          target = category (e.g. "communication", "timer")
+//   "GuiMessage"               data = message
+//   "SendCommunicationMessage" target = communicationName, data = message
+// =====================================================================================
 void Logic::handleEvent(const GuiEvent &event) {
-  bool runLogicCycle = false; // Flag to determine if we should run the logic cycle
-
   // Log the event for debugging
   getLogger()->debug("[{}] GUI Event] Received: keyword='{}', data='{}', target='{}', intValue={}",
                     __PRETTY_FUNCTION__, event.keyword, event.data, event.target, event.intValue);
 
-  // Handle events based on keyword
+  bool runLogicCycle = false;
+
+  // --- Handle events by keyword ---
   if (event.keyword == "SetOutput") {
     // Set an output channel state
     getLogger()->debug("[{}] Setting output {} to {}", __PRETTY_FUNCTION__, event.target, event.intValue);
@@ -194,7 +211,7 @@ void Logic::handleEvent(const GuiEvent &event) {
     getLogger()->debug("[{}] Parameters changed: {}", __PRETTY_FUNCTION__, event.data);
     
     // Check which parameters changed to avoid unnecessary reinitializations
-    if (event.data.find("communication") != std::string::npos) {
+    if (event.target.find("communication") != std::string::npos) {
       getLogger()->debug("[{}] Reinitializing communication ports due to parameter changes", __PRETTY_FUNCTION__);
       if (!initializeCommunicationPorts()) {
         getLogger()->error("[{}] Failed to reinitialize communication ports after parameter change", __PRETTY_FUNCTION__);
@@ -205,7 +222,7 @@ void Logic::handleEvent(const GuiEvent &event) {
     }
     
     // Only reinitialize timers if timer parameters changed
-    if (event.data.find("timer") != std::string::npos) {
+    if (event.target.find("timer") != std::string::npos) {
       getLogger()->debug("[{}] Reinitializing timers due to parameter changes", __PRETTY_FUNCTION__);
       // Mark as not initialized so it will be reinitialized
       timersInitialized_ = false;
@@ -216,13 +233,11 @@ void Logic::handleEvent(const GuiEvent &event) {
     }
     
     runLogicCycle = true;
-  }  
-  else if (event.keyword == "GuiMessage") {
+  } else if (event.keyword == "GuiMessage") {
     // Display a message in the GUI
     emit guiMessage(QString::fromStdString(event.data),
                     QString::fromStdString(event.target));
-  }
-  else if (event.keyword == "SendCommunicationMessage") {
+  } else if (event.keyword == "SendCommunicationMessage") {
     // Send a message to a communication port
     auto commPortIt = activeCommPorts_.find(event.target);
     if (commPortIt != activeCommPorts_.end()) {
@@ -241,8 +256,7 @@ void Logic::handleEvent(const GuiEvent &event) {
                           .arg(QString::fromStdString(event.target)),
                       "error");
     }
-  }
-  else {
+  } else {
     // Handle custom or machine-specific events
     getLogger()->debug("[{}] Custom event: keyword='{}', data='{}'", __PRETTY_FUNCTION__, event.keyword, event.data);
     

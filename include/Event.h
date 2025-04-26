@@ -52,8 +52,8 @@ struct CommEvent {
  */
 struct GuiEvent {
     std::string keyword;   // Command keyword (e.g., "SetOutput", "GuiMessage")
-    std::string data;      // Primary data or message content
     std::string target;    // Target identifier (output name, comm port, message type)
+    std::string data;      // Primary data or message content
     int intValue = 0;      // Numeric value when needed
 };
 // #### GUI END ####

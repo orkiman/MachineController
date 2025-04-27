@@ -1181,6 +1181,7 @@ bool SettingsWindow::saveSettingsToConfig() {
         dataFileSettings.sequenceDirection = ui->sequenceDirectionComboBox->currentText().toStdString();
     
     mutableConfig->setDataFileSettings(dataFileSettings);
+    // todo : update logic
 
 
     // Update the Config object with the new settings

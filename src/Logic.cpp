@@ -167,7 +167,7 @@ void Logic::handleEvent(const CommEvent &event) {
 // Supported keywords and their semantics:
 //   "SetOutput"                target = outputName, intValue = state
 //   "SetVariable"              target = variableName, data (optional) = var value
-//   "ParameterChange"          target = category (e.g. "communication", "timer")
+//   "ParameterChange"          target = category (e.g. "communication", "timer", "datafile")
 //   "GuiMessage"               data = message
 //   "SendCommunicationMessage" target = communicationName, data = message
 // =====================================================================================
@@ -230,6 +230,13 @@ void Logic::handleEvent(const GuiEvent &event) {
       timersInitialized_ = true; // Mark as initialized after reinitialization
     } else {
       getLogger()->debug("[{}] Skipping timers reinitialization as parameters don't affect them", __PRETTY_FUNCTION__);
+    }
+    
+    if (event.target == "datafile") {
+      // Reinitialize data file
+      dataFile_.loadFromFile(event.data, config_);
+      
+      
     }
     
     runLogicCycle = true;

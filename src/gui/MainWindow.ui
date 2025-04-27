@@ -155,9 +155,9 @@
      </widget>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="barcodeFileLayout">
+     <layout class="QHBoxLayout" name="dataFileLayout">
       <item>
-       <widget class="QPushButton" name="selectBarcodeFileButton">
+       <widget class="QPushButton" name="selectDataFileButton">
         <property name="minimumSize">
          <size>
           <width>120</width>
@@ -177,12 +177,12 @@
          </sizepolicy>
         </property>
         <property name="text">
-         <string>Select Barcode File</string>
+         <string>Select Data File</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="barcodeFilePathLabel">
+       <widget class="QLabel" name="dataFilePathLabel">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
           <horstretch>1</horstretch>

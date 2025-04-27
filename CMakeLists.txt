@@ -47,7 +47,7 @@ set(SOURCES
     src/gui/MainWindow.cpp
     src/gui/SettingsWindow.cpp
     src/communication/RS232Communication.cpp
-    src/dataFile/BarcodeFile.cpp
+    src/dataFile/DataFile.cpp
     ${GENERATED_MOC_SOURCES} # ✅ Add generated MOC files here
     ${UI_HEADERS} # Add UI headers here
 

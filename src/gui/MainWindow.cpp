@@ -38,16 +38,23 @@ MainWindow::MainWindow(QWidget *parent, EventQueue<EventVariant>& eventQueue, co
     getLogger()->debug("[MainWindow] Constructor finished");
 }
 
-void MainWindow::on_selectBarcodeFileButton_clicked() {
-    QString filePath = QFileDialog::getOpenFileName(this, "Select Barcode File", "", "Text Files (*.txt);;All Files (*)");
+void MainWindow::on_selectDataFileButton_clicked() {
+    QString filePath = QFileDialog::getOpenFileName(this, "Select Data File", "", "Text Files (*.txt);;All Files (*)");
     if (!filePath.isEmpty()) {
-        if (barcodeFile_.loadFromFile(filePath)) {
-            barcodeFilePath_ = filePath;
-            ui->barcodeFilePathLabel->setText(filePath);
+        // Load file using config startPosition and endPosition
+        if (dataFile_.loadFromFile(filePath.toStdString(), *config_)) {
+            dataFilePath_ = filePath;
+            ui->dataFilePathLabel->setText(filePath);
+            // create gui event for loading the file
+            GuiEvent event;
+            event.keyword = "ParameterChange";
+            event.target = "datafile";
+            event.data = filePath.toStdString();
+            eventQueue_.push(event);
         } else {
-            barcodeFilePath_ = "";
-            ui->barcodeFilePathLabel->setText("Failed to load file");
-            QMessageBox::warning(this, "File Load Error", "Failed to load the selected barcode file.");
+            dataFilePath_ = "";
+            ui->dataFilePathLabel->setText("Failed to load file");
+            QMessageBox::warning(this, "File Load Error", "Failed to load the selected data file.");
         }
     }
 }

@@ -11,7 +11,7 @@
 #include <QObject>
 #include "Timer.h"
 #include "communication/RS232Communication.h"
-
+#include "dataFile/DataFile.h"
 
 class Logic : public QObject {
     Q_OBJECT
@@ -74,6 +74,8 @@ private:
     const Config& config_;
     EventQueue<EventVariant> &eventQueue_;
     PCI7248IO io_;
+    DataFile dataFile_;
+
     
     // State tracking
     std::unordered_map<std::string, IOChannel> inputChannels_;  // Current input states

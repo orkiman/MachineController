@@ -1,4 +1,5 @@
 clear timers edges in the end of scan  (Set them in timer itself) - done
+u
 done - make gui settingswindow communication only one tab with multiple communications in it ( by number of communications in settings.json)
 organize logging
 orginize gui massages to eventQueue

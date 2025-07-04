@@ -5,7 +5,9 @@
             "type": "lldb",
             "request": "launch",
             "name": "Launch (LLDB)",
-            "program": "${workspaceFolder}/build/machineController.exe"
+            "program": "${workspaceFolder}/build/Debug/machineController.exe",
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "Build with CMake Preset"
         },
         {
             "name": "(MSVC) Launch",
@@ -16,9 +18,8 @@
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
-            // "console": "internalConsole",
-            // "console": "externalTerminal",
-            "preLaunchTask": "CMake Build"
+            "console": "externalTerminal",
+            "preLaunchTask": "Build with CMake Preset"
         }
     ]
 }

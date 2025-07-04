@@ -4,6 +4,7 @@
 
 #include "Logic.h"
 #include "Logger.h"
+#include "utils/CompilerMacros.h" // Add cross-platform function name macro
 #include "gui/MainWindow.h"
 #include <QApplication>
 #include <thread>
@@ -40,7 +41,7 @@ int main(int argc, char* argv[]) {
     spdlog::set_level(spdlog::level::debug); // Set global log level back to debug
     getLogger()->info("Application starting..."); // First call to getLogger() initializes it
 
-    getLogger()->debug("[{}] Application started",__PRETTY_FUNCTION__);
+    getLogger()->debug("[{}] Application started",FUNCTION_NAME);
     // Console handler setup (if needed)
     // if (!SetConsoleCtrlHandler(ConsoleHandler, TRUE)) {
     //     getLogger()->error("Could not set control handler");
@@ -48,22 +49,22 @@ int main(int argc, char* argv[]) {
     // }
 
     timeBeginPeriod(1);
-    getLogger()->debug("[{}] Multimedia timer resolution set to 1ms", __PRETTY_FUNCTION__);
+    getLogger()->debug("[{}] Multimedia timer resolution set to 1ms", FUNCTION_NAME);
 
     EventQueue<EventVariant> eventQueue;
-    getLogger()->debug("[{}] EventQueue created", __PRETTY_FUNCTION__);
+    getLogger()->debug("[{}] EventQueue created", FUNCTION_NAME);
 
     // 1. Config Setup
     Config config("config/settings.json");
     
     // 2. GUI Initialization
-    getLogger()->debug("[{}] QApplication instance creating...", __PRETTY_FUNCTION__);
+    getLogger()->debug("[{}] QApplication instance creating...", FUNCTION_NAME);
     QApplication app(argc, argv);
-    getLogger()->debug("[{}] QApplication instance created.", __PRETTY_FUNCTION__);
+    getLogger()->debug("[{}] QApplication instance created.", FUNCTION_NAME);
 
-    getLogger()->debug("[{}] MainWindow instance creating...", __PRETTY_FUNCTION__);
+    getLogger()->debug("[{}] MainWindow instance creating...", FUNCTION_NAME);
     MainWindow mainWindow(nullptr, eventQueue, config);  // Pass reference to the event queue and config
-    getLogger()->debug("[{}] MainWindow instance created.", __PRETTY_FUNCTION__);
+    getLogger()->debug("[{}] MainWindow instance created.", FUNCTION_NAME);
 
     // Connect MainWindow's windowReady signal to SettingsWindow's slot
     QObject::connect(&mainWindow, &MainWindow::windowReady,
@@ -92,13 +93,13 @@ int main(int argc, char* argv[]) {
     });
 
     // 5. Show MainWindow and Start Event Loop
-    getLogger()->debug("[{}] Showing MainWindow...", __PRETTY_FUNCTION__);
+    getLogger()->debug("[{}] Showing MainWindow...", FUNCTION_NAME);
     mainWindow.show();
-    getLogger()->debug("[{}] MainWindow show() called.", __PRETTY_FUNCTION__);
+    getLogger()->debug("[{}] MainWindow show() called.", FUNCTION_NAME);
 
-    getLogger()->debug("[{}] Starting QApplication event loop (app.exec())...", __PRETTY_FUNCTION__);
+    getLogger()->debug("[{}] Starting QApplication event loop (app.exec())...", FUNCTION_NAME);
     int result = app.exec();
-    getLogger()->debug("[{}] QApplication event loop finished with result: {}", __PRETTY_FUNCTION__, result);
+    getLogger()->debug("[{}] QApplication event loop finished with result: {}", FUNCTION_NAME, result);
 
     // 6. Cleanup
     getLogger()->debug("Application closing");

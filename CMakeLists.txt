@@ -113,7 +113,7 @@ add_definitions(-DNOMINMAX)
 # Copy Qt DLLs after build on Windows
 if(WIN32)
   add_custom_command(TARGET MachineController POST_BUILD
-      COMMAND "C:/Qt/6.8.2/msvc2022_64/bin/windeployqt.exe" "$<TARGET_FILE:MachineController>"
+      COMMAND "C:/Qt/6.9.1/msvc2022_64/bin/windeployqt.exe" "$<TARGET_FILE:MachineController>"
       WORKING_DIRECTORY "$<TARGET_FILE_DIR:MachineController>"
       COMMENT "Deploying Qt dependencies with windeployqt..."
   )

@@ -1,96 +1,72 @@
-15:46:13 [info] Application starting...
-15:46:13 [debug] [int main(int, char **)] Application started
-15:46:13 [debug] [int main(int, char **)] Multimedia timer resolution set to 1ms
-15:46:13 [debug] [int main(int, char **)] EventQueue created
-15:46:13 [error] Error ensuring default communication settings: resource deadlock would occur: resource deadlock would occur
-15:46:13 [error] Error ensuring default timer settings: resource deadlock would occur: resource deadlock would occur
-15:46:13 [debug] [int main(int, char **)] QApplication instance creating...
-15:46:14 [debug] [int main(int, char **)] QApplication instance created.
-15:46:14 [debug] [int main(int, char **)] MainWindow instance creating...
-15:46:14 [debug] [MainWindow] Constructor started
-15:46:14 [debug] [MainWindow] Calling ui->setupUi()...
-15:46:14 [debug] [MainWindow] ui->setupUi() finished.
-15:46:14 [debug] [MainWindow] Creating SettingsWindow...
-15:46:14 [debug] [MainWindow] SettingsWindow created.
-15:46:14 [debug] [MainWindow] Queuing emitWindowReady()...
-15:46:14 [debug] [MainWindow] emitWindowReady() queued.
-15:46:14 [debug] [MainWindow] Constructor finished
-15:46:14 [debug] [int main(int, char **)] MainWindow instance created.
-15:46:14 [debug] Initializing PCI-7248...
-15:46:14 [debug] PCI-7248 Card registered successfully (Card ID: 0).
-15:46:14 [debug] Configured Port A (0) as output
-15:46:14 [debug] Configured Port B (1) as input
-15:46:14 [debug] Configured Port CH (4) as input
-15:46:14 [debug] Configured Port CL (3) as output
-15:46:14 [debug] --- Configured Input Channels ---
-15:46:14 [debug] Input : i8 (Port B, Pin 8)
-15:46:14 [debug] Input : i13 (Port B, Pin 13)
-15:46:14 [debug] Input : i9 (Port B, Pin 9)
-15:46:14 [debug] Input : i12 (Port B, Pin 12)
-15:46:14 [debug] Input : i10 (Port B, Pin 10)
-15:46:14 [debug] Input : i11 (Port B, Pin 11)
-15:46:14 [debug] Input : i14 (Port B, Pin 14)
-15:46:14 [debug] Input : i15 (Port B, Pin 15)
-15:46:14 [debug] Input : i20 (Port CH, Pin 20)
-15:46:14 [debug] Input : i21 (Port CH, Pin 21)
-15:46:14 [debug] Input : i22 (Port CH, Pin 22)
-15:46:14 [debug] Input : i23 (Port CH, Pin 23)
-15:46:14 [debug] --- Configured Output Channels ---
-15:46:14 [debug] Output: o0 (Port A, Pin 0)
-15:46:14 [debug] Output: o1 (Port A, Pin 1)
-15:46:14 [debug] Output: o7 (Port A, Pin 7)
-15:46:14 [debug] ---------------------------------
-15:46:14 [debug] Resetting configured output ports to OFF state.
-15:46:14 [debug] Timer capabilities - Min: 1ms, Max: 1000000ms
-15:46:14 [debug] PCI7248IO initialized successfully. High-resolution timer started with 2ms interval.
-15:46:14 [debug] Polling thread set to high priority.
-15:46:14 [debug] [Logic::Logic(EventQueue<EventVariant> &, const Config &)] Logic initialized
-15:46:14 [debug] [int main(int, char **)] Showing MainWindow...
-15:46:14 [debug] [bool Logic::initTimers()] Initializing timers...
-15:46:14 [debug] [bool Logic::initTimers()] Initialized timer: timer1 with duration: 77ms
-15:46:14 [debug] [bool Logic::initTimers()] Initialized timer: timer2 with duration: 2000ms
-15:46:14 [debug] [bool Logic::initTimers()] Initialized timer: timer3 with duration: 5000ms
-15:46:14 [debug] [bool Logic::initTimers()] 3 timer(s) initialized successfully
-15:46:14 [debug] [void Logic::initialize()] Timers initialized successfully
-15:46:14 [debug] [bool Logic::initializeCommunicationPorts()] Initializing communication ports...
-15:46:14 [debug] [0x297546563f8] RS232Communication constructor for 'communication1'
-15:46:14 [debug] [virtual bool RS232Communication::initialize()] RS232Communication initialize() started for 'communication1'
-15:46:14 [debug] Started receive thread for port communication1
-15:46:14 [debug] [bool Logic::initializeCommunicationPorts()] Communication port 'communication1' initialized successfully
-15:46:14 [debug] [0x29754662258] RS232Communication constructor for 'communication2'
-15:46:14 [debug] [virtual bool RS232Communication::initialize()] RS232Communication initialize() started for 'communication2'
-15:46:14 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() started for 'communication1'
-15:46:14 [debug] Started receive thread for port communication2
-15:46:14 [debug] [bool Logic::initializeCommunicationPorts()] Communication port 'communication2' initialized successfully
-15:46:14 [debug] [0x29754660848] RS232Communication constructor for 'communication3'
-15:46:14 [debug] [virtual bool RS232Communication::initialize()] RS232Communication initialize() started for 'communication3'
-15:46:14 [warning] Port name is empty. Please specify a valid port.
-15:46:14 [warning] Communication settings validation failed for communication3. Aborting initialization.
-15:46:14 [warning] [bool Logic::initializeCommunicationPorts()] Communication port 'communication3' initialization failed
-15:46:14 [debug] [virtual RS232Communication::~RS232Communication()] RS232Communication destructor for 'communication3'
-15:46:14 [debug] [void RS232Communication::receiveLoop()] RS232Communication receiveLoop() started for 'communication2'
-15:46:14 [debug] [0x29754660848] RS232Communication close() started for 'communication3'
-15:46:14 [debug] [virtual void RS232Communication::close()] Port communication3 already closed, skipping close operation
-15:46:14 [debug] [bool Logic::initializeCommunicationPorts()] Communication port 'communication4' is not active in config, skipping
-15:46:14 [warning] [bool Logic::initializeCommunicationPorts()] 2 of 3 active communication ports initialized
-15:46:14 [debug] [void Logic::initialize()] Communication ports initialized successfully
-15:46:14 [debug] [void Logic::handleEvent(const GuiEvent &)] GUI Event] Received: keyword='GuiMessage', data='Communication settings loaded from JSON', target='info', intValue=0
-15:46:14 [debug] [int main(int, char **)] MainWindow show() called.
-15:46:14 [debug] [int main(int, char **)] Starting QApplication event loop (app.exec())...
-15:46:14 [debug] [MainWindow] emitWindowReady() called.
-15:46:14 [debug] [MainWindow] Emitting windowReady signal...
-15:46:14 [debug] SettingsWindow::onInitialLoadComplete() called.
-15:46:14 [debug] [MainWindow] windowReady signal emitted.
-15:46:14 [debug] [MainWindow] emitWindowReady() finished.
-15:46:22 [debug] Input state change: i11 (Rising) from 0 to 1
-15:46:23 [debug] Input state change: i11 (Falling) from 1 to 0
-15:46:23 [debug] Input state change: i11 (Rising) from 0 to 1
-15:46:24 [debug] Input state change: i11 (Falling) from 1 to 0
-15:46:24 [debug] Input state change: i11 (Rising) from 0 to 1
-15:46:24 [debug] Input state change: i11 (Falling) from 1 to 0
-15:46:25 [debug] Input state change: i11 (Rising) from 0 to 1
-15:46:26 [debug] Input state change: i11 (Falling) from 1 to 0
-15:47:47 [debug] Skipping config update while in refreshing mode
-15:49:25 [debug] Run button clicked
-15:49:26 [debug] Stop button clicked
-15:55:31 [debug] Skipping config update while in refreshing mode
+13:07:01 [info] Application starting...
+13:07:01 [debug] [int __cdecl main(int,char *[])] Application started
+13:07:01 [debug] [int __cdecl main(int,char *[])] Multimedia timer resolution set to 1ms
+13:07:01 [debug] [int __cdecl main(int,char *[])] EventQueue created
+13:07:01 [error] Error ensuring default communication settings: resource deadlock would occur: resource deadlock would occur
+13:07:01 [error] Error ensuring default timer settings: resource deadlock would occur: resource deadlock would occur
+13:07:01 [debug] [int __cdecl main(int,char *[])] QApplication instance creating...
+13:07:01 [debug] [int __cdecl main(int,char *[])] QApplication instance created.
+13:07:01 [debug] [int __cdecl main(int,char *[])] MainWindow instance creating...
+13:07:01 [debug] [MainWindow] Constructor started
+13:07:01 [debug] [MainWindow] Calling ui->setupUi()...
+13:07:01 [debug] [MainWindow] ui->setupUi() finished.
+13:07:01 [debug] [MainWindow] Creating SettingsWindow...
+13:07:01 [debug] [MainWindow] SettingsWindow created.
+13:07:01 [debug] [MainWindow] Queuing emitWindowReady()...
+13:07:01 [debug] [MainWindow] emitWindowReady() queued.
+13:07:01 [debug] [MainWindow] Constructor finished
+13:07:01 [debug] [int __cdecl main(int,char *[])] MainWindow instance created.
+13:07:01 [debug] Initializing PCI-7248...
+13:07:01 [error] Failed to register PCI-7248! DASK Error Code: -13
+13:07:01 [error] [__cdecl Logic::Logic(class EventQueue<class std::variant<struct IOEvent,struct CommEvent,struct GuiEvent,struct TimerEvent,struct TerminationEvent> > &,const class Config &)] Failed to initialize PCI7248IO.
+13:07:01 [debug] [__cdecl Logic::Logic(class EventQueue<class std::variant<struct IOEvent,struct CommEvent,struct GuiEvent,struct TimerEvent,struct TerminationEvent> > &,const class Config &)] Logic initialized
+13:07:01 [debug] [int __cdecl main(int,char *[])] Showing MainWindow...
+13:07:01 [debug] [bool __cdecl Logic::initTimers(void)] Initializing timers...
+13:07:01 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer1 with duration: 77ms
+13:07:01 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer2 with duration: 2000ms
+13:07:01 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer3 with duration: 5000ms
+13:07:01 [debug] [bool __cdecl Logic::initTimers(void)] 3 timer(s) initialized successfully
+13:07:01 [debug] [void __cdecl Logic::initialize(void)] Timers initialized successfully
+13:07:01 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Initializing communication ports...
+13:07:01 [debug] [0x18b22f2a3d8] RS232Communication constructor for 'communication1'
+13:07:01 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication1'
+13:07:01 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication1' initialization failed
+13:07:01 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication1'
+13:07:01 [debug] [0x18b22f2a3d8] RS232Communication close() started for 'communication1'
+13:07:01 [debug] [void __cdecl RS232Communication::close(void)] Port communication1 already closed, skipping close operation
+13:07:01 [debug] [0x18b22f2a3d8] RS232Communication constructor for 'communication2'
+13:07:01 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication2'
+13:07:01 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication2' initialization failed
+13:07:01 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication2'
+13:07:01 [debug] [0x18b22f2a3d8] RS232Communication close() started for 'communication2'
+13:07:01 [debug] [void __cdecl RS232Communication::close(void)] Port communication2 already closed, skipping close operation
+13:07:01 [debug] [0x18b22f2a3d8] RS232Communication constructor for 'communication3'
+13:07:01 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication3'
+13:07:01 [warning] Port name is empty. Please specify a valid port.
+13:07:01 [warning] Communication settings validation failed for communication3. Aborting initialization.
+13:07:01 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication3' initialization failed
+13:07:01 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication3'
+13:07:01 [debug] [0x18b22f2a3d8] RS232Communication close() started for 'communication3'
+13:07:01 [debug] [void __cdecl RS232Communication::close(void)] Port communication3 already closed, skipping close operation
+13:07:02 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication4' is not active in config, skipping
+13:07:02 [error] [bool __cdecl Logic::initializeCommunicationPorts(void)] Failed to initialize any active communication ports. Check port settings and availability.
+13:07:02 [error] [void __cdecl Logic::initialize(void)] Failed to initialize communication ports
+13:07:02 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='GuiMessage', data='Communication settings loaded from JSON', target='info', intValue=0
+13:07:02 [debug] [int __cdecl main(int,char *[])] MainWindow show() called.
+13:07:02 [debug] [int __cdecl main(int,char *[])] Starting QApplication event loop (app.exec())...
+13:07:02 [debug] [MainWindow] emitWindowReady() called.
+13:07:02 [debug] [MainWindow] Emitting windowReady signal...
+13:07:02 [debug] SettingsWindow::onInitialLoadComplete() called.
+13:07:02 [debug] [MainWindow] windowReady signal emitted.
+13:07:02 [debug] [MainWindow] emitWindowReady() finished.
+13:08:10 [debug] [int __cdecl main(int,char *[])] QApplication event loop finished with result: 0
+13:08:10 [debug] Application closing
+13:08:10 [debug] Stop polling signal set.
+13:08:10 [debug] [void __cdecl Logic::run(void)] Termination event received
+13:08:10 [debug] [void __cdecl Logic::closeAllPorts(void)] Closing all active communication ports...
+13:08:10 [debug] [void __cdecl Logic::closeAllPorts(void)] Finished closing communication ports.
+13:08:10 [debug] [void __cdecl Logic::run(void)] Exiting event loop
+13:08:10 [debug] Logic destructor finished.
+13:08:10 [debug] Shutting down PCI7248IO...
+13:08:10 [debug] Stop polling signal set.
+13:08:10 [debug] Resetting configured output ports to OFF state.

@@ -1,5 +1,6 @@
 // RS232Communication.cpp
 #include "communication/RS232Communication.h"
+#include "utils/CompilerMacros.h" // Add cross-platform function name macro
 #include <iostream>
 #include <thread>
 #include <windows.h> // For Windows API functions
@@ -55,16 +56,16 @@ RS232Communication& RS232Communication::operator=(RS232Communication&& other) no
 
 RS232Communication::~RS232Communication()
 {
-    getLogger()->debug("[{}] RS232Communication destructor for '{}'", __PRETTY_FUNCTION__, communicationName_);
+    getLogger()->debug("[{}] RS232Communication destructor for '{}'", FUNCTION_NAME, communicationName_);
     close();
 }
 
 bool RS232Communication::initialize()
 {
-    getLogger()->debug("[{}] RS232Communication initialize() started for '{}'", __PRETTY_FUNCTION__, communicationName_);
+    getLogger()->debug("[{}] RS232Communication initialize() started for '{}'", FUNCTION_NAME, communicationName_);
     // If already initialized, close first to ensure clean state
     if (hSerial_ != INVALID_HANDLE_VALUE) {
-        getLogger()->warn("[{}] Port {} already open in initialize(), but close() is not called here by design. This should not happen.", __PRETTY_FUNCTION__, communicationName_);
+        getLogger()->warn("[{}] Port {} already open in initialize(), but close() is not called here by design. This should not happen.", FUNCTION_NAME, communicationName_);
 
     }
 
@@ -356,11 +357,11 @@ void RS232Communication::close()
 
     // Check if already closed
     if (hSerial_ == INVALID_HANDLE_VALUE && !receiving_ && !receiveThread_.joinable()) {
-        getLogger()->debug("[{}] Port {} already closed, skipping close operation", __PRETTY_FUNCTION__, communicationName_);
+        getLogger()->debug("[{}] Port {} already closed, skipping close operation", FUNCTION_NAME, communicationName_);
         return;
     }
     
-    getLogger()->debug("[{}] Closing port {}", __PRETTY_FUNCTION__, communicationName_);
+    getLogger()->debug("[{}] Closing port {}", FUNCTION_NAME, communicationName_);
     
     // Signal the receive thread to stop
     receiving_ = false;
@@ -371,7 +372,7 @@ void RS232Communication::close()
             DWORD error = GetLastError();
             // ERROR_NOT_FOUND means there were no pending operations to cancel, which is fine.
             if (error != ERROR_NOT_FOUND) {
-                getLogger()->error("[{}] Error cancelling I/O operations for {}: {}", __PRETTY_FUNCTION__, communicationName_, error);
+                getLogger()->error("[{}] Error cancelling I/O operations for {}: {}", FUNCTION_NAME, communicationName_, error);
             }
         }
     }
@@ -379,7 +380,7 @@ void RS232Communication::close()
     // Close the handle *before* joining the thread.
     // Closing the handle should also cause blocking operations on it to fail/return.
     if (hSerial_ != INVALID_HANDLE_VALUE) {
-        getLogger()->debug("[{}] close: Closing handle for {}...", __PRETTY_FUNCTION__, communicationName_);
+        getLogger()->debug("[{}] close: Closing handle for {}...", FUNCTION_NAME, communicationName_);
         CloseHandle(hSerial_);
         hSerial_ = INVALID_HANDLE_VALUE; // Mark as closed
     }
@@ -400,7 +401,7 @@ void RS232Communication::close()
     // Clear the receive buffer
     receiveBuffer_.clear();
     
-    getLogger()->debug("[{}] RS232Communication close() finished for '{}' Port closed successfully", __PRETTY_FUNCTION__, communicationName_);
+    getLogger()->debug("[{}] RS232Communication close() finished for '{}' Port closed successfully", FUNCTION_NAME, communicationName_);
 }
 
 void RS232Communication::startReceiving()
@@ -415,18 +416,18 @@ void RS232Communication::startReceiving()
 
 void RS232Communication::receiveLoop()
 {
-    getLogger()->debug("[{}] RS232Communication receiveLoop() started for '{}'", __PRETTY_FUNCTION__, communicationName_);
+    getLogger()->debug("[{}] RS232Communication receiveLoop() started for '{}'", FUNCTION_NAME, communicationName_);
 
     OVERLAPPED overlapped = {0};
     overlapped.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
     if (overlapped.hEvent == NULL) {
-        getLogger()->error("[{}] Failed to create overlapped event for {}: {}", __PRETTY_FUNCTION__, communicationName_, GetLastError());
+        getLogger()->error("[{}] Failed to create overlapped event for {}: {}", FUNCTION_NAME, communicationName_, GetLastError());
         return;
     }
 
     // Set the event mask to wait for data arrival (EV_RXCHAR)
     if (!SetCommMask(hSerial_, EV_RXCHAR)) {
-        getLogger()->error("[{}] Failed to set comm mask for {}: {}", __PRETTY_FUNCTION__, communicationName_, GetLastError());
+        getLogger()->error("[{}] Failed to set comm mask for {}: {}", FUNCTION_NAME, communicationName_, GetLastError());
         CloseHandle(overlapped.hEvent);
         return;
     }
@@ -472,9 +473,9 @@ void RS232Communication::receiveLoop()
                                  error = GetLastError(); // Get the actual error (e.g., ABORTED)
                                  // Error occurred during overlapped operation
                                 if (error == ERROR_OPERATION_ABORTED || error == ERROR_INVALID_HANDLE) {
-                                     getLogger()->debug("[{}] receiveLoop: WaitCommEvent aborted/cancelled for {}", __PRETTY_FUNCTION__, communicationName_);
+                                     getLogger()->debug("[{}] receiveLoop: WaitCommEvent aborted/cancelled for {}", FUNCTION_NAME, communicationName_);
                                 } else {
-                                     getLogger()->error("[{}] Error in final GetOverlappedResult for WaitCommEvent on {}: {}", __PRETTY_FUNCTION__, communicationName_, error);
+                                     getLogger()->error("[{}] Error in final GetOverlappedResult for WaitCommEvent on {}: {}", FUNCTION_NAME, communicationName_, error);
                                 }
                             } else {
                                   // Operation completed successfully after wait
@@ -482,16 +483,16 @@ void RS232Communication::receiveLoop()
                         }
                     } else { // GetOverlappedResult failed for reason other than PENDING
                          if (error == ERROR_OPERATION_ABORTED || error == ERROR_INVALID_HANDLE) {
-                             getLogger()->debug("[{}] receiveLoop: WaitCommEvent aborted/cancelled (initial check) for {}", __PRETTY_FUNCTION__, communicationName_);
+                             getLogger()->debug("[{}] receiveLoop: WaitCommEvent aborted/cancelled (initial check) for {}", FUNCTION_NAME, communicationName_);
                          } else {
-                             getLogger()->error("[{}] Error in initial GetOverlappedResult for WaitCommEvent on {}: {}", __PRETTY_FUNCTION__, communicationName_, error);
+                             getLogger()->error("[{}] Error in initial GetOverlappedResult for WaitCommEvent on {}: {}", FUNCTION_NAME, communicationName_, error);
                          }
                     }
                 }
 
                 // Check stop flag after attempting to get result
                 if (stopRequested_) {
-                    getLogger()->debug("[{}] receiveLoop: Breaking after WaitCommEvent processing due to stop requested.", __PRETTY_FUNCTION__);
+                    getLogger()->debug("[{}] receiveLoop: Breaking after WaitCommEvent processing due to stop requested.", FUNCTION_NAME);
                     break;
                 }
 
@@ -508,13 +509,13 @@ void RS232Communication::receiveLoop()
             } else {
                  // Error in WaitCommEvent (not pending)
                  if (error == ERROR_OPERATION_ABORTED || error == ERROR_INVALID_HANDLE) {
-                     getLogger()->debug("[{}] receiveLoop: WaitCommEvent aborted/cancelled (sync error check) for {}", __PRETTY_FUNCTION__, communicationName_);
+                     getLogger()->debug("[{}] receiveLoop: WaitCommEvent aborted/cancelled (sync error check) for {}", FUNCTION_NAME, communicationName_);
                  } else {
-                     getLogger()->error("[{}] Error in WaitCommEvent for {}: {}", __PRETTY_FUNCTION__, communicationName_, error);
+                     getLogger()->error("[{}] Error in WaitCommEvent for {}: {}", FUNCTION_NAME, communicationName_, error);
                  }
                   // Check stop flag even on error/abort
                   if(stopRequested_) {
-                     getLogger()->debug("[{}] receiveLoop: Breaking after WaitCommEvent error due to stop requested.", __PRETTY_FUNCTION__);
+                     getLogger()->debug("[{}] receiveLoop: Breaking after WaitCommEvent error due to stop requested.", FUNCTION_NAME);
                      break;
                   }
                  std::this_thread::sleep_for(std::chrono::milliseconds(10)); // Avoid busy-waiting on error
@@ -525,7 +526,7 @@ void RS232Communication::receiveLoop()
               // WaitCommEvent completed synchronously
               // Check stop flag after synchronous completion
               if(stopRequested_) {
-                  getLogger()->debug("[{}] receiveLoop: Breaking after synchronous WaitCommEvent due to stop requested.", __PRETTY_FUNCTION__);
+                  getLogger()->debug("[{}] receiveLoop: Breaking after synchronous WaitCommEvent due to stop requested.", FUNCTION_NAME);
                   break;
               }
          }
@@ -535,7 +536,7 @@ void RS232Communication::receiveLoop()
             do {
                   // Check stop flag before reading
                   if (stopRequested_) {
-                     getLogger()->debug("[{}] receiveLoop: Breaking before ReadFile due to stop requested.", __PRETTY_FUNCTION__);
+                     getLogger()->debug("[{}] receiveLoop: Breaking before ReadFile due to stop requested.", FUNCTION_NAME);
                      break;
                   }
 
@@ -578,9 +579,9 @@ void RS232Communication::receiveLoop()
                                      if (!GetOverlappedResult(hSerial_, &overlapped, &bytesRead, FALSE)) {
                                          error = GetLastError(); // Get the actual error (e.g., ABORTED)
                                          if (error == ERROR_OPERATION_ABORTED || error == ERROR_INVALID_HANDLE) {
-                                             getLogger()->debug("[{}] receiveLoop: ReadFile aborted/cancelled for {}", __PRETTY_FUNCTION__, communicationName_);
+                                             getLogger()->debug("[{}] receiveLoop: ReadFile aborted/cancelled for {}", FUNCTION_NAME, communicationName_);
                                          } else {
-                                             getLogger()->error("[{}] Error in final GetOverlappedResult (ReadFile) for {}: {}", __PRETTY_FUNCTION__, communicationName_, error);
+                                             getLogger()->error("[{}] Error in final GetOverlappedResult (ReadFile) for {}: {}", FUNCTION_NAME, communicationName_, error);
                                          }
                                          dwRead = 0; // Ensure dwRead is 0 on error/abort
                                      } else {
@@ -589,9 +590,9 @@ void RS232Communication::receiveLoop()
                                  }
                              } else { // GetOverlappedResult failed for reason other than PENDING
                                  if (error == ERROR_OPERATION_ABORTED || error == ERROR_INVALID_HANDLE) {
-                                    getLogger()->debug("[{}] receiveLoop: ReadFile aborted/cancelled (initial check) for {}", __PRETTY_FUNCTION__, communicationName_);
+                                    getLogger()->debug("[{}] receiveLoop: ReadFile aborted/cancelled (initial check) for {}", FUNCTION_NAME, communicationName_);
                                  } else {
-                                     getLogger()->error("[{}] Error in initial GetOverlappedResult (ReadFile) for {}: {}", __PRETTY_FUNCTION__, communicationName_, error);
+                                     getLogger()->error("[{}] Error in initial GetOverlappedResult (ReadFile) for {}: {}", FUNCTION_NAME, communicationName_, error);
                                  }
                                  dwRead = 0; // Ensure dwRead is 0 on error
                              }
@@ -599,21 +600,21 @@ void RS232Communication::receiveLoop()
 
                           // Check stop flag after ReadFile's overlapped result processing
                           if (stopRequested_) {
-                             getLogger()->debug("[{}] receiveLoop: Breaking after GetOverlappedResult(ReadFile) processing due to stop requested.", __PRETTY_FUNCTION__);
+                             getLogger()->debug("[{}] receiveLoop: Breaking after GetOverlappedResult(ReadFile) processing due to stop requested.", FUNCTION_NAME);
                              break;
                           }
 
                      } else {
                          // Error in ReadFile (not pending)
                           if (error == ERROR_OPERATION_ABORTED || error == ERROR_INVALID_HANDLE) {
-                             getLogger()->debug("[{}] receiveLoop: ReadFile aborted/cancelled (sync error check) for {}", __PRETTY_FUNCTION__, communicationName_);
+                             getLogger()->debug("[{}] receiveLoop: ReadFile aborted/cancelled (sync error check) for {}", FUNCTION_NAME, communicationName_);
                           } else {
-                             getLogger()->error("[{}] Error in ReadFile for {}: {}", __PRETTY_FUNCTION__, communicationName_, error);
+                             getLogger()->error("[{}] Error in ReadFile for {}: {}", FUNCTION_NAME, communicationName_, error);
                           }
                          dwRead = 0; // Ensure dwRead is 0 on error
                           // Check stop flag after non-pending ReadFile error
                           if (stopRequested_) {
-                             getLogger()->debug("[{}] receiveLoop: Breaking after ReadFile error due to stop requested.", __PRETTY_FUNCTION__);
+                             getLogger()->debug("[{}] receiveLoop: Breaking after ReadFile error due to stop requested.", FUNCTION_NAME);
                              break;
                           }
                      }
@@ -621,7 +622,7 @@ void RS232Communication::receiveLoop()
 
                  // Check stop flag after ReadFile attempt completes (sync or async)
                  if (stopRequested_) {
-                    getLogger()->debug("[{}] receiveLoop: Breaking after ReadFile attempt due to stop requested.", __PRETTY_FUNCTION__);
+                    getLogger()->debug("[{}] receiveLoop: Breaking after ReadFile attempt due to stop requested.", FUNCTION_NAME);
                     break;
                  }
 
@@ -702,7 +703,7 @@ void RS232Communication::receiveLoop()
 
              // Check stop flag after inner read loop finishes
              if (stopRequested_) {
-                 getLogger()->debug("[{}] receiveLoop: Breaking after inner read loop due to stop requested.", __PRETTY_FUNCTION__);
+                 getLogger()->debug("[{}] receiveLoop: Breaking after inner read loop due to stop requested.", FUNCTION_NAME);
                  break;
              }
          }
@@ -711,10 +712,10 @@ void RS232Communication::receiveLoop()
 
           // Check stop flag at end of outer loop iteration
           if (stopRequested_) {
-             getLogger()->debug("[{}] receiveLoop: Breaking at end of outer loop due to stop requested.", __PRETTY_FUNCTION__);
+             getLogger()->debug("[{}] receiveLoop: Breaking at end of outer loop due to stop requested.", FUNCTION_NAME);
              break;
           }
      }
     CloseHandle(overlapped.hEvent);
-    getLogger()->debug("[{}] RS232Communication receiveLoop() exited for '{}'", __PRETTY_FUNCTION__, communicationName_);
+    getLogger()->debug("[{}] RS232Communication receiveLoop() exited for '{}'", FUNCTION_NAME, communicationName_);
 }

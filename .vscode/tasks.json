@@ -2,9 +2,9 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "CMake Build",
+            "label": "Build with CMake Preset",
             "type": "shell",
-            "command": "cmake --build build --config Debug",
+            "command": "cmake --build --preset=msvc-x64-debug",
             "group": {
                 "kind": "build",
                 "isDefault": true

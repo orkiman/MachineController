@@ -37,6 +37,9 @@ public:
     // Fill IO tab with inputs and outputs from config
     void fillIOTabFields();
     
+    // Fill Glue tab with controllers and plans from config
+    void fillGlueTabFields();
+    
  public slots:
     // Update input states in the IO tab
     void updateInputStates(const std::unordered_map<std::string, IOChannel>& inputs);
@@ -75,10 +78,33 @@ private slots:
     // Individual defaults buttons handlers
     void onCommunicationDefaultsButtonClicked();
     void onTimersDefaultsButtonClicked();
+    
+    // Communication table cell changed handler
+    void onCommunicationCellChanged(int row, int column);
+    
+    // Glue tab related slots
+    void onGlueControllerSelectorChanged(int index);
+    void on_addGlueControllerButton_clicked();
+    void on_removeGlueControllerButton_clicked();
+    void on_glueControllerNameLineEdit_textChanged(const QString& text);
+    void on_glueCommunicationComboBox_currentIndexChanged(int index);
+    void on_glueTypeComboBox_currentIndexChanged(int index);
+    void on_glueEncoderSpinBox_valueChanged(double value);
+    void onGluePlanSelectorChanged(int index);
+    void on_addGluePlanButton_clicked();
+    void on_removeGluePlanButton_clicked();
+    void on_gluePlanNameLineEdit_textChanged(const QString& text);
+    void on_addGlueRowButton_clicked();
+    void on_removeGlueRowButton_clicked();
+    void onGlueRowCellChanged(int row, int column);
 
 private:
     // Current selected communication channel name
     std::string currentCommunicationName_;
+    
+    // Current selected glue controller and plan
+    std::string currentGlueControllerName_;
+    std::string currentGluePlanName_;
     
     // Helper function to fill fields with default values
     void fillWithDefaults();
@@ -97,6 +123,13 @@ private:
     
     // Mark a field as changed (with light red background)
     void markAsChanged(QWidget* widget);
+    
+    // Glue tab helper methods
+    void saveCurrentGlueControllerSettings();
+    void saveCurrentGluePlanSettings();
+    void updateGlueTypeVisibility(int index = 0);
+    void populateGlueCommunicationComboBox();
+    void addGlueRowToTable(int from, int to, double space);
     
     // Reset all changed field markings
     void resetChangedFields();

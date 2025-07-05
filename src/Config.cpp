@@ -49,6 +49,7 @@ Config::Config(const std::string &filePath)
         // If file doesn't exist, set defaults and return
         ensureDefaultCommunicationSettings();
         ensureDefaultTimerSettings();
+        ensureDefaultGlueSettings();
         filePath_ = filePath;
         return;
     }
@@ -58,11 +59,13 @@ Config::Config(const std::string &filePath)
         // Ensure defaults after loading
         ensureDefaultCommunicationSettings();
         ensureDefaultTimerSettings();
+        ensureDefaultGlueSettings();
     } catch (const std::exception& e) {
         getLogger()->warn("[Config] Failed to parse configuration file: {}", e.what());
         // If parsing fails, set defaults
         ensureDefaultCommunicationSettings();
         ensureDefaultTimerSettings();
+        ensureDefaultGlueSettings();
         filePath_ = filePath;
     }
 }
@@ -144,6 +147,12 @@ nlohmann::json Config::getTimerSettings() const
     return configJson_.value("timers", nlohmann::json::object());
 }
 
+nlohmann::json Config::getGlueSettings() const
+{
+    std::lock_guard<std::mutex> lock(configMutex_);
+    return configJson_.value("glue", nlohmann::json::object());
+}
+
 int Config::getTimerDuration(const std::string& timerName) const
 {
     std::lock_guard<std::mutex> lock(configMutex_);
@@ -195,6 +204,23 @@ void Config::updateTimerSettings(const nlohmann::json& timerSettings)
         }
     } catch (const std::exception& e) {
         getLogger()->error("Error updating timer settings: {}", e.what());
+    }
+}
+
+void Config::updateGlueSettings(const nlohmann::json& glueSettings)
+{
+    try {
+        std::lock_guard<std::mutex> lock(configMutex_);
+        
+        // Update glue settings
+        if (glueSettings.is_object()) {
+            configJson_["glue"] = glueSettings;
+            getLogger()->debug("Glue settings updated");
+        } else {
+            getLogger()->error("Invalid glue settings format");
+        }
+    } catch (const std::exception& e) {
+        getLogger()->error("Error updating glue settings: {}", e.what());
     }
 }
 
@@ -282,6 +308,57 @@ void Config::ensureDefaultTimerSettings()
         getLogger()->debug("Default timer settings ensured");
     } catch (const std::exception& e) {
         getLogger()->error("Error ensuring default timer settings: {}", e.what());
+    }
+}
+
+void Config::ensureDefaultGlueSettings()
+{
+    try {
+        std::lock_guard<std::mutex> lock(configMutex_);
+        
+        // Check if glue section exists, if not create it
+        if (!configJson_.contains("glue") || !configJson_["glue"].is_object()) {
+            configJson_["glue"] = nlohmann::json::object();
+            configJson_["glue"]["controllers"] = nlohmann::json::object();
+        }
+        
+        // Ensure controllers object exists
+        if (!configJson_["glue"].contains("controllers") || !configJson_["glue"]["controllers"].is_object()) {
+            configJson_["glue"]["controllers"] = nlohmann::json::object();
+        }
+        
+        // If no controllers exist, create a default one
+        if (configJson_["glue"]["controllers"].empty()) {
+            // Create default controller1
+            nlohmann::json controller1 = nlohmann::json::object();
+            controller1["name"] = "Controller 1";
+            controller1["communication"] = "communication1";
+            controller1["type"] = "dots";
+            controller1["encoder"] = 1.0;
+            controller1["plans"] = nlohmann::json::object();
+            
+            // Create default plan for controller1
+            nlohmann::json plan1 = nlohmann::json::object();
+            plan1["name"] = "Plan 1";
+            plan1["rows"] = nlohmann::json::array();
+            
+            // Create a default row
+            nlohmann::json row = nlohmann::json::object();
+            row["from"] = 0;
+            row["to"] = 100;
+            row["space"] = 10;
+            plan1["rows"].push_back(row);
+            
+            // Add plan to controller
+            controller1["plans"]["plan1"] = plan1;
+            
+            // Add controller to glue settings
+            configJson_["glue"]["controllers"]["controller1"] = controller1;
+        }
+        
+        getLogger()->debug("Default glue settings ensured");
+    } catch (const std::exception& e) {
+        getLogger()->error("Error ensuring default glue settings: {}", e.what());
     }
 }
 
@@ -435,3 +512,4 @@ bool Config::isPci7248ConfigurationValid() const
 
     return isValid;
 }
+

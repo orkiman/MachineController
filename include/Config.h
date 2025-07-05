@@ -64,6 +64,11 @@ public:
     void setDataFileSettings(const DataFileSettings& settings);
     DataFileSettings getDataFileSettings() const;
 
+    // Get/set methods for Glue settings
+    nlohmann::json getGlueSettings() const;
+    void updateGlueSettings(const nlohmann::json& glueSettings);
+    void ensureDefaultGlueSettings();
+
     // Loads the configuration from a file after construction
 
 

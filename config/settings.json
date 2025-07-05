@@ -61,6 +61,118 @@
     "sequenceDirection": "Up",
     "startPosition": 0
   },
+  "glue": {
+    "controllers": {
+      "controller_1": {
+        "communication": "COM2",
+        "encoder": 1.0,
+        "name": "the",
+        "plans": {
+          "plan_1": {
+            "name": "Default Plan",
+            "rows": [
+              {
+                "from": 0,
+                "space": 10.0,
+                "to": 100
+              }
+            ]
+          }
+        },
+        "type": "dots"
+      },
+      "controller_2": {
+        "communication": "COM1",
+        "encoder": 1.0,
+        "name": "New Controller",
+        "plans": {
+          "plan_1": {
+            "name": "Default Plan",
+            "rows": [
+              {
+                "from": 0,
+                "space": 10.0,
+                "to": 100
+              }
+            ]
+          }
+        },
+        "type": "dots"
+      },
+      "controller_3": {
+        "communication": "COM1",
+        "encoder": 1.0,
+        "name": "New Controller",
+        "plans": {
+          "plan_1": {
+            "name": "Default Plan",
+            "rows": [
+              {
+                "from": 0,
+                "space": 10.0,
+                "to": 100
+              }
+            ]
+          }
+        },
+        "type": "dots"
+      },
+      "controller_4": {
+        "communication": "COM1",
+        "encoder": 1.0,
+        "name": "New Controller",
+        "plans": {
+          "plan_1": {
+            "name": "Default Plan",
+            "rows": [
+              {
+                "from": 0,
+                "space": 10.0,
+                "to": 100
+              }
+            ]
+          }
+        },
+        "type": "dots"
+      },
+      "controller_5": {
+        "communication": "",
+        "encoder": 1.0,
+        "name": "New Controller",
+        "plans": {
+          "plan_1": {
+            "name": "Default Plan",
+            "rows": [
+              {
+                "from": 0,
+                "space": 10.0,
+                "to": 100
+              }
+            ]
+          }
+        },
+        "type": "dots"
+      },
+      "controller_6": {
+        "communication": "",
+        "encoder": 1.0,
+        "name": "New Controller",
+        "plans": {
+          "plan_1": {
+            "name": "Default Plan",
+            "rows": [
+              {
+                "from": 0,
+                "space": 10.0,
+                "to": 100
+              }
+            ]
+          }
+        },
+        "type": "dots"
+      }
+    }
+  },
   "io": {
     "device": "PCI7248",
     "inputs": [

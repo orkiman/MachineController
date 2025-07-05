@@ -65,9 +65,9 @@
     "activeController": "controller_1",
     "controllers": {
       "controller_1": {
-        "activePlan": "plan_1",
+        "activePlan": "plan_2",
         "communication": "COM1",
-        "encoder": 1.0,
+        "encoder": 1.26,
         "name": "c1",
         "plans": {
           "plan_1": {
@@ -79,9 +79,9 @@
                 "to": 100
               },
               {
-                "from": 150,
+                "from": 111,
                 "space": 10.0,
-                "to": 200
+                "to": 222
               }
             ]
           },
@@ -100,8 +100,31 @@
       },
       "controller_2": {
         "communication": "COM2",
-        "encoder": 2.0,
+        "encoder": 1.56,
         "name": "c2",
+        "plans": {
+          "plan_1": {
+            "name": "Default Plan",
+            "rows": [
+              {
+                "from": 11,
+                "space": 10.0,
+                "to": 22
+              },
+              {
+                "from": 33,
+                "space": 10.0,
+                "to": 44
+              }
+            ]
+          }
+        },
+        "type": "dots"
+      },
+      "controller_3": {
+        "communication": "COM1",
+        "encoder": 1.0,
+        "name": "c3",
         "plans": {
           "plan_1": {
             "name": "Default Plan",

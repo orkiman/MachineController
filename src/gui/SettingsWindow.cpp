@@ -101,13 +101,11 @@ SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQ
     
     // Connect signals for glue tab
     connect(ui->glueRowsTable, &QTableWidget::cellChanged, this, &SettingsWindow::onGlueRowCellChanged);
-    // Note: Not manually connecting the glue tab buttons as they're auto-connected by Qt due to the on_buttonName_clicked slot naming convention
-    // This includes: addGlueControllerButton, removeGlueControllerButton, addGluePlanButton, removeGluePlanButton, addGlueRowButton, removeGlueRowButton
-    connect(ui->glueControllerNameLineEdit, &QLineEdit::textChanged, this, &SettingsWindow::on_glueControllerNameLineEdit_textChanged);
-    connect(ui->glueCommunicationComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SettingsWindow::on_glueCommunicationComboBox_currentIndexChanged);
-    connect(ui->glueTypeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SettingsWindow::on_glueTypeComboBox_currentIndexChanged);
-    connect(ui->glueEncoderSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &SettingsWindow::on_glueEncoderSpinBox_valueChanged);
-    connect(ui->gluePlanNameLineEdit, &QLineEdit::textChanged, this, &SettingsWindow::on_gluePlanNameLineEdit_textChanged);
+    // Connect glue controller selector to our specific handler (not using auto-connect naming)
+    connect(ui->glueControllerSelectorComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SettingsWindow::onGlueControllerSelectorChanged);
+    connect(ui->gluePlanSelectorComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SettingsWindow::onGluePlanSelectorChanged);
+    // Note: All other glue tab elements use Qt's auto-connect feature via on_<objectName>_<signalName>() naming convention
+    // This includes: buttons, line edits, combo boxes, and spin boxes - no manual connections needed
 
     // Fill all tab fields with current config values
     fillCommunicationTabFields();
@@ -997,7 +995,7 @@ void SettingsWindow::fillGlueTabFields()
 {
     isRefreshing_ = true;
     
-    // Disconnect signals to avoid triggering events during setup
+    // Block signals to avoid triggering saves during reload
     ui->glueControllerSelectorComboBox->blockSignals(true);
     ui->gluePlanSelectorComboBox->blockSignals(true);
     ui->glueRowsTable->blockSignals(true);
@@ -1017,18 +1015,21 @@ void SettingsWindow::fillGlueTabFields()
         // Get glue settings from config
         nlohmann::json glueSettings = config_->getGlueSettings();
         
+        // Get the active controller ID from settings
+        std::string activeControllerId;
+        if (glueSettings.contains("activeController") && glueSettings["activeController"].is_string()) {
+            activeControllerId = glueSettings["activeController"].get<std::string>();
+        }
+        
         // Check if controllers exist
         if (glueSettings.contains("controllers") && glueSettings["controllers"].is_object()) {
             // Add controllers to combo box
             for (auto& [controllerId, controller] : glueSettings["controllers"].items()) {
                 if (controller.is_object()) {
-                    // Get the controller name, fall back to empty string if not available
+                    // Get the controller name
                     QString name;
                     if (controller.contains("name") && controller["name"].is_string()) {
                         name = QString::fromStdString(controller["name"].get<std::string>());
-                    } else if (controller.contains("description") && controller["description"].is_string()) {
-                        // Backward compatibility with description field
-                        name = QString::fromStdString(controller["description"].get<std::string>());
                     }
                     
                     // Create display text as "[Controller ID]: [Name]" or just ID if name is empty
@@ -1044,15 +1045,23 @@ void SettingsWindow::fillGlueTabFields()
             // Populate communication combo box
             populateGlueCommunicationComboBox();
             
-            // If there are controllers, select the first one
-            if (ui->glueControllerSelectorComboBox->count() > 0) {
+            // Restore the active controller selection
+            int activeIndex = -1;
+            if (!activeControllerId.empty()) {
+                activeIndex = ui->glueControllerSelectorComboBox->findData(QString::fromStdString(activeControllerId));
+            }
+            
+            if (activeIndex != -1) {
+                ui->glueControllerSelectorComboBox->setCurrentIndex(activeIndex);
+            } else if (ui->glueControllerSelectorComboBox->count() > 0) {
                 ui->glueControllerSelectorComboBox->setCurrentIndex(0);
+            }
+            
+            // Load the selected controller's data
+            if (ui->glueControllerSelectorComboBox->count() > 0) {
                 currentGlueControllerName_ = ui->glueControllerSelectorComboBox->currentData().toString().toStdString();
-                
-                // Populate controller fields
-                onGlueControllerSelectorChanged(0);
+                onGlueControllerSelectorChanged(ui->glueControllerSelectorComboBox->currentIndex());
             } else {
-                // No controllers, disable UI elements
                 ui->glueStackedWidget->setEnabled(false);
             }
         }
@@ -1096,13 +1105,20 @@ void SettingsWindow::populateGlueCommunicationComboBox()
 // Handle glue controller selection change
 void SettingsWindow::onGlueControllerSelectorChanged(int index)
 {
-    if (isRefreshing_ || !config_) {
+    if (!config_) {
         return;
     }
     
-    // Save current controller settings before switching
+    // If not refreshing, save the new active controller and reload
+    if (!isRefreshing_) {
+        saveActiveGlueController();
+        fillGlueTabFields();
+        return;
+    }
+    
+    // Save current controller settings before switching (but don't reload yet)
     if (!currentGlueControllerName_.empty()) {
-        saveCurrentGlueControllerSettings();
+        saveCurrentControllerWithoutReload();
     }
     
     // Get the selected controller ID
@@ -1181,18 +1197,36 @@ void SettingsWindow::onGlueControllerSelectorChanged(int index)
                 for (auto& [planId, plan] : controller["plans"].items()) {
                     if (plan.is_object() && plan.contains("name")) {
                         QString name = QString::fromStdString(plan["name"].get<std::string>());
-                        ui->gluePlanSelectorComboBox->addItem(name, QString::fromStdString(planId));
+                        
+                        // Create display text as "[Plan ID]: [Name]" or just ID if name is empty
+                        QString displayText = QString::fromStdString(planId);
+                        if (!name.isEmpty()) {
+                            displayText += ": " + name;
+                        }
+                        
+                        ui->gluePlanSelectorComboBox->addItem(displayText, QString::fromStdString(planId));
                     }
                 }
             }
             
-            // If there are plans, select the first one
+            // If there are plans, restore the active plan or select the first one
             if (ui->gluePlanSelectorComboBox->count() > 0) {
-                ui->gluePlanSelectorComboBox->setCurrentIndex(0);
-                currentGluePlanName_ = ui->gluePlanSelectorComboBox->itemData(0).toString().toStdString();
+                // Try to restore the active plan for this controller
+                int activePlanIndex = 0; // Default to first plan
+                
+                if (controller.contains("activePlan") && controller["activePlan"].is_string()) {
+                    std::string activePlanId = controller["activePlan"].get<std::string>();
+                    int foundIndex = ui->gluePlanSelectorComboBox->findData(QString::fromStdString(activePlanId));
+                    if (foundIndex >= 0) {
+                        activePlanIndex = foundIndex;
+                    }
+                }
+                
+                ui->gluePlanSelectorComboBox->setCurrentIndex(activePlanIndex);
+                currentGluePlanName_ = ui->gluePlanSelectorComboBox->itemData(activePlanIndex).toString().toStdString();
                 
                 // Populate plan fields
-                onGluePlanSelectorChanged(0);
+                onGluePlanSelectorChanged(activePlanIndex);
             } else {
                 // No plans, clear the plan UI
                 currentGluePlanName_ = "";
@@ -1220,14 +1254,22 @@ void SettingsWindow::onGlueControllerSelectorChanged(int index)
 // Handle glue plan selection change
 void SettingsWindow::onGluePlanSelectorChanged(int index)
 {
-    if (isRefreshing_ || !config_ || currentGlueControllerName_.empty()) {
+    if (!config_ || currentGlueControllerName_.empty()) {
         return;
     }
     
-    // Save current plan settings before switching
-    if (!currentGluePlanName_.empty()) {
-        saveCurrentGluePlanSettings();
+    // If not refreshing, save the active plan and reload the glue tab
+    if (!isRefreshing_) {
+        // Get the selected plan ID
+        if (index >= 0 && index < ui->gluePlanSelectorComboBox->count()) {
+            currentGluePlanName_ = ui->gluePlanSelectorComboBox->itemData(index).toString().toStdString();
+            saveActivePlanForController();
+            fillGlueTabFields();
+        }
+        return;
     }
+    
+    // When refreshing, just load the selected plan data - DO NOT save old plan data
     
     // Get the selected plan ID
     if (index >= 0 && index < ui->gluePlanSelectorComboBox->count()) {
@@ -1316,7 +1358,117 @@ void SettingsWindow::updateGlueTypeVisibility(int index)
     ui->glueRowsTable->setHorizontalHeaderLabels(headers);
 }
 
-// Save current glue controller settings to config
+// Save current controller settings without triggering reload (used when switching controllers)
+void SettingsWindow::saveCurrentControllerWithoutReload()
+{
+    if (isRefreshing_ || !config_ || currentGlueControllerName_.empty()) {
+        return;
+    }
+    
+    try {
+        nlohmann::json glueSettings = config_->getGlueSettings();
+        
+        if (!glueSettings.contains("controllers")) {
+            glueSettings["controllers"] = nlohmann::json::object();
+        }
+        
+        nlohmann::json& controller = glueSettings["controllers"][currentGlueControllerName_];
+        controller["name"] = ui->glueControllerNameLineEdit->text().toStdString();
+        controller["communication"] = ui->glueCommunicationComboBox->currentText().toStdString();
+        controller["type"] = ui->glueTypeComboBox->currentText().toLower().toStdString();
+        controller["encoder"] = ui->glueEncoderSpinBox->value();
+        
+        if (!controller.contains("plans")) {
+            controller["plans"] = nlohmann::json::object();
+        }
+        
+        Config* mutableConfig = const_cast<Config*>(config_);
+        mutableConfig->updateGlueSettings(glueSettings);
+        
+        // Persist changes to file
+        if (!mutableConfig->saveToFile()) {
+            getLogger()->warn("[saveCurrentControllerWithoutReload] Failed to save settings to file");
+        }
+        
+    } catch (const std::exception& e) {
+        getLogger()->warn("[saveCurrentControllerWithoutReload] Exception: {}", e.what());
+    }
+}
+
+// Individual field save functions that immediately save and reload
+void SettingsWindow::onGlueControllerNameChanged()
+{
+    if (!isRefreshing_) {
+        saveCurrentGlueControllerSettings();
+    }
+}
+
+
+
+// Save the active glue controller ID to config
+void SettingsWindow::saveActiveGlueController()
+{
+    if (!config_ || ui->glueControllerSelectorComboBox->currentIndex() < 0) {
+        return;
+    }
+    
+    try {
+        // Get current glue settings
+        nlohmann::json glueSettings = config_->getGlueSettings();
+        
+        // Save the active controller ID
+        QString activeControllerId = ui->glueControllerSelectorComboBox->currentData().toString();
+        glueSettings["activeController"] = activeControllerId.toStdString();
+        
+        // Update glue settings in config
+        Config* mutableConfig = const_cast<Config*>(config_);
+        mutableConfig->updateGlueSettings(glueSettings);
+        
+        // Persist changes to file
+        if (!mutableConfig->saveToFile()) {
+            getLogger()->warn("[saveActiveGlueController] Failed to save settings to file");
+        }
+        
+    } catch (const std::exception& e) {
+        getLogger()->warn("[saveActiveGlueController] Exception: {}", e.what());
+    }
+}
+
+// Save the active plan ID for the current controller
+void SettingsWindow::saveActivePlanForController()
+{
+    if (!config_ || currentGlueControllerName_.empty() || currentGluePlanName_.empty()) {
+        return;
+    }
+    
+    try {
+        // Get current glue settings
+        nlohmann::json glueSettings = config_->getGlueSettings();
+        
+        // Check if controller exists
+        if (!glueSettings.contains("controllers") || 
+            !glueSettings["controllers"].contains(currentGlueControllerName_)) {
+            return;
+        }
+        
+        // Save the active plan ID for this controller
+        glueSettings["controllers"][currentGlueControllerName_]["activePlan"] = currentGluePlanName_;
+        
+        // Update glue settings in config
+        Config* mutableConfig = const_cast<Config*>(config_);
+        mutableConfig->updateGlueSettings(glueSettings);
+        
+        // Persist changes to file
+        if (!mutableConfig->saveToFile()) {
+            getLogger()->warn("[saveActivePlanForController] Failed to save settings to file");
+        }
+        
+    } catch (const std::exception& e) {
+        getLogger()->warn("[saveActivePlanForController] Exception: {}", e.what());
+    }
+}
+
+// Save current glue controller settings and reload tab
 void SettingsWindow::saveCurrentGlueControllerSettings()
 {
     if (isRefreshing_ || !config_ || currentGlueControllerName_.empty()) {
@@ -1327,20 +1479,14 @@ void SettingsWindow::saveCurrentGlueControllerSettings()
         // Get current glue settings
         nlohmann::json glueSettings = config_->getGlueSettings();
         
-        // Check if controllers object exists
+        // Ensure controllers object exists
         if (!glueSettings.contains("controllers")) {
             glueSettings["controllers"] = nlohmann::json::object();
         }
         
-        // Create or update controller object
-        nlohmann::json& controller = glueSettings["controllers"][currentGlueControllerName_];
-        
         // Update controller properties
+        nlohmann::json& controller = glueSettings["controllers"][currentGlueControllerName_];
         controller["name"] = ui->glueControllerNameLineEdit->text().toStdString();
-        // Remove old description field if it exists for clean migration
-        if (controller.contains("description")) {
-            controller.erase("description");
-        }
         controller["communication"] = ui->glueCommunicationComboBox->currentText().toStdString();
         controller["type"] = ui->glueTypeComboBox->currentText().toLower().toStdString();
         controller["encoder"] = ui->glueEncoderSpinBox->value();
@@ -1350,16 +1496,25 @@ void SettingsWindow::saveCurrentGlueControllerSettings()
             controller["plans"] = nlohmann::json::object();
         }
         
-        // Update glue settings in config
+        // Save active controller and update settings
+        glueSettings["activeController"] = currentGlueControllerName_;
         Config* mutableConfig = const_cast<Config*>(config_);
         mutableConfig->updateGlueSettings(glueSettings);
+        
+        // Persist changes to file
+        if (!mutableConfig->saveToFile()) {
+            getLogger()->warn("[saveCurrentGlueControllerSettings] Failed to save settings to file");
+        }
+        
+        // Reload the tab to reflect changes
+        fillGlueTabFields();
         
     } catch (const std::exception& e) {
         getLogger()->warn("[saveCurrentGlueControllerSettings] Exception: {}", e.what());
     }
 }
 
-// Save current glue plan settings to config
+// Save current glue plan settings and reload tab
 void SettingsWindow::saveCurrentGluePlanSettings()
 {
     if (isRefreshing_ || !config_ || currentGlueControllerName_.empty() || currentGluePlanName_.empty()) {
@@ -1367,67 +1522,127 @@ void SettingsWindow::saveCurrentGluePlanSettings()
     }
     
     try {
-        // Get current glue settings
         nlohmann::json glueSettings = config_->getGlueSettings();
-        
-        // Check if controller and plans exist
         if (!glueSettings.contains("controllers") || 
             !glueSettings["controllers"].contains(currentGlueControllerName_) ||
             !glueSettings["controllers"][currentGlueControllerName_].contains("plans")) {
             return;
         }
         
-        // Get plan object
         nlohmann::json& plan = glueSettings["controllers"][currentGlueControllerName_]["plans"][currentGluePlanName_];
-        
-        // Update plan name
         plan["name"] = ui->gluePlanNameLineEdit->text().toStdString();
         
-        // Create rows array
-        plan["rows"] = nlohmann::json::array();
-        
-        // Add rows from table
-        for (int row = 0; row < ui->glueRowsTable->rowCount(); ++row) {
-            nlohmann::json rowData = nlohmann::json::object();
+        // Save rows from table
+        nlohmann::json rows = nlohmann::json::array();
+        for (int i = 0; i < ui->glueRowsTable->rowCount(); ++i) {
+            nlohmann::json row;
             
-            // Get from value
-            QTableWidgetItem* fromItem = ui->glueRowsTable->item(row, 0);
+            // Get 'from' value
+            QTableWidgetItem* fromItem = ui->glueRowsTable->item(i, 0);
             if (fromItem) {
-                rowData["from"] = fromItem->text().toInt();
+                row["from"] = fromItem->text().toInt();
             } else {
-                rowData["from"] = 0;
+                row["from"] = 0;
             }
             
-            // Get to value
-            QTableWidgetItem* toItem = ui->glueRowsTable->item(row, 1);
+            // Get 'to' value
+            QTableWidgetItem* toItem = ui->glueRowsTable->item(i, 1);
             if (toItem) {
-                rowData["to"] = toItem->text().toInt();
+                row["to"] = toItem->text().toInt();
             } else {
-                rowData["to"] = 0;
+                row["to"] = 0;
             }
             
-            // Get space value if applicable
-            if (ui->glueTypeComboBox->currentText().toLower() == "dots") {
-                QTableWidgetItem* spaceItem = ui->glueRowsTable->item(row, 2);
-                if (spaceItem) {
-                    rowData["space"] = spaceItem->text().toDouble();
-                } else {
-                    rowData["space"] = 0.0;
-                }
+            // Get 'space' value
+            QTableWidgetItem* spaceItem = ui->glueRowsTable->item(i, 2);
+            if (spaceItem) {
+                row["space"] = spaceItem->text().toDouble();
             } else {
-                rowData["space"] = 0.0; // Default value for line type
+                row["space"] = 0.0;
             }
             
-            // Add row to plan
-            plan["rows"].push_back(rowData);
+            rows.push_back(row);
         }
+        plan["rows"] = rows;
         
-        // Update glue settings in config
         Config* mutableConfig = const_cast<Config*>(config_);
         mutableConfig->updateGlueSettings(glueSettings);
         
+        // Persist changes to file
+        if (!mutableConfig->saveToFile()) {
+            getLogger()->warn("[saveCurrentGluePlanSettings] Failed to save settings to file");
+        }
+        
+        fillGlueTabFields();
+        
     } catch (const std::exception& e) {
         getLogger()->warn("[saveCurrentGluePlanSettings] Exception: {}", e.what());
+    }
+}
+
+// Save current glue plan settings without reloading tab
+void SettingsWindow::saveCurrentPlanWithoutReload()
+{
+    if (!config_ || currentGlueControllerName_.empty() || currentGluePlanName_.empty()) {
+        return;
+    }
+    
+    try {
+        nlohmann::json glueSettings = config_->getGlueSettings();
+        if (!glueSettings.contains("controllers") || 
+            !glueSettings["controllers"].contains(currentGlueControllerName_) ||
+            !glueSettings["controllers"][currentGlueControllerName_].contains("plans")) {
+            return;
+        }
+        
+        nlohmann::json& plan = glueSettings["controllers"][currentGlueControllerName_]["plans"][currentGluePlanName_];
+        plan["name"] = ui->gluePlanNameLineEdit->text().toStdString();
+        
+        // Save rows from table
+        nlohmann::json rows = nlohmann::json::array();
+        for (int i = 0; i < ui->glueRowsTable->rowCount(); ++i) {
+            nlohmann::json row;
+            
+            // Get 'from' value
+            QTableWidgetItem* fromItem = ui->glueRowsTable->item(i, 0);
+            if (fromItem) {
+                row["from"] = fromItem->text().toInt();
+            } else {
+                row["from"] = 0;
+            }
+            
+            // Get 'to' value
+            QTableWidgetItem* toItem = ui->glueRowsTable->item(i, 1);
+            if (toItem) {
+                row["to"] = toItem->text().toInt();
+            } else {
+                row["to"] = 0;
+            }
+            
+            // Get 'space' value
+            QTableWidgetItem* spaceItem = ui->glueRowsTable->item(i, 2);
+            if (spaceItem) {
+                row["space"] = spaceItem->text().toDouble();
+            } else {
+                row["space"] = 0.0;
+            }
+            
+            rows.push_back(row);
+        }
+        plan["rows"] = rows;
+        
+        Config* mutableConfig = const_cast<Config*>(config_);
+        mutableConfig->updateGlueSettings(glueSettings);
+        
+        // Persist changes to file
+        if (!mutableConfig->saveToFile()) {
+            getLogger()->warn("[saveCurrentPlanWithoutReload] Failed to save settings to file");
+        }
+        
+        // Note: No fillGlueTabFields() call here - that's the key difference
+        
+    } catch (const std::exception& e) {
+        getLogger()->warn("[saveCurrentPlanWithoutReload] Exception: {}", e.what());
     }
 }
 
@@ -1773,7 +1988,13 @@ void SettingsWindow::on_gluePlanNameLineEdit_textChanged(const QString& text)
     // Update the plan name in the combo box
     int currentIndex = ui->gluePlanSelectorComboBox->currentIndex();
     if (currentIndex >= 0) {
-        ui->gluePlanSelectorComboBox->setItemText(currentIndex, text);
+        // Format as "[Plan ID]: [Name]" to preserve the ID part
+        QString planId = QString::fromStdString(currentGluePlanName_);
+        QString displayText = planId;
+        if (!text.isEmpty()) {
+            displayText += ": " + text;
+        }
+        ui->gluePlanSelectorComboBox->setItemText(currentIndex, displayText);
     }
     
     // Save changes
@@ -2045,6 +2266,14 @@ void SettingsWindow::connectChangeEvents() {
             continue;
         }
         
+        // Skip glue tab combo boxes - they have their own specific save handlers
+        if (comboBox->objectName() == "glueControllerSelectorComboBox" ||
+            comboBox->objectName() == "gluePlanSelectorComboBox" ||
+            comboBox->objectName() == "glueCommunicationComboBox" ||
+            comboBox->objectName() == "glueTypeComboBox") {
+            continue;
+        }
+        
         connect(comboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), [this, comboBox](int) {
             // Skip if we're refreshing the UI
             if (isRefreshing_) return;
@@ -2058,6 +2287,12 @@ void SettingsWindow::connectChangeEvents() {
     // Connect change events for LineEdits
     QList<QLineEdit*> lineEdits = findChildren<QLineEdit*>();
     for (QLineEdit* lineEdit : lineEdits) {
+        // Skip glue tab line edits - they have their own specific save handlers
+        if (lineEdit->objectName() == "glueControllerNameLineEdit" ||
+            lineEdit->objectName() == "gluePlanNameLineEdit") {
+            continue;
+        }
+        
         connect(lineEdit, &QLineEdit::textChanged, [this, lineEdit](const QString&) {
             // Skip if we're refreshing the UI
             if (isRefreshing_) return;
@@ -2087,7 +2322,29 @@ void SettingsWindow::connectChangeEvents() {
     // Connect change events for SpinBoxes
     QList<QSpinBox*> spinBoxes = findChildren<QSpinBox*>();
     for (QSpinBox* spinBox : spinBoxes) {
+        // Skip glue tab spinboxes - they have their own specific save handlers
+        if (spinBox->objectName() == "glueEncoderSpinBox") {
+            continue;
+        }
+        
         connect(spinBox, QOverload<int>::of(&QSpinBox::valueChanged), [this, spinBox](int) {
+            // Skip if we're refreshing the UI
+            if (isRefreshing_) return;
+            
+            // Save changes immediately
+            saveSettingsToConfig();
+        });
+    }
+    
+    // Connect change events for DoubleSpinBoxes
+    QList<QDoubleSpinBox*> doubleSpinBoxes = findChildren<QDoubleSpinBox*>();
+    for (QDoubleSpinBox* doubleSpinBox : doubleSpinBoxes) {
+        // Skip glue tab double spinboxes - they have their own specific save handlers
+        if (doubleSpinBox->objectName() == "glueEncoderSpinBox") {
+            continue;
+        }
+        
+        connect(doubleSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), [this, doubleSpinBox](double) {
             // Skip if we're refreshing the UI
             if (isRefreshing_) return;
             

@@ -1,62 +1,687 @@
-18:33:47 [info] Application starting...
-18:33:47 [debug] [int __cdecl main(int,char *[])] Application started
-18:33:47 [debug] [int __cdecl main(int,char *[])] Multimedia timer resolution set to 1ms
-18:33:47 [debug] [int __cdecl main(int,char *[])] EventQueue created
-18:33:47 [error] Error ensuring default communication settings: resource deadlock would occur: resource deadlock would occur
-18:33:47 [error] Error ensuring default timer settings: resource deadlock would occur: resource deadlock would occur
-18:33:47 [error] Error ensuring default glue settings: resource deadlock would occur: resource deadlock would occur
-18:33:47 [debug] [int __cdecl main(int,char *[])] QApplication instance creating...
-18:33:47 [debug] [int __cdecl main(int,char *[])] QApplication instance created.
-18:33:47 [debug] [int __cdecl main(int,char *[])] MainWindow instance creating...
-18:33:47 [debug] [MainWindow] Constructor started
-18:33:47 [debug] [MainWindow] Calling ui->setupUi()...
-18:33:48 [debug] [MainWindow] ui->setupUi() finished.
-18:33:48 [debug] [MainWindow] Creating SettingsWindow...
-18:33:48 [debug] [MainWindow] SettingsWindow created.
-18:33:48 [debug] [MainWindow] Queuing emitWindowReady()...
-18:33:48 [debug] [MainWindow] emitWindowReady() queued.
-18:33:48 [debug] [MainWindow] Constructor finished
-18:33:48 [debug] [int __cdecl main(int,char *[])] MainWindow instance created.
-18:33:48 [debug] Initializing PCI-7248...
-18:33:48 [error] Failed to register PCI-7248! DASK Error Code: -13
-18:33:48 [error] [__cdecl Logic::Logic(class EventQueue<class std::variant<struct IOEvent,struct CommEvent,struct GuiEvent,struct TimerEvent,struct TerminationEvent> > &,const class Config &)] Failed to initialize PCI7248IO.
-18:33:48 [debug] [__cdecl Logic::Logic(class EventQueue<class std::variant<struct IOEvent,struct CommEvent,struct GuiEvent,struct TimerEvent,struct TerminationEvent> > &,const class Config &)] Logic initialized
-18:33:48 [debug] [int __cdecl main(int,char *[])] Showing MainWindow...
-18:33:48 [debug] [bool __cdecl Logic::initTimers(void)] Initializing timers...
-18:33:48 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer1 with duration: 77ms
-18:33:48 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer2 with duration: 2000ms
-18:33:48 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer3 with duration: 5000ms
-18:33:48 [debug] [bool __cdecl Logic::initTimers(void)] 3 timer(s) initialized successfully
-18:33:48 [debug] [void __cdecl Logic::initialize(void)] Timers initialized successfully
-18:33:48 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Initializing communication ports...
-18:33:48 [debug] [0x19003ec1468] RS232Communication constructor for 'communication1'
-18:33:48 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication1'
-18:33:48 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication1' initialization failed
-18:33:48 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication1'
-18:33:48 [debug] [0x19003ec1468] RS232Communication close() started for 'communication1'
-18:33:48 [debug] [void __cdecl RS232Communication::close(void)] Port communication1 already closed, skipping close operation
-18:33:48 [debug] [0x19003ec1438] RS232Communication constructor for 'communication2'
-18:33:48 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication2'
-18:33:48 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication2' initialization failed
-18:33:48 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication2'
-18:33:48 [debug] [0x19003ec1438] RS232Communication close() started for 'communication2'
-18:33:48 [debug] [void __cdecl RS232Communication::close(void)] Port communication2 already closed, skipping close operation
-18:33:48 [debug] [0x19003ec1438] RS232Communication constructor for 'communication3'
-18:33:48 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication3'
-18:33:48 [warning] Port name is empty. Please specify a valid port.
-18:33:48 [warning] Communication settings validation failed for communication3. Aborting initialization.
-18:33:48 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication3' initialization failed
-18:33:48 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication3'
-18:33:48 [debug] [0x19003ec1438] RS232Communication close() started for 'communication3'
-18:33:48 [debug] [void __cdecl RS232Communication::close(void)] Port communication3 already closed, skipping close operation
-18:33:48 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication4' is not active in config, skipping
-18:33:48 [error] [bool __cdecl Logic::initializeCommunicationPorts(void)] Failed to initialize any active communication ports. Check port settings and availability.
-18:33:48 [error] [void __cdecl Logic::initialize(void)] Failed to initialize communication ports
-18:33:48 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='GuiMessage', data='Communication settings loaded from JSON', target='info', intValue=0
-18:33:48 [debug] [int __cdecl main(int,char *[])] MainWindow show() called.
-18:33:48 [debug] [int __cdecl main(int,char *[])] Starting QApplication event loop (app.exec())...
-18:33:48 [debug] [MainWindow] emitWindowReady() called.
-18:33:48 [debug] [MainWindow] Emitting windowReady signal...
-18:33:48 [debug] SettingsWindow::onInitialLoadComplete() called.
-18:33:48 [debug] [MainWindow] windowReady signal emitted.
-18:33:48 [debug] [MainWindow] emitWindowReady() finished.
+21:14:21 [info] Application starting...
+21:14:21 [debug] [int __cdecl main(int,char *[])] Application started
+21:14:21 [debug] [int __cdecl main(int,char *[])] Multimedia timer resolution set to 1ms
+21:14:21 [debug] [int __cdecl main(int,char *[])] EventQueue created
+21:14:21 [error] Error ensuring default communication settings: resource deadlock would occur: resource deadlock would occur
+21:14:21 [error] Error ensuring default timer settings: resource deadlock would occur: resource deadlock would occur
+21:14:21 [error] Error ensuring default glue settings: resource deadlock would occur: resource deadlock would occur
+21:14:21 [debug] [int __cdecl main(int,char *[])] QApplication instance creating...
+21:14:21 [debug] [int __cdecl main(int,char *[])] QApplication instance created.
+21:14:21 [debug] [int __cdecl main(int,char *[])] MainWindow instance creating...
+21:14:21 [debug] [MainWindow] Constructor started
+21:14:21 [debug] [MainWindow] Calling ui->setupUi()...
+21:14:21 [debug] [MainWindow] ui->setupUi() finished.
+21:14:21 [debug] [MainWindow] Creating SettingsWindow...
+21:14:22 [debug] [MainWindow] SettingsWindow created.
+21:14:22 [debug] [MainWindow] Queuing emitWindowReady()...
+21:14:22 [debug] [MainWindow] emitWindowReady() queued.
+21:14:22 [debug] [MainWindow] Constructor finished
+21:14:22 [debug] [int __cdecl main(int,char *[])] MainWindow instance created.
+21:14:22 [debug] Initializing PCI-7248...
+21:14:22 [error] Failed to register PCI-7248! DASK Error Code: -13
+21:14:22 [error] [__cdecl Logic::Logic(class EventQueue<class std::variant<struct IOEvent,struct CommEvent,struct GuiEvent,struct TimerEvent,struct TerminationEvent> > &,const class Config &)] Failed to initialize PCI7248IO.
+21:14:22 [debug] [__cdecl Logic::Logic(class EventQueue<class std::variant<struct IOEvent,struct CommEvent,struct GuiEvent,struct TimerEvent,struct TerminationEvent> > &,const class Config &)] Logic initialized
+21:14:22 [debug] [int __cdecl main(int,char *[])] Showing MainWindow...
+21:14:22 [debug] [bool __cdecl Logic::initTimers(void)] Initializing timers...
+21:14:22 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer1 with duration: 77ms
+21:14:22 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer2 with duration: 2000ms
+21:14:22 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer3 with duration: 5000ms
+21:14:22 [debug] [bool __cdecl Logic::initTimers(void)] 3 timer(s) initialized successfully
+21:14:22 [debug] [void __cdecl Logic::initialize(void)] Timers initialized successfully
+21:14:22 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Initializing communication ports...
+21:14:22 [debug] [0x1702abf5b98] RS232Communication constructor for 'communication1'
+21:14:22 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication1'
+21:14:22 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication1' initialization failed
+21:14:22 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication1'
+21:14:22 [debug] [0x1702abf5b98] RS232Communication close() started for 'communication1'
+21:14:22 [debug] [void __cdecl RS232Communication::close(void)] Port communication1 already closed, skipping close operation
+21:14:22 [debug] [0x1702abf5b98] RS232Communication constructor for 'communication2'
+21:14:22 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication2'
+21:14:22 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication2' initialization failed
+21:14:22 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication2'
+21:14:22 [debug] [0x1702abf5b98] RS232Communication close() started for 'communication2'
+21:14:22 [debug] [void __cdecl RS232Communication::close(void)] Port communication2 already closed, skipping close operation
+21:14:22 [debug] [0x1702abf5b98] RS232Communication constructor for 'communication3'
+21:14:22 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication3'
+21:14:22 [warning] Port name is empty. Please specify a valid port.
+21:14:22 [warning] Communication settings validation failed for communication3. Aborting initialization.
+21:14:22 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication3' initialization failed
+21:14:22 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication3'
+21:14:22 [debug] [0x1702abf5b98] RS232Communication close() started for 'communication3'
+21:14:22 [debug] [void __cdecl RS232Communication::close(void)] Port communication3 already closed, skipping close operation
+21:14:22 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication4' is not active in config, skipping
+21:14:22 [error] [bool __cdecl Logic::initializeCommunicationPorts(void)] Failed to initialize any active communication ports. Check port settings and availability.
+21:14:22 [error] [void __cdecl Logic::initialize(void)] Failed to initialize communication ports
+21:14:22 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='GuiMessage', data='Communication settings loaded from JSON', target='info', intValue=0
+21:14:22 [debug] [int __cdecl main(int,char *[])] MainWindow show() called.
+21:14:22 [debug] [int __cdecl main(int,char *[])] Starting QApplication event loop (app.exec())...
+21:14:22 [debug] [MainWindow] emitWindowReady() called.
+21:14:22 [debug] [MainWindow] Emitting windowReady signal...
+21:14:22 [debug] SettingsWindow::onInitialLoadComplete() called.
+21:14:22 [debug] [MainWindow] windowReady signal emitted.
+21:14:22 [debug] [MainWindow] emitWindowReady() finished.
+21:14:33 [debug] Glue settings updated
+21:14:33 [debug] Configuration successfully saved to: config/settings.json
+21:14:36 [debug] Glue settings updated
+21:14:36 [debug] Configuration successfully saved to: config/settings.json
+21:14:41 [debug] Glue settings updated
+21:14:41 [debug] Configuration successfully saved to: config/settings.json
+21:14:42 [debug] Glue settings updated
+21:14:42 [debug] Configuration successfully saved to: config/settings.json
+21:14:45 [debug] Glue settings updated
+21:14:45 [debug] Configuration successfully saved to: config/settings.json
+21:14:48 [debug] Glue settings updated
+21:14:48 [debug] Configuration successfully saved to: config/settings.json
+21:14:51 [debug] Glue settings updated
+21:14:51 [debug] Configuration successfully saved to: config/settings.json
+21:14:51 [debug] Glue settings updated
+21:14:51 [debug] Configuration successfully saved to: config/settings.json
+21:14:51 [debug] Glue settings updated
+21:14:51 [debug] Configuration successfully saved to: config/settings.json
+21:14:51 [debug] Glue settings updated
+21:14:51 [debug] Configuration successfully saved to: config/settings.json
+21:14:53 [debug] Glue settings updated
+21:14:53 [debug] Configuration successfully saved to: config/settings.json
+21:14:53 [debug] Glue settings updated
+21:14:53 [debug] Configuration successfully saved to: config/settings.json
+21:14:53 [debug] Glue settings updated
+21:14:53 [debug] Configuration successfully saved to: config/settings.json
+21:14:53 [debug] Glue settings updated
+21:14:53 [debug] Configuration successfully saved to: config/settings.json
+21:15:00 [debug] Glue settings updated
+21:15:00 [debug] Configuration successfully saved to: config/settings.json
+21:15:03 [debug] Glue settings updated
+21:15:03 [debug] Configuration successfully saved to: config/settings.json
+21:15:28 [debug] Glue settings updated
+21:15:28 [debug] Configuration successfully saved to: config/settings.json
+21:15:31 [debug] Glue settings updated
+21:15:31 [debug] Configuration successfully saved to: config/settings.json
+21:15:31 [debug] Glue settings updated
+21:15:31 [debug] Configuration successfully saved to: config/settings.json
+21:15:31 [debug] Glue settings updated
+21:15:31 [debug] Configuration successfully saved to: config/settings.json
+21:15:31 [debug] Glue settings updated
+21:15:31 [debug] Configuration successfully saved to: config/settings.json
+21:15:37 [debug] Glue settings updated
+21:15:37 [debug] Configuration successfully saved to: config/settings.json
+21:15:40 [debug] Glue settings updated
+21:15:40 [debug] Configuration successfully saved to: config/settings.json
+21:15:44 [debug] Glue settings updated
+21:15:44 [debug] Configuration successfully saved to: config/settings.json
+21:15:49 [debug] Glue settings updated
+21:15:49 [debug] Configuration successfully saved to: config/settings.json
+21:15:52 [debug] Glue settings updated
+21:15:52 [debug] Configuration successfully saved to: config/settings.json
+21:15:58 [debug] Glue settings updated
+21:15:58 [debug] Configuration successfully saved to: config/settings.json
+21:16:26 [info] [saveSettingsToConfig] Saving settings to config
+21:16:26 [debug] Communication settings updated
+21:16:26 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='communication', intValue=0
+21:16:26 [debug] Timer settings updated
+21:16:26 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+21:16:26 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing communication ports due to parameter changes
+21:16:26 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Initializing communication ports...
+21:16:26 [debug] Configuration successfully saved to: config/settings.json
+21:16:26 [debug] Settings saved to configuration file
+21:16:26 [debug] [0x1702655a368] RS232Communication constructor for 'communication1'
+21:16:26 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication1'
+21:16:26 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication1' initialization failed
+21:16:26 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication1'
+21:16:26 [debug] [0x1702655a368] RS232Communication close() started for 'communication1'
+21:16:26 [debug] [void __cdecl RS232Communication::close(void)] Port communication1 already closed, skipping close operation
+21:16:26 [debug] [0x1702655a368] RS232Communication constructor for 'communication2'
+21:16:26 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication2'
+21:16:26 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication2' initialization failed
+21:16:26 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication2'
+21:16:26 [debug] [0x1702655a368] RS232Communication close() started for 'communication2'
+21:16:26 [debug] [void __cdecl RS232Communication::close(void)] Port communication2 already closed, skipping close operation
+21:16:26 [debug] [0x1702655a368] RS232Communication constructor for 'communication3'
+21:16:26 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication3'
+21:16:26 [warning] Port name is empty. Please specify a valid port.
+21:16:26 [warning] Communication settings validation failed for communication3. Aborting initialization.
+21:16:26 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication3' initialization failed
+21:16:26 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication3'
+21:16:26 [debug] [0x1702655a368] RS232Communication close() started for 'communication3'
+21:16:26 [debug] [void __cdecl RS232Communication::close(void)] Port communication3 already closed, skipping close operation
+21:16:26 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication4' is not active in config, skipping
+21:16:26 [error] [bool __cdecl Logic::initializeCommunicationPorts(void)] Failed to initialize any active communication ports. Check port settings and availability.
+21:16:26 [error] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Failed to reinitialize communication ports after parameter change
+21:16:26 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping timers reinitialization as parameters don't affect them
+21:16:26 [warning] Attempted to write to channel 'o0' on Port , which is not configured as output.
+21:16:26 [warning] Attempted to write to channel 'o1' on Port , which is not configured as output.
+21:16:26 [warning] Attempted to write to channel 'o7' on Port , which is not configured as output.
+21:16:26 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='timer', intValue=0
+21:16:26 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+21:16:26 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping communication ports reinitialization as parameters don't affect them
+21:16:26 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing timers due to parameter changes
+21:16:26 [debug] [bool __cdecl Logic::initTimers(void)] Initializing timers...
+21:16:26 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer1 with duration: 77ms
+21:16:26 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer2 with duration: 2000ms
+21:16:26 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer3 with duration: 5000ms
+21:16:26 [debug] [bool __cdecl Logic::initTimers(void)] 3 timer(s) initialized successfully
+21:16:26 [warning] Attempted to write to channel 'o0' on Port , which is not configured as output.
+21:16:26 [warning] Attempted to write to channel 'o1' on Port , which is not configured as output.
+21:16:26 [warning] Attempted to write to channel 'o7' on Port , which is not configured as output.
+21:16:27 [info] [saveSettingsToConfig] Saving settings to config
+21:16:27 [debug] Communication settings updated
+21:16:27 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='communication', intValue=0
+21:16:27 [debug] Timer settings updated
+21:16:27 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+21:16:27 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing communication ports due to parameter changes
+21:16:27 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Initializing communication ports...
+21:16:27 [debug] Configuration successfully saved to: config/settings.json
+21:16:27 [debug] Settings saved to configuration file
+21:16:27 [debug] [0x1702ad27468] RS232Communication constructor for 'communication1'
+21:16:27 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication1'
+21:16:27 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication1' initialization failed
+21:16:27 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication1'
+21:16:27 [debug] [0x1702ad27468] RS232Communication close() started for 'communication1'
+21:16:27 [debug] [void __cdecl RS232Communication::close(void)] Port communication1 already closed, skipping close operation
+21:16:27 [debug] [0x1702ad27468] RS232Communication constructor for 'communication2'
+21:16:27 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication2'
+21:16:27 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication2' initialization failed
+21:16:27 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication2'
+21:16:27 [debug] [0x1702ad27468] RS232Communication close() started for 'communication2'
+21:16:27 [debug] [void __cdecl RS232Communication::close(void)] Port communication2 already closed, skipping close operation
+21:16:27 [debug] [0x1702ad27468] RS232Communication constructor for 'communication3'
+21:16:27 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication3'
+21:16:27 [warning] Port name is empty. Please specify a valid port.
+21:16:27 [warning] Communication settings validation failed for communication3. Aborting initialization.
+21:16:27 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication3' initialization failed
+21:16:27 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication3'
+21:16:27 [debug] [0x1702ad27468] RS232Communication close() started for 'communication3'
+21:16:27 [debug] [void __cdecl RS232Communication::close(void)] Port communication3 already closed, skipping close operation
+21:16:27 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication4' is not active in config, skipping
+21:16:27 [error] [bool __cdecl Logic::initializeCommunicationPorts(void)] Failed to initialize any active communication ports. Check port settings and availability.
+21:16:27 [error] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Failed to reinitialize communication ports after parameter change
+21:16:27 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping timers reinitialization as parameters don't affect them
+21:16:27 [warning] Attempted to write to channel 'o0' on Port , which is not configured as output.
+21:16:27 [warning] Attempted to write to channel 'o1' on Port , which is not configured as output.
+21:16:27 [warning] Attempted to write to channel 'o7' on Port , which is not configured as output.
+21:16:27 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='timer', intValue=0
+21:16:27 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+21:16:27 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping communication ports reinitialization as parameters don't affect them
+21:16:27 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing timers due to parameter changes
+21:16:27 [debug] [bool __cdecl Logic::initTimers(void)] Initializing timers...
+21:16:27 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer1 with duration: 77ms
+21:16:27 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer2 with duration: 2000ms
+21:16:27 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer3 with duration: 5000ms
+21:16:27 [debug] [bool __cdecl Logic::initTimers(void)] 3 timer(s) initialized successfully
+21:16:27 [warning] Attempted to write to channel 'o0' on Port , which is not configured as output.
+21:16:27 [warning] Attempted to write to channel 'o1' on Port , which is not configured as output.
+21:16:27 [warning] Attempted to write to channel 'o7' on Port , which is not configured as output.
+21:16:27 [info] [saveSettingsToConfig] Saving settings to config
+21:16:27 [debug] Communication settings updated
+21:16:27 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='communication', intValue=0
+21:16:27 [debug] Timer settings updated
+21:16:27 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+21:16:27 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing communication ports due to parameter changes
+21:16:27 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Initializing communication ports...
+21:16:27 [debug] Configuration successfully saved to: config/settings.json
+21:16:27 [debug] Settings saved to configuration file
+21:16:27 [debug] [0x1702ad29978] RS232Communication constructor for 'communication1'
+21:16:27 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication1'
+21:16:27 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication1' initialization failed
+21:16:27 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication1'
+21:16:27 [debug] [0x1702ad29978] RS232Communication close() started for 'communication1'
+21:16:27 [debug] [void __cdecl RS232Communication::close(void)] Port communication1 already closed, skipping close operation
+21:16:27 [debug] [0x170265478b8] RS232Communication constructor for 'communication2'
+21:16:27 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication2'
+21:16:27 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication2' initialization failed
+21:16:27 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication2'
+21:16:27 [debug] [0x170265478b8] RS232Communication close() started for 'communication2'
+21:16:27 [debug] [void __cdecl RS232Communication::close(void)] Port communication2 already closed, skipping close operation
+21:16:27 [debug] [0x1702aaa2588] RS232Communication constructor for 'communication3'
+21:16:27 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication3'
+21:16:27 [warning] Port name is empty. Please specify a valid port.
+21:16:27 [warning] Communication settings validation failed for communication3. Aborting initialization.
+21:16:27 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication3' initialization failed
+21:16:27 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication3'
+21:16:27 [debug] [0x1702aaa2588] RS232Communication close() started for 'communication3'
+21:16:27 [debug] [void __cdecl RS232Communication::close(void)] Port communication3 already closed, skipping close operation
+21:16:27 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication4' is not active in config, skipping
+21:16:27 [error] [bool __cdecl Logic::initializeCommunicationPorts(void)] Failed to initialize any active communication ports. Check port settings and availability.
+21:16:27 [error] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Failed to reinitialize communication ports after parameter change
+21:16:27 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping timers reinitialization as parameters don't affect them
+21:16:27 [warning] Attempted to write to channel 'o0' on Port , which is not configured as output.
+21:16:27 [warning] Attempted to write to channel 'o1' on Port , which is not configured as output.
+21:16:27 [warning] Attempted to write to channel 'o7' on Port , which is not configured as output.
+21:16:27 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='timer', intValue=0
+21:16:27 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+21:16:27 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping communication ports reinitialization as parameters don't affect them
+21:16:27 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing timers due to parameter changes
+21:16:27 [debug] [bool __cdecl Logic::initTimers(void)] Initializing timers...
+21:16:27 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer1 with duration: 77ms
+21:16:27 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer2 with duration: 2000ms
+21:16:27 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer3 with duration: 5000ms
+21:16:27 [debug] [bool __cdecl Logic::initTimers(void)] 3 timer(s) initialized successfully
+21:16:27 [warning] Attempted to write to channel 'o0' on Port , which is not configured as output.
+21:16:27 [warning] Attempted to write to channel 'o1' on Port , which is not configured as output.
+21:16:27 [warning] Attempted to write to channel 'o7' on Port , which is not configured as output.
+21:16:27 [info] [saveSettingsToConfig] Saving settings to config
+21:16:27 [debug] Communication settings updated
+21:16:27 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='communication', intValue=0
+21:16:27 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+21:16:27 [debug] Timer settings updated
+21:16:27 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing communication ports due to parameter changes
+21:16:27 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Initializing communication ports...
+21:16:27 [debug] Configuration successfully saved to: config/settings.json
+21:16:27 [debug] Settings saved to configuration file
+21:16:27 [debug] [0x1702654b3a8] RS232Communication constructor for 'communication1'
+21:16:27 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication1'
+21:16:27 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication1' initialization failed
+21:16:27 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication1'
+21:16:27 [debug] [0x1702654b3a8] RS232Communication close() started for 'communication1'
+21:16:27 [debug] [void __cdecl RS232Communication::close(void)] Port communication1 already closed, skipping close operation
+21:16:27 [debug] [0x1702abfac38] RS232Communication constructor for 'communication2'
+21:16:27 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication2'
+21:16:27 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication2' initialization failed
+21:16:27 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication2'
+21:16:27 [debug] [0x1702abfac38] RS232Communication close() started for 'communication2'
+21:16:27 [debug] [void __cdecl RS232Communication::close(void)] Port communication2 already closed, skipping close operation
+21:16:27 [debug] [0x1702abfac38] RS232Communication constructor for 'communication3'
+21:16:27 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication3'
+21:16:27 [warning] Port name is empty. Please specify a valid port.
+21:16:27 [warning] Communication settings validation failed for communication3. Aborting initialization.
+21:16:27 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication3' initialization failed
+21:16:27 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication3'
+21:16:27 [debug] [0x1702abfac38] RS232Communication close() started for 'communication3'
+21:16:27 [debug] [void __cdecl RS232Communication::close(void)] Port communication3 already closed, skipping close operation
+21:16:27 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication4' is not active in config, skipping
+21:16:27 [error] [bool __cdecl Logic::initializeCommunicationPorts(void)] Failed to initialize any active communication ports. Check port settings and availability.
+21:16:27 [error] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Failed to reinitialize communication ports after parameter change
+21:16:27 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping timers reinitialization as parameters don't affect them
+21:16:27 [warning] Attempted to write to channel 'o0' on Port , which is not configured as output.
+21:16:27 [warning] Attempted to write to channel 'o1' on Port , which is not configured as output.
+21:16:27 [warning] Attempted to write to channel 'o7' on Port , which is not configured as output.
+21:16:27 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='timer', intValue=0
+21:16:27 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+21:16:27 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping communication ports reinitialization as parameters don't affect them
+21:16:27 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing timers due to parameter changes
+21:16:27 [debug] [bool __cdecl Logic::initTimers(void)] Initializing timers...
+21:16:27 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer1 with duration: 77ms
+21:16:27 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer2 with duration: 2000ms
+21:16:27 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer3 with duration: 5000ms
+21:16:27 [debug] [bool __cdecl Logic::initTimers(void)] 3 timer(s) initialized successfully
+21:16:27 [warning] Attempted to write to channel 'o0' on Port , which is not configured as output.
+21:16:27 [warning] Attempted to write to channel 'o1' on Port , which is not configured as output.
+21:16:27 [warning] Attempted to write to channel 'o7' on Port , which is not configured as output.
+21:16:28 [debug] Glue settings updated
+21:16:28 [debug] Configuration successfully saved to: config/settings.json
+21:16:28 [info] [saveSettingsToConfig] Saving settings to config
+21:16:28 [debug] Communication settings updated
+21:16:28 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='communication', intValue=0
+21:16:28 [debug] Timer settings updated
+21:16:28 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+21:16:28 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing communication ports due to parameter changes
+21:16:28 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Initializing communication ports...
+21:16:28 [debug] Configuration successfully saved to: config/settings.json
+21:16:28 [debug] Settings saved to configuration file
+21:16:28 [debug] [0x1702abfa9b8] RS232Communication constructor for 'communication1'
+21:16:28 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication1'
+21:16:28 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication1' initialization failed
+21:16:28 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication1'
+21:16:28 [debug] [0x1702abfa9b8] RS232Communication close() started for 'communication1'
+21:16:28 [debug] [void __cdecl RS232Communication::close(void)] Port communication1 already closed, skipping close operation
+21:16:28 [debug] [0x1702ac12ce8] RS232Communication constructor for 'communication2'
+21:16:28 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication2'
+21:16:28 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication2' initialization failed
+21:16:28 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication2'
+21:16:28 [debug] [0x1702ac12ce8] RS232Communication close() started for 'communication2'
+21:16:28 [debug] [void __cdecl RS232Communication::close(void)] Port communication2 already closed, skipping close operation
+21:16:28 [debug] [0x1702ac12ce8] RS232Communication constructor for 'communication3'
+21:16:28 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication3'
+21:16:28 [warning] Port name is empty. Please specify a valid port.
+21:16:28 [warning] Communication settings validation failed for communication3. Aborting initialization.
+21:16:28 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication3' initialization failed
+21:16:28 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication3'
+21:16:28 [debug] [0x1702ac12ce8] RS232Communication close() started for 'communication3'
+21:16:28 [debug] [void __cdecl RS232Communication::close(void)] Port communication3 already closed, skipping close operation
+21:16:28 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication4' is not active in config, skipping
+21:16:28 [error] [bool __cdecl Logic::initializeCommunicationPorts(void)] Failed to initialize any active communication ports. Check port settings and availability.
+21:16:28 [error] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Failed to reinitialize communication ports after parameter change
+21:16:28 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping timers reinitialization as parameters don't affect them
+21:16:28 [warning] Attempted to write to channel 'o0' on Port , which is not configured as output.
+21:16:28 [warning] Attempted to write to channel 'o1' on Port , which is not configured as output.
+21:16:28 [warning] Attempted to write to channel 'o7' on Port , which is not configured as output.
+21:16:28 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='timer', intValue=0
+21:16:28 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+21:16:28 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping communication ports reinitialization as parameters don't affect them
+21:16:28 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing timers due to parameter changes
+21:16:28 [debug] [bool __cdecl Logic::initTimers(void)] Initializing timers...
+21:16:28 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer1 with duration: 77ms
+21:16:28 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer2 with duration: 2000ms
+21:16:28 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer3 with duration: 5000ms
+21:16:28 [debug] [bool __cdecl Logic::initTimers(void)] 3 timer(s) initialized successfully
+21:16:28 [warning] Attempted to write to channel 'o0' on Port , which is not configured as output.
+21:16:28 [warning] Attempted to write to channel 'o1' on Port , which is not configured as output.
+21:16:28 [warning] Attempted to write to channel 'o7' on Port , which is not configured as output.
+21:16:29 [info] [saveSettingsToConfig] Saving settings to config
+21:16:29 [debug] Communication settings updated
+21:16:29 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='communication', intValue=0
+21:16:29 [debug] Timer settings updated
+21:16:29 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+21:16:29 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing communication ports due to parameter changes
+21:16:29 [debug] Configuration successfully saved to: config/settings.json
+21:16:29 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Initializing communication ports...
+21:16:29 [debug] Settings saved to configuration file
+21:16:29 [debug] [0x1702ad26d48] RS232Communication constructor for 'communication1'
+21:16:29 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication1'
+21:16:29 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication1' initialization failed
+21:16:29 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication1'
+21:16:29 [debug] [0x1702ad26d48] RS232Communication close() started for 'communication1'
+21:16:29 [debug] [void __cdecl RS232Communication::close(void)] Port communication1 already closed, skipping close operation
+21:16:29 [debug] [0x1702ada0798] RS232Communication constructor for 'communication2'
+21:16:29 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication2'
+21:16:29 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication2' initialization failed
+21:16:29 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication2'
+21:16:29 [debug] [0x1702ada0798] RS232Communication close() started for 'communication2'
+21:16:29 [debug] [void __cdecl RS232Communication::close(void)] Port communication2 already closed, skipping close operation
+21:16:29 [debug] [0x1702ada0798] RS232Communication constructor for 'communication3'
+21:16:29 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication3'
+21:16:29 [warning] Port name is empty. Please specify a valid port.
+21:16:29 [warning] Communication settings validation failed for communication3. Aborting initialization.
+21:16:29 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication3' initialization failed
+21:16:29 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication3'
+21:16:29 [debug] [0x1702ada0798] RS232Communication close() started for 'communication3'
+21:16:29 [debug] [void __cdecl RS232Communication::close(void)] Port communication3 already closed, skipping close operation
+21:16:29 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication4' is not active in config, skipping
+21:16:29 [error] [bool __cdecl Logic::initializeCommunicationPorts(void)] Failed to initialize any active communication ports. Check port settings and availability.
+21:16:29 [error] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Failed to reinitialize communication ports after parameter change
+21:16:29 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping timers reinitialization as parameters don't affect them
+21:16:29 [warning] Attempted to write to channel 'o0' on Port , which is not configured as output.
+21:16:29 [warning] Attempted to write to channel 'o1' on Port , which is not configured as output.
+21:16:29 [warning] Attempted to write to channel 'o7' on Port , which is not configured as output.
+21:16:29 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='timer', intValue=0
+21:16:29 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+21:16:29 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping communication ports reinitialization as parameters don't affect them
+21:16:29 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing timers due to parameter changes
+21:16:29 [debug] [bool __cdecl Logic::initTimers(void)] Initializing timers...
+21:16:29 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer1 with duration: 77ms
+21:16:29 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer2 with duration: 2000ms
+21:16:29 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer3 with duration: 5000ms
+21:16:29 [debug] [bool __cdecl Logic::initTimers(void)] 3 timer(s) initialized successfully
+21:16:29 [warning] Attempted to write to channel 'o0' on Port , which is not configured as output.
+21:16:29 [warning] Attempted to write to channel 'o1' on Port , which is not configured as output.
+21:16:29 [warning] Attempted to write to channel 'o7' on Port , which is not configured as output.
+21:16:35 [info] [saveSettingsToConfig] Saving settings to config
+21:16:35 [debug] Communication settings updated
+21:16:35 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='communication', intValue=0
+21:16:35 [debug] Timer settings updated
+21:16:35 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+21:16:35 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing communication ports due to parameter changes
+21:16:35 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Initializing communication ports...
+21:16:35 [debug] Configuration successfully saved to: config/settings.json
+21:16:35 [debug] Settings saved to configuration file
+21:16:35 [debug] [0x1702ad4a988] RS232Communication constructor for 'communication1'
+21:16:35 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication1'
+21:16:35 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication1' initialization failed
+21:16:35 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication1'
+21:16:35 [debug] [0x1702ad4a988] RS232Communication close() started for 'communication1'
+21:16:35 [debug] [void __cdecl RS232Communication::close(void)] Port communication1 already closed, skipping close operation
+21:16:35 [debug] [0x1702ad4a988] RS232Communication constructor for 'communication2'
+21:16:35 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication2'
+21:16:35 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication2' initialization failed
+21:16:35 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication2'
+21:16:35 [debug] [0x1702ad4a988] RS232Communication close() started for 'communication2'
+21:16:35 [debug] [void __cdecl RS232Communication::close(void)] Port communication2 already closed, skipping close operation
+21:16:35 [debug] [0x1702ad4a988] RS232Communication constructor for 'communication3'
+21:16:35 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication3'
+21:16:35 [warning] Port name is empty. Please specify a valid port.
+21:16:35 [warning] Communication settings validation failed for communication3. Aborting initialization.
+21:16:35 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication3' initialization failed
+21:16:35 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication3'
+21:16:35 [debug] [0x1702ad4a988] RS232Communication close() started for 'communication3'
+21:16:35 [debug] [void __cdecl RS232Communication::close(void)] Port communication3 already closed, skipping close operation
+21:16:35 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication4' is not active in config, skipping
+21:16:35 [error] [bool __cdecl Logic::initializeCommunicationPorts(void)] Failed to initialize any active communication ports. Check port settings and availability.
+21:16:35 [error] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Failed to reinitialize communication ports after parameter change
+21:16:35 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping timers reinitialization as parameters don't affect them
+21:16:35 [warning] Attempted to write to channel 'o0' on Port , which is not configured as output.
+21:16:35 [warning] Attempted to write to channel 'o1' on Port , which is not configured as output.
+21:16:35 [warning] Attempted to write to channel 'o7' on Port , which is not configured as output.
+21:16:35 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='timer', intValue=0
+21:16:35 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+21:16:35 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping communication ports reinitialization as parameters don't affect them
+21:16:35 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing timers due to parameter changes
+21:16:35 [debug] [bool __cdecl Logic::initTimers(void)] Initializing timers...
+21:16:35 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer1 with duration: 77ms
+21:16:35 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer2 with duration: 2000ms
+21:16:35 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer3 with duration: 5000ms
+21:16:35 [debug] [bool __cdecl Logic::initTimers(void)] 3 timer(s) initialized successfully
+21:16:35 [warning] Attempted to write to channel 'o0' on Port , which is not configured as output.
+21:16:35 [warning] Attempted to write to channel 'o1' on Port , which is not configured as output.
+21:16:35 [warning] Attempted to write to channel 'o7' on Port , which is not configured as output.
+21:16:35 [info] [saveSettingsToConfig] Saving settings to config
+21:16:35 [debug] Communication settings updated
+21:16:35 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='communication', intValue=0
+21:16:35 [debug] Timer settings updated
+21:16:35 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+21:16:35 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing communication ports due to parameter changes
+21:16:35 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Initializing communication ports...
+21:16:35 [debug] Configuration successfully saved to: config/settings.json
+21:16:35 [debug] Settings saved to configuration file
+21:16:35 [debug] [0x1702ad46e28] RS232Communication constructor for 'communication1'
+21:16:35 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication1'
+21:16:35 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication1' initialization failed
+21:16:35 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication1'
+21:16:35 [debug] [0x1702ad46e28] RS232Communication close() started for 'communication1'
+21:16:35 [debug] [void __cdecl RS232Communication::close(void)] Port communication1 already closed, skipping close operation
+21:16:35 [debug] [0x1702ac13288] RS232Communication constructor for 'communication2'
+21:16:35 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication2'
+21:16:35 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication2' initialization failed
+21:16:35 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication2'
+21:16:35 [debug] [0x1702ac13288] RS232Communication close() started for 'communication2'
+21:16:35 [debug] [void __cdecl RS232Communication::close(void)] Port communication2 already closed, skipping close operation
+21:16:35 [debug] [0x1702ad46a68] RS232Communication constructor for 'communication3'
+21:16:35 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication3'
+21:16:35 [warning] Port name is empty. Please specify a valid port.
+21:16:35 [warning] Communication settings validation failed for communication3. Aborting initialization.
+21:16:35 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication3' initialization failed
+21:16:35 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication3'
+21:16:35 [debug] [0x1702ad46a68] RS232Communication close() started for 'communication3'
+21:16:35 [debug] [void __cdecl RS232Communication::close(void)] Port communication3 already closed, skipping close operation
+21:16:35 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication4' is not active in config, skipping
+21:16:35 [error] [bool __cdecl Logic::initializeCommunicationPorts(void)] Failed to initialize any active communication ports. Check port settings and availability.
+21:16:35 [error] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Failed to reinitialize communication ports after parameter change
+21:16:35 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping timers reinitialization as parameters don't affect them
+21:16:35 [warning] Attempted to write to channel 'o0' on Port , which is not configured as output.
+21:16:35 [warning] Attempted to write to channel 'o1' on Port , which is not configured as output.
+21:16:35 [warning] Attempted to write to channel 'o7' on Port , which is not configured as output.
+21:16:35 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='timer', intValue=0
+21:16:35 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+21:16:35 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping communication ports reinitialization as parameters don't affect them
+21:16:35 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing timers due to parameter changes
+21:16:35 [debug] [bool __cdecl Logic::initTimers(void)] Initializing timers...
+21:16:35 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer1 with duration: 77ms
+21:16:35 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer2 with duration: 2000ms
+21:16:35 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer3 with duration: 5000ms
+21:16:35 [debug] [bool __cdecl Logic::initTimers(void)] 3 timer(s) initialized successfully
+21:16:35 [warning] Attempted to write to channel 'o0' on Port , which is not configured as output.
+21:16:35 [warning] Attempted to write to channel 'o1' on Port , which is not configured as output.
+21:16:35 [warning] Attempted to write to channel 'o7' on Port , which is not configured as output.
+21:16:38 [debug] Glue settings updated
+21:16:38 [debug] Configuration successfully saved to: config/settings.json
+21:16:38 [info] [saveSettingsToConfig] Saving settings to config
+21:16:38 [debug] Communication settings updated
+21:16:38 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='communication', intValue=0
+21:16:38 [debug] Timer settings updated
+21:16:38 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+21:16:38 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing communication ports due to parameter changes
+21:16:38 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Initializing communication ports...
+21:16:38 [debug] Configuration successfully saved to: config/settings.json
+21:16:38 [debug] Settings saved to configuration file
+21:16:38 [debug] [0x1702654a788] RS232Communication constructor for 'communication1'
+21:16:38 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication1'
+21:16:38 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication1' initialization failed
+21:16:38 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication1'
+21:16:38 [debug] [0x1702654a788] RS232Communication close() started for 'communication1'
+21:16:38 [debug] [void __cdecl RS232Communication::close(void)] Port communication1 already closed, skipping close operation
+21:16:38 [debug] [0x1702c774308] RS232Communication constructor for 'communication2'
+21:16:38 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication2'
+21:16:38 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication2' initialization failed
+21:16:38 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication2'
+21:16:38 [debug] [0x1702c774308] RS232Communication close() started for 'communication2'
+21:16:38 [debug] [void __cdecl RS232Communication::close(void)] Port communication2 already closed, skipping close operation
+21:16:38 [debug] [0x1702c774308] RS232Communication constructor for 'communication3'
+21:16:38 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication3'
+21:16:38 [warning] Port name is empty. Please specify a valid port.
+21:16:38 [warning] Communication settings validation failed for communication3. Aborting initialization.
+21:16:38 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication3' initialization failed
+21:16:38 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication3'
+21:16:38 [debug] [0x1702c774308] RS232Communication close() started for 'communication3'
+21:16:38 [debug] [void __cdecl RS232Communication::close(void)] Port communication3 already closed, skipping close operation
+21:16:38 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication4' is not active in config, skipping
+21:16:38 [error] [bool __cdecl Logic::initializeCommunicationPorts(void)] Failed to initialize any active communication ports. Check port settings and availability.
+21:16:38 [error] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Failed to reinitialize communication ports after parameter change
+21:16:38 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping timers reinitialization as parameters don't affect them
+21:16:38 [warning] Attempted to write to channel 'o0' on Port , which is not configured as output.
+21:16:38 [warning] Attempted to write to channel 'o1' on Port , which is not configured as output.
+21:16:38 [warning] Attempted to write to channel 'o7' on Port , which is not configured as output.
+21:16:38 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='timer', intValue=0
+21:16:38 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+21:16:38 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping communication ports reinitialization as parameters don't affect them
+21:16:38 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing timers due to parameter changes
+21:16:38 [debug] [bool __cdecl Logic::initTimers(void)] Initializing timers...
+21:16:38 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer1 with duration: 77ms
+21:16:38 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer2 with duration: 2000ms
+21:16:38 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer3 with duration: 5000ms
+21:16:38 [debug] [bool __cdecl Logic::initTimers(void)] 3 timer(s) initialized successfully
+21:16:38 [warning] Attempted to write to channel 'o0' on Port , which is not configured as output.
+21:16:38 [warning] Attempted to write to channel 'o1' on Port , which is not configured as output.
+21:16:38 [warning] Attempted to write to channel 'o7' on Port , which is not configured as output.
+21:16:40 [debug] Glue settings updated
+21:16:40 [debug] Configuration successfully saved to: config/settings.json
+21:16:40 [info] [saveSettingsToConfig] Saving settings to config
+21:16:40 [debug] Communication settings updated
+21:16:40 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='communication', intValue=0
+21:16:40 [debug] Timer settings updated
+21:16:40 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+21:16:40 [debug] Configuration successfully saved to: config/settings.json
+21:16:40 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing communication ports due to parameter changes
+21:16:40 [debug] Settings saved to configuration file
+21:16:40 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Initializing communication ports...
+21:16:40 [debug] [0x1702abeeba8] RS232Communication constructor for 'communication1'
+21:16:40 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication1'
+21:16:40 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication1' initialization failed
+21:16:40 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication1'
+21:16:40 [debug] [0x1702abeeba8] RS232Communication close() started for 'communication1'
+21:16:40 [debug] [void __cdecl RS232Communication::close(void)] Port communication1 already closed, skipping close operation
+21:16:40 [debug] [0x1702abeeba8] RS232Communication constructor for 'communication2'
+21:16:40 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication2'
+21:16:40 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication2' initialization failed
+21:16:40 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication2'
+21:16:40 [debug] [0x1702abeeba8] RS232Communication close() started for 'communication2'
+21:16:40 [debug] [void __cdecl RS232Communication::close(void)] Port communication2 already closed, skipping close operation
+21:16:40 [debug] [0x1702abeeba8] RS232Communication constructor for 'communication3'
+21:16:40 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication3'
+21:16:40 [warning] Port name is empty. Please specify a valid port.
+21:16:40 [warning] Communication settings validation failed for communication3. Aborting initialization.
+21:16:40 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication3' initialization failed
+21:16:40 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication3'
+21:16:40 [debug] [0x1702abeeba8] RS232Communication close() started for 'communication3'
+21:16:40 [debug] [void __cdecl RS232Communication::close(void)] Port communication3 already closed, skipping close operation
+21:16:40 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication4' is not active in config, skipping
+21:16:40 [error] [bool __cdecl Logic::initializeCommunicationPorts(void)] Failed to initialize any active communication ports. Check port settings and availability.
+21:16:40 [error] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Failed to reinitialize communication ports after parameter change
+21:16:40 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping timers reinitialization as parameters don't affect them
+21:16:40 [warning] Attempted to write to channel 'o0' on Port , which is not configured as output.
+21:16:40 [warning] Attempted to write to channel 'o1' on Port , which is not configured as output.
+21:16:40 [warning] Attempted to write to channel 'o7' on Port , which is not configured as output.
+21:16:40 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='timer', intValue=0
+21:16:40 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+21:16:40 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping communication ports reinitialization as parameters don't affect them
+21:16:40 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing timers due to parameter changes
+21:16:40 [debug] [bool __cdecl Logic::initTimers(void)] Initializing timers...
+21:16:40 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer1 with duration: 77ms
+21:16:40 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer2 with duration: 2000ms
+21:16:40 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer3 with duration: 5000ms
+21:16:40 [debug] [bool __cdecl Logic::initTimers(void)] 3 timer(s) initialized successfully
+21:16:40 [warning] Attempted to write to channel 'o0' on Port , which is not configured as output.
+21:16:40 [warning] Attempted to write to channel 'o1' on Port , which is not configured as output.
+21:16:40 [warning] Attempted to write to channel 'o7' on Port , which is not configured as output.
+21:16:42 [info] [saveSettingsToConfig] Saving settings to config
+21:16:42 [debug] Communication settings updated
+21:16:42 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='communication', intValue=0
+21:16:42 [debug] Timer settings updated
+21:16:42 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+21:16:42 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing communication ports due to parameter changes
+21:16:42 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Initializing communication ports...
+21:16:42 [debug] Configuration successfully saved to: config/settings.json
+21:16:42 [debug] Settings saved to configuration file
+21:16:42 [debug] [0x1702aaa21c8] RS232Communication constructor for 'communication1'
+21:16:42 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication1'
+21:16:42 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication1' initialization failed
+21:16:42 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication1'
+21:16:42 [debug] [0x1702aaa21c8] RS232Communication close() started for 'communication1'
+21:16:42 [debug] [void __cdecl RS232Communication::close(void)] Port communication1 already closed, skipping close operation
+21:16:42 [debug] [0x1702654bb48] RS232Communication constructor for 'communication2'
+21:16:42 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication2'
+21:16:42 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication2' initialization failed
+21:16:42 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication2'
+21:16:42 [debug] [0x1702654bb48] RS232Communication close() started for 'communication2'
+21:16:42 [debug] [void __cdecl RS232Communication::close(void)] Port communication2 already closed, skipping close operation
+21:16:42 [debug] [0x1702654bb48] RS232Communication constructor for 'communication3'
+21:16:42 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication3'
+21:16:42 [warning] Port name is empty. Please specify a valid port.
+21:16:42 [warning] Communication settings validation failed for communication3. Aborting initialization.
+21:16:42 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication3' initialization failed
+21:16:42 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication3'
+21:16:42 [debug] [0x1702654bb48] RS232Communication close() started for 'communication3'
+21:16:42 [debug] [void __cdecl RS232Communication::close(void)] Port communication3 already closed, skipping close operation
+21:16:42 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication4' is not active in config, skipping
+21:16:42 [error] [bool __cdecl Logic::initializeCommunicationPorts(void)] Failed to initialize any active communication ports. Check port settings and availability.
+21:16:42 [error] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Failed to reinitialize communication ports after parameter change
+21:16:42 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping timers reinitialization as parameters don't affect them
+21:16:42 [warning] Attempted to write to channel 'o0' on Port , which is not configured as output.
+21:16:42 [warning] Attempted to write to channel 'o1' on Port , which is not configured as output.
+21:16:42 [warning] Attempted to write to channel 'o7' on Port , which is not configured as output.
+21:16:42 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='timer', intValue=0
+21:16:42 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+21:16:42 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping communication ports reinitialization as parameters don't affect them
+21:16:42 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing timers due to parameter changes
+21:16:42 [debug] [bool __cdecl Logic::initTimers(void)] Initializing timers...
+21:16:42 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer1 with duration: 77ms
+21:16:42 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer2 with duration: 2000ms
+21:16:42 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer3 with duration: 5000ms
+21:16:42 [debug] [bool __cdecl Logic::initTimers(void)] 3 timer(s) initialized successfully
+21:16:42 [warning] Attempted to write to channel 'o0' on Port , which is not configured as output.
+21:16:42 [warning] Attempted to write to channel 'o1' on Port , which is not configured as output.
+21:16:42 [warning] Attempted to write to channel 'o7' on Port , which is not configured as output.
+21:17:18 [debug] Glue settings updated
+21:17:18 [debug] Configuration successfully saved to: config/settings.json
+21:17:23 [debug] Glue settings updated
+21:17:23 [debug] Configuration successfully saved to: config/settings.json
+21:17:27 [debug] Glue settings updated
+21:17:27 [debug] Configuration successfully saved to: config/settings.json
+21:17:30 [debug] Glue settings updated
+21:17:30 [debug] Configuration successfully saved to: config/settings.json
+21:17:35 [debug] Glue settings updated
+21:17:35 [debug] Configuration successfully saved to: config/settings.json
+21:17:40 [debug] Glue settings updated
+21:17:40 [debug] Configuration successfully saved to: config/settings.json
+21:17:48 [debug] Glue settings updated
+21:17:48 [debug] Configuration successfully saved to: config/settings.json
+21:17:51 [debug] Glue settings updated
+21:17:51 [debug] Configuration successfully saved to: config/settings.json
+21:18:01 [debug] Glue settings updated
+21:18:01 [debug] Configuration successfully saved to: config/settings.json
+21:18:05 [debug] Glue settings updated
+21:18:05 [debug] Configuration successfully saved to: config/settings.json
+21:18:07 [debug] Glue settings updated
+21:18:07 [debug] Configuration successfully saved to: config/settings.json
+21:18:15 [debug] Glue settings updated
+21:18:15 [debug] Configuration successfully saved to: config/settings.json
+21:18:17 [debug] Glue settings updated
+21:18:17 [debug] Configuration successfully saved to: config/settings.json
+21:18:32 [debug] [int __cdecl main(int,char *[])] QApplication event loop finished with result: 0
+21:18:32 [debug] Application closing
+21:18:32 [debug] Stop polling signal set.
+21:18:32 [debug] [void __cdecl Logic::run(void)] Termination event received
+21:18:32 [debug] [void __cdecl Logic::closeAllPorts(void)] Closing all active communication ports...
+21:18:32 [debug] [void __cdecl Logic::closeAllPorts(void)] Finished closing communication ports.
+21:18:32 [debug] [void __cdecl Logic::run(void)] Exiting event loop
+21:18:32 [debug] Logic destructor finished.
+21:18:32 [debug] Shutting down PCI7248IO...
+21:18:32 [debug] Stop polling signal set.
+21:18:32 [debug] Resetting configured output ports to OFF state.

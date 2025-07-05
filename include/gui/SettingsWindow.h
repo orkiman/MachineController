@@ -126,7 +126,12 @@ private:
     
     // Glue tab helper methods
     void saveCurrentGlueControllerSettings();
+    void saveCurrentControllerWithoutReload();
+    void saveActiveGlueController();
+    void saveActivePlanForController();
+    void onGlueControllerNameChanged();
     void saveCurrentGluePlanSettings();
+    void saveCurrentPlanWithoutReload();
     void updateGlueTypeVisibility(int index = 0);
     void populateGlueCommunicationComboBox();
     void addGlueRowToTable(int from, int to, double space);

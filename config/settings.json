@@ -62,19 +62,36 @@
     "startPosition": 0
   },
   "glue": {
+    "activeController": "controller_1",
     "controllers": {
       "controller_1": {
-        "communication": "COM2",
+        "activePlan": "plan_1",
+        "communication": "COM1",
         "encoder": 1.0,
-        "name": "the",
+        "name": "c1",
         "plans": {
           "plan_1": {
-            "name": "Default Plan",
+            "name": "p1",
             "rows": [
               {
                 "from": 0,
-                "space": 10.0,
+                "space": 5.0,
                 "to": 100
+              },
+              {
+                "from": 150,
+                "space": 10.0,
+                "to": 200
+              }
+            ]
+          },
+          "plan_2": {
+            "name": "p2",
+            "rows": [
+              {
+                "from": 22,
+                "space": 5.0,
+                "to": 33
               }
             ]
           }
@@ -82,81 +99,9 @@
         "type": "dots"
       },
       "controller_2": {
-        "communication": "COM1",
-        "encoder": 1.0,
-        "name": "New Controller",
-        "plans": {
-          "plan_1": {
-            "name": "Default Plan",
-            "rows": [
-              {
-                "from": 0,
-                "space": 10.0,
-                "to": 100
-              }
-            ]
-          }
-        },
-        "type": "dots"
-      },
-      "controller_3": {
-        "communication": "COM1",
-        "encoder": 1.0,
-        "name": "New Controller",
-        "plans": {
-          "plan_1": {
-            "name": "Default Plan",
-            "rows": [
-              {
-                "from": 0,
-                "space": 10.0,
-                "to": 100
-              }
-            ]
-          }
-        },
-        "type": "dots"
-      },
-      "controller_4": {
-        "communication": "COM1",
-        "encoder": 1.0,
-        "name": "New Controller",
-        "plans": {
-          "plan_1": {
-            "name": "Default Plan",
-            "rows": [
-              {
-                "from": 0,
-                "space": 10.0,
-                "to": 100
-              }
-            ]
-          }
-        },
-        "type": "dots"
-      },
-      "controller_5": {
-        "communication": "",
-        "encoder": 1.0,
-        "name": "New Controller",
-        "plans": {
-          "plan_1": {
-            "name": "Default Plan",
-            "rows": [
-              {
-                "from": 0,
-                "space": 10.0,
-                "to": 100
-              }
-            ]
-          }
-        },
-        "type": "dots"
-      },
-      "controller_6": {
-        "communication": "",
-        "encoder": 1.0,
-        "name": "New Controller",
+        "communication": "COM2",
+        "encoder": 2.0,
+        "name": "c2",
         "plans": {
           "plan_1": {
             "name": "Default Plan",

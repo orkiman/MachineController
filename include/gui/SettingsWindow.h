@@ -90,6 +90,9 @@ private slots:
     void on_glueCommunicationComboBox_currentIndexChanged(int index);
     void on_glueTypeComboBox_currentIndexChanged(int index);
     void on_glueEncoderSpinBox_valueChanged(double value);
+    void on_gluePageLengthSpinBox_valueChanged(int value);
+    void on_glueCalibrateButton_clicked();
+    void onGlueEncoderCalibrationResponse(int pulsesPerPage, const std::string& controllerName);
     void onGluePlanSelectorChanged(int index);
     void on_addGluePlanButton_clicked();
     void on_removeGluePlanButton_clicked();

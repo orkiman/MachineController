@@ -65,7 +65,7 @@
     "activeController": "controller_1",
     "controllers": {
       "controller_1": {
-        "activePlan": "plan_3",
+        "activePlan": "plan_1",
         "communication": "COM1",
         "encoder": 1.26,
         "name": "c1",

@@ -1188,6 +1188,15 @@ void SettingsWindow::onGlueControllerSelectorChanged(int index)
             }
             ui->glueEncoderSpinBox->setValue(encoder);
             
+            // Set page length value
+            int pageLength = 100; // Default value
+            if (controller.contains("pageLength")) {
+                if (controller["pageLength"].is_number()) {
+                    pageLength = controller["pageLength"].get<int>();
+                }
+            }
+            ui->gluePageLengthSpinBox->setValue(pageLength);
+            
             // Clear and populate plan selector
             ui->gluePlanSelectorComboBox->clear();
             
@@ -1496,6 +1505,7 @@ void SettingsWindow::saveCurrentGlueControllerSettings()
         controller["communication"] = ui->glueCommunicationComboBox->currentText().toStdString();
         controller["type"] = ui->glueTypeComboBox->currentText().toLower().toStdString();
         controller["encoder"] = ui->glueEncoderSpinBox->value();
+        controller["pageLength"] = ui->gluePageLengthSpinBox->value();
         
         // Ensure plans object exists
         if (!controller.contains("plans")) {
@@ -1985,6 +1995,121 @@ void SettingsWindow::on_glueEncoderSpinBox_valueChanged(double value)
     
     // Save changes
     saveCurrentGlueControllerSettings();
+}
+
+// Handle page length change
+void SettingsWindow::on_gluePageLengthSpinBox_valueChanged(int value)
+{
+    if (isRefreshing_ || !config_ || currentGlueControllerName_.empty()) {
+        return;
+    }
+    
+    try {
+        nlohmann::json glueSettings = config_->getGlueSettings();
+        if (!glueSettings.contains("controllers") || 
+            !glueSettings["controllers"].contains(currentGlueControllerName_)) {
+            return;
+        }
+        
+        // Save page length directly
+        glueSettings["controllers"][currentGlueControllerName_]["pageLength"] = value;
+        
+        Config* mutableConfig = const_cast<Config*>(config_);
+        mutableConfig->updateGlueSettings(glueSettings);
+        
+        // Persist changes to file
+        if (!mutableConfig->saveToFile()) {
+            getLogger()->warn("[on_gluePageLengthSpinBox_valueChanged] Failed to save settings to file");
+        }
+        
+    } catch (const std::exception& e) {
+        getLogger()->warn("[on_gluePageLengthSpinBox_valueChanged] Exception: {}", e.what());
+    }
+}
+
+// Handle calibrate button click
+void SettingsWindow::on_glueCalibrateButton_clicked()
+{
+    if (isRefreshing_ || !config_ || currentGlueControllerName_.empty()) {
+        return;
+    }
+    
+    try {
+        int pageLength = ui->gluePageLengthSpinBox->value();
+        std::string controllerName = currentGlueControllerName_;
+        
+        getLogger()->info("[on_glueCalibrateButton_clicked] Starting encoder calibration for controller '{}' with page length {} mm", 
+                         controllerName, pageLength);
+        
+        // TODO: Send calibration command to Arduino
+        // This will be implemented when we design the protocol
+        // For now, just log the action
+        
+        // Disable the button temporarily to prevent multiple clicks
+        ui->glueCalibrateButton->setEnabled(false);
+        ui->glueCalibrateButton->setText("Calibrating...");
+        
+        // TODO: Re-enable button after calibration completes or times out
+        
+    } catch (const std::exception& e) {
+        getLogger()->warn("[on_glueCalibrateButton_clicked] Exception: {}", e.what());
+    }
+}
+
+// Handle encoder calibration response from Arduino
+void SettingsWindow::onGlueEncoderCalibrationResponse(int pulsesPerPage, const std::string& controllerName)
+{
+    if (isRefreshing_ || !config_ || controllerName.empty()) {
+        return;
+    }
+    
+    try {
+        // Get the page length that was used for calibration
+        int pageLength = ui->gluePageLengthSpinBox->value();
+        
+        // Calculate encoder resolution: pulses per mm
+        double encoderResolution = static_cast<double>(pulsesPerPage) / static_cast<double>(pageLength);
+        
+        getLogger()->info("[onGlueEncoderCalibrationResponse] Received calibration data for controller '{}': {} pulses per {} mm page", 
+                         controllerName, pulsesPerPage, pageLength);
+        getLogger()->info("[onGlueEncoderCalibrationResponse] Calculated encoder resolution: {:.6f} pulses per mm", encoderResolution);
+        
+        // Update the encoder spinbox with the calculated resolution
+        ui->glueEncoderSpinBox->setValue(encoderResolution);
+        
+        // Save the updated encoder resolution to config
+        nlohmann::json glueSettings = config_->getGlueSettings();
+        if (glueSettings.contains("controllers") && 
+            glueSettings["controllers"].contains(controllerName)) {
+            
+            glueSettings["controllers"][controllerName]["encoder"] = encoderResolution;
+            
+            Config* mutableConfig = const_cast<Config*>(config_);
+            mutableConfig->updateGlueSettings(glueSettings);
+            
+            // Persist changes to file
+            if (!mutableConfig->saveToFile()) {
+                getLogger()->warn("[onGlueEncoderCalibrationResponse] Failed to save updated encoder resolution to file");
+            } else {
+                getLogger()->info("[onGlueEncoderCalibrationResponse] Successfully saved encoder resolution {:.6f} for controller '{}'", 
+                                 encoderResolution, controllerName);
+            }
+        }
+        
+        // Re-enable the calibrate button and restore original text
+        ui->glueCalibrateButton->setEnabled(true);
+        ui->glueCalibrateButton->setText("Calibrate Encoder");
+        
+        // Show success message or notification (optional)
+        getLogger()->info("[onGlueEncoderCalibrationResponse] Encoder calibration completed successfully for controller '{}'", controllerName);
+        
+    } catch (const std::exception& e) {
+        getLogger()->warn("[onGlueEncoderCalibrationResponse] Exception: {}", e.what());
+        
+        // Re-enable the button even if there was an error
+        ui->glueCalibrateButton->setEnabled(true);
+        ui->glueCalibrateButton->setText("Calibrate Encoder");
+    }
 }
 
 // Handle plan name text change

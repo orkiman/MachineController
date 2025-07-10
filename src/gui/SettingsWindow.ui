@@ -543,7 +543,7 @@ QDialog[overrideOutputs=&quot;true&quot;] {
              <item row="3" column="0">
               <widget class="QLabel" name="glueEncoderLabel">
                <property name="text">
-                <string>Encoder (pulses/mm):</string>
+                <string>Encoder Resolution (pulses/mm):</string>
                </property>
               </widget>
              </item>
@@ -563,6 +563,36 @@ QDialog[overrideOutputs=&quot;true&quot;] {
                </property>
                <property name="value">
                 <double>1.000000000000000</double>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="0">
+              <widget class="QLabel" name="gluePageLengthLabel">
+               <property name="text">
+                <string>Page Length (mm):</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="1">
+              <widget class="QSpinBox" name="gluePageLengthSpinBox">
+               <property name="minimum">
+                <number>1</number>
+               </property>
+               <property name="maximum">
+                <number>10000</number>
+               </property>
+               <property name="value">
+                <number>100</number>
+               </property>
+               <property name="suffix">
+                <string> mm</string>
+               </property>
+              </widget>
+             </item>
+             <item row="5" column="1">
+              <widget class="QPushButton" name="glueCalibrateButton">
+               <property name="text">
+                <string>Calibrate Encoder</string>
                </property>
               </widget>
              </item>

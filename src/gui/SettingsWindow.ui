@@ -596,6 +596,16 @@ QDialog[overrideOutputs=&quot;true&quot;] {
                </property>
               </widget>
              </item>
+             <item row="6" column="0" colspan="2">
+              <widget class="QCheckBox" name="glueControllerEnabledCheckBox">
+               <property name="text">
+                <string>Enable Controller</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
             </layout>
            </item>
            <item>

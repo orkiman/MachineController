@@ -1197,6 +1197,15 @@ void SettingsWindow::onGlueControllerSelectorChanged(int index)
             }
             ui->gluePageLengthSpinBox->setValue(pageLength);
             
+            // Set enabled state
+            bool enabled = true; // Default value
+            if (controller.contains("enabled")) {
+                if (controller["enabled"].is_boolean()) {
+                    enabled = controller["enabled"].get<bool>();
+                }
+            }
+            ui->glueControllerEnabledCheckBox->setChecked(enabled);
+            
             // Clear and populate plan selector
             ui->gluePlanSelectorComboBox->clear();
             
@@ -1506,6 +1515,7 @@ void SettingsWindow::saveCurrentGlueControllerSettings()
         controller["type"] = ui->glueTypeComboBox->currentText().toLower().toStdString();
         controller["encoder"] = ui->glueEncoderSpinBox->value();
         controller["pageLength"] = ui->gluePageLengthSpinBox->value();
+        controller["enabled"] = ui->glueControllerEnabledCheckBox->isChecked();
         
         // Ensure plans object exists
         if (!controller.contains("plans")) {
@@ -2053,6 +2063,41 @@ void SettingsWindow::on_glueCalibrateButton_clicked()
         
     } catch (const std::exception& e) {
         getLogger()->warn("[on_glueCalibrateButton_clicked] Exception: {}", e.what());
+    }
+}
+
+// Handle enable controller checkbox state change
+void SettingsWindow::on_glueControllerEnabledCheckBox_stateChanged(int state)
+{
+    if (isRefreshing_ || !config_ || currentGlueControllerName_.empty()) {
+        return;
+    }
+    
+    try {
+        bool enabled = (state == Qt::Checked);
+        
+        nlohmann::json glueSettings = config_->getGlueSettings();
+        if (!glueSettings.contains("controllers") || 
+            !glueSettings["controllers"].contains(currentGlueControllerName_)) {
+            return;
+        }
+        
+        // Save enabled state directly
+        glueSettings["controllers"][currentGlueControllerName_]["enabled"] = enabled;
+        
+        Config* mutableConfig = const_cast<Config*>(config_);
+        mutableConfig->updateGlueSettings(glueSettings);
+        
+        // Persist changes to file
+        if (!mutableConfig->saveToFile()) {
+            getLogger()->warn("[on_glueControllerEnabledCheckBox_stateChanged] Failed to save settings to file");
+        }
+        
+        getLogger()->info("[on_glueControllerEnabledCheckBox_stateChanged] Controller '{}' {} ", 
+                         currentGlueControllerName_, enabled ? "enabled" : "disabled");
+        
+    } catch (const std::exception& e) {
+        getLogger()->warn("[on_glueControllerEnabledCheckBox_stateChanged] Exception: {}", e.what());
     }
 }
 

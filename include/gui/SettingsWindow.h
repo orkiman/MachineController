@@ -92,6 +92,7 @@ private slots:
     void on_glueEncoderSpinBox_valueChanged(double value);
     void on_gluePageLengthSpinBox_valueChanged(int value);
     void on_glueCalibrateButton_clicked();
+    void on_glueControllerEnabledCheckBox_stateChanged(int state);
     void onGlueEncoderCalibrationResponse(int pulsesPerPage, const std::string& controllerName);
     void onGluePlanSelectorChanged(int index);
     void on_addGluePlanButton_clicked();

@@ -94,6 +94,7 @@ private slots:
     void on_addGluePlanButton_clicked();
     void on_removeGluePlanButton_clicked();
     void on_gluePlanNameLineEdit_textChanged(const QString& text);
+    void on_gluePlanSensorOffsetSpinBox_valueChanged(int value);
     void on_addGlueRowButton_clicked();
     void on_removeGlueRowButton_clicked();
     void onGlueRowCellChanged(int row, int column);

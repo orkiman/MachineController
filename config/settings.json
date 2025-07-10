@@ -65,7 +65,7 @@
     "activeController": "controller_1",
     "controllers": {
       "controller_1": {
-        "activePlan": "plan_2",
+        "activePlan": "plan_3",
         "communication": "COM1",
         "encoder": 1.26,
         "name": "c1",
@@ -83,7 +83,8 @@
                 "space": 10.0,
                 "to": 222
               }
-            ]
+            ],
+            "sensorOffset": 10.0
           },
           "plan_2": {
             "name": "p2",
@@ -93,18 +94,31 @@
                 "space": 5.0,
                 "to": 33
               }
-            ]
+            ],
+            "sensorOffset": 9
+          },
+          "plan_3": {
+            "name": "New Plan",
+            "rows": [
+              {
+                "from": 0,
+                "space": 10.0,
+                "to": 100
+              }
+            ],
+            "sensorOffset": 10.0
           }
         },
         "type": "dots"
       },
       "controller_2": {
+        "activePlan": "plan_1",
         "communication": "COM2",
-        "encoder": 1.56,
+        "encoder": 1.57,
         "name": "c2",
         "plans": {
           "plan_1": {
-            "name": "Default Plan",
+            "name": "plan11",
             "rows": [
               {
                 "from": 11,
@@ -116,25 +130,19 @@
                 "space": 10.0,
                 "to": 44
               }
-            ]
-          }
-        },
-        "type": "dots"
-      },
-      "controller_3": {
-        "communication": "COM1",
-        "encoder": 1.0,
-        "name": "c3",
-        "plans": {
-          "plan_1": {
-            "name": "Default Plan",
+            ],
+            "sensorOffset": 11
+          },
+          "plan_2": {
+            "name": "plan22",
             "rows": [
               {
                 "from": 0,
                 "space": 10.0,
                 "to": 100
               }
-            ]
+            ],
+            "sensorOffset": 22
           }
         },
         "type": "dots"

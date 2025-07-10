@@ -1319,10 +1319,16 @@ void SettingsWindow::onGluePlanSelectorChanged(int index)
                     }
                 }
             }
+            
+            // Load sensor offset
+            int sensorOffset = plan.value("sensorOffset", 10); // Default to 10 if not found
+            ui->gluePlanSensorOffsetSpinBox->setValue(sensorOffset);
+            
         } else {
             // Plan not found, clear the UI
             ui->gluePlanNameLineEdit->clear();
             ui->glueRowsTable->setRowCount(0);
+            ui->gluePlanSensorOffsetSpinBox->setValue(10); // Reset to default
             currentGluePlanName_ = "";
         }
     } catch (const std::exception& e) {
@@ -1564,6 +1570,9 @@ void SettingsWindow::saveCurrentGluePlanSettings()
             rows.push_back(row);
         }
         plan["rows"] = rows;
+        
+        // Save sensor offset
+        plan["sensorOffset"] = ui->gluePlanSensorOffsetSpinBox->value();
         
         Config* mutableConfig = const_cast<Config*>(config_);
         mutableConfig->updateGlueSettings(glueSettings);
@@ -1999,6 +2008,38 @@ void SettingsWindow::on_gluePlanNameLineEdit_textChanged(const QString& text)
     
     // Save changes
     saveCurrentGluePlanSettings();
+}
+
+// Handle sensor offset value change
+void SettingsWindow::on_gluePlanSensorOffsetSpinBox_valueChanged(int value)
+{
+    if (isRefreshing_ || !config_ || currentGlueControllerName_.empty() || currentGluePlanName_.empty()) {
+        return;
+    }
+    
+    try {
+        nlohmann::json glueSettings = config_->getGlueSettings();
+        if (!glueSettings.contains("controllers") || 
+            !glueSettings["controllers"].contains(currentGlueControllerName_) ||
+            !glueSettings["controllers"][currentGlueControllerName_].contains("plans") ||
+            !glueSettings["controllers"][currentGlueControllerName_]["plans"].contains(currentGluePlanName_)) {
+            return;
+        }
+        
+        // Save sensor offset directly
+        glueSettings["controllers"][currentGlueControllerName_]["plans"][currentGluePlanName_]["sensorOffset"] = value;
+        
+        Config* mutableConfig = const_cast<Config*>(config_);
+        mutableConfig->updateGlueSettings(glueSettings);
+        
+        // Persist changes to file
+        if (!mutableConfig->saveToFile()) {
+            getLogger()->warn("[on_gluePlanSensorOffsetSpinBox_valueChanged] Failed to save settings to file");
+        }
+        
+    } catch (const std::exception& e) {
+        getLogger()->warn("[on_gluePlanSensorOffsetSpinBox_valueChanged] Exception: {}", e.what());
+    }
 }
 
 // Handle glue row cell change

@@ -63,7 +63,7 @@ private slots:
     void on_overrideOutputsCheckBox_stateChanged(int state);
     
     // Communication related slots
-    void on_communicationActiveCheckBox_stateChanged(int state);
+    void onCommunicationActiveCheckBoxChanged(int state);  // Manual connection to prevent double connections
     void on_communicationSendPushButton_clicked();
     
     void on_refreshButton_clicked();

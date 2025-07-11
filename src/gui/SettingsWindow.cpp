@@ -130,14 +130,24 @@ SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQ
 
     // Ensure communication type visibility is correct after setup
     QMetaObject::invokeMethod(this, [this]() { updateCommunicationTypeVisibility(-1); }, Qt::QueuedConnection);
-    QWidget* commPage = commStack->widget(0);
-    if (commPage) {
-        QComboBox* typeComboBox = commPage->findChild<QComboBox*>("communicationTypeComboBox");
-        if (typeComboBox) {
-            connect(typeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
-                    this, &SettingsWindow::updateCommunicationTypeVisibility);
+    
+    // Connect communicationActiveCheckBox on all communication pages to prevent Qt auto-connect issues
+    for (int i = 0; i < commStack->count(); ++i) {
+        QWidget* commPage = commStack->widget(i);
+        if (commPage) {
+            QComboBox* typeComboBox = commPage->findChild<QComboBox*>("communicationTypeComboBox");
+            if (typeComboBox) {
+                connect(typeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
+                        this, &SettingsWindow::updateCommunicationTypeVisibility);
+            }
+            // Manually connect communicationActiveCheckBox to prevent double connections
+            // (Qt auto-connect would connect to all checkboxes with same name across all pages)
+            QCheckBox* activeCheckBox = commPage->findChild<QCheckBox*>("communicationActiveCheckBox");
+            if (activeCheckBox) {
+                connect(activeCheckBox, &QCheckBox::stateChanged, this, &SettingsWindow::onCommunicationActiveCheckBoxChanged);
+            }
+            // SendPushButton handled by Qt auto-connect
         }
-        // CommunicationActiveCheckBox and SendPushButton handled by Qt auto-connect
     }
 
     isRefreshing_ = false;
@@ -1077,7 +1087,7 @@ void SettingsWindow::fillGlueTabFields()
     isRefreshing_ = false;
 }
 
-// Populate the glue communication combo box with available ports
+// Populate the glue communication combo box with communication names
 void SettingsWindow::populateGlueCommunicationComboBox()
 {
     // Store the current selection
@@ -1086,12 +1096,42 @@ void SettingsWindow::populateGlueCommunicationComboBox()
     // Clear the combo box
     ui->glueCommunicationComboBox->clear();
     
-    // Get available ports from the communication tab
-    QComboBox* portNameComboBox = findChild<QComboBox*>("portNameComboBox");
-    if (portNameComboBox) {
-        // Add all available ports to the glue communication combo box
-        for (int i = 0; i < portNameComboBox->count(); ++i) {
-            ui->glueCommunicationComboBox->addItem(portNameComboBox->itemText(i));
+    // Get communication settings from config to populate with communication names
+    if (config_) {
+        try {
+            nlohmann::json commSettings = config_->getCommunicationSettings();
+            
+            getLogger()->debug("[populateGlueCommunicationComboBox] commSettings length: {}", commSettings.size());
+            getLogger()->debug("[populateGlueCommunicationComboBox] Full JSON: {}", commSettings.dump(2));
+            
+            // Add communication names (communication1, communication2, etc.)
+            int loopCount = 0;
+            for (const auto& [commName, commData] : commSettings.items()) {
+                loopCount++;
+                getLogger()->debug("[populateGlueCommunicationComboBox] Loop {}: Processing '{}'", loopCount, commName);
+                
+                if (commData.is_object() && commData.contains("active")) {
+                    bool isActive = commData["active"].get<bool>();
+                    getLogger()->debug("[populateGlueCommunicationComboBox] '{}' active: {}", commName, isActive);
+                    
+                    if (isActive) {
+                        // Only add active communication channels if not already present
+                        QString commNameQt = QString::fromStdString(commName);
+                        if (ui->glueCommunicationComboBox->findText(commNameQt) == -1) {
+                            ui->glueCommunicationComboBox->addItem(commNameQt);
+                            getLogger()->debug("[populateGlueCommunicationComboBox] Added '{}' to combo box", commName);
+                        } else {
+                            getLogger()->warn("[populateGlueCommunicationComboBox] '{}' already exists in combo box, skipping", commName);
+                        }
+                    }
+                } else {
+                    getLogger()->warn("[populateGlueCommunicationComboBox] '{}' is not an object or missing 'active' field", commName);
+                }
+            }
+            
+            getLogger()->debug("[populateGlueCommunicationComboBox] Total loop iterations: {}", loopCount);
+        } catch (const std::exception& e) {
+            getLogger()->warn("[populateGlueCommunicationComboBox] Exception: {}", e.what());
         }
     }
     
@@ -2798,7 +2838,7 @@ void SettingsWindow::updateCommunicationTypeVisibility(int index) {
     }
 }
 
-void SettingsWindow::on_communicationActiveCheckBox_stateChanged(int state) {
+void SettingsWindow::onCommunicationActiveCheckBoxChanged(int state) {
     // Enable/disable the communication settings based on the active state
     bool isActive = (state == Qt::Checked);
     
@@ -2807,6 +2847,10 @@ void SettingsWindow::on_communicationActiveCheckBox_stateChanged(int state) {
     if (activeCheckBox) {
         markAsChanged(activeCheckBox);
     }
+    
+    // Save the current communication settings to preserve the active state change
+    // This will update the config with the new active state
+    saveCurrentCommunicationSettings();
     
     // Get the current page
     QStackedWidget* commStack = findChild<QStackedWidget*>("communicationStackedWidget");
@@ -2819,19 +2863,29 @@ void SettingsWindow::on_communicationActiveCheckBox_stateChanged(int state) {
         return;
     }
     
-    // Find the UI elements in the current page
-    QComboBox* typeComboBox = currentPage->findChild<QComboBox*>("communicationTypeComboBox");
-    QGroupBox* rs232Group = currentPage->findChild<QGroupBox*>("rs232Group");
-    QGroupBox* tcpipGroup = currentPage->findChild<QGroupBox*>("tcpipGroup");
-    
-    // Enable/disable the type combo box
-    if (typeComboBox) {
-        typeComboBox->setEnabled(isActive);
+    // Only update UI elements if we're not in the middle of refreshing
+    // and if this checkbox change is for the currently selected communication
+    if (!isRefreshing_ && !currentCommunicationName_.empty()) {
+        // Find the UI elements in the current page
+        QComboBox* typeComboBox = currentPage->findChild<QComboBox*>("communicationTypeComboBox");
+        QGroupBox* rs232Group = currentPage->findChild<QGroupBox*>("rs232Group");
+        QGroupBox* tcpipGroup = currentPage->findChild<QGroupBox*>("tcpipGroup");
+        
+        // Enable/disable the type combo box
+        if (typeComboBox) {
+            typeComboBox->setEnabled(isActive);
+        }
+        
+        // Enable/disable all groups based on active state
+        if (rs232Group) rs232Group->setEnabled(isActive);
+        if (tcpipGroup) tcpipGroup->setEnabled(isActive);
     }
     
-    // Enable/disable all groups based on active state
-    if (rs232Group) rs232Group->setEnabled(isActive);
-    if (tcpipGroup) rs232Group->setEnabled(isActive);
+    // Update the glue communication combo box after config is saved
+    // Use QTimer::singleShot to delay the call until after the config save completes
+    QTimer::singleShot(0, this, [this]() {
+        populateGlueCommunicationComboBox();
+    });
 }
 
 void SettingsWindow::onCommunicationSelectorChanged(int index) {
@@ -2897,9 +2951,11 @@ void SettingsWindow::onCommunicationSelectorChanged(int index) {
                 }
             }
             
-            // Set the active state
+            // Set the active state (block signals to prevent triggering stateChanged when switching tabs)
             if (activeCheckBox && commData.contains("active")) {
+                activeCheckBox->blockSignals(true);
                 activeCheckBox->setChecked(commData["active"].get<bool>());
+                activeCheckBox->blockSignals(false);
             }
             
             // Update the RS232 settings if applicable
@@ -3012,6 +3068,24 @@ void SettingsWindow::onCommunicationSelectorChanged(int index) {
             QSpinBox* offsetSpinBox = currentPage->findChild<QSpinBox*>("offsetSpinBox");
             if (offsetSpinBox && commData.contains("offset")) {
                 offsetSpinBox->setValue(commData["offset"].get<int>());
+            }
+            
+            // Apply the enable/disable state to UI elements based on the active checkbox
+            if (activeCheckBox) {
+                bool isActive = activeCheckBox->isChecked();
+                
+                // Find the UI elements that should be enabled/disabled
+                QGroupBox* rs232Group = currentPage->findChild<QGroupBox*>("rs232Group");
+                QGroupBox* tcpipGroup = currentPage->findChild<QGroupBox*>("tcpipGroup");
+                
+                // Enable/disable the type combo box (reuse existing typeComboBox)
+                if (typeComboBox) {
+                    typeComboBox->setEnabled(isActive);
+                }
+                
+                // Enable/disable all groups based on active state
+                if (rs232Group) rs232Group->setEnabled(isActive);
+                if (tcpipGroup) tcpipGroup->setEnabled(isActive);
             }
         }
         

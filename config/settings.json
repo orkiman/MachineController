@@ -8,7 +8,7 @@
       "etx": 3,
       "offset": 3,
       "parity": "N",
-      "port": "COM3",
+      "port": "COM1",
       "stopBits": 1.0,
       "stx": 2,
       "trigger": "1234",
@@ -22,14 +22,14 @@
       "etx": 3,
       "offset": 2,
       "parity": "N",
-      "port": "COM1",
+      "port": "COM5",
       "stopBits": 1.0,
       "stx": 2,
       "trigger": "t",
       "type": "RS232"
     },
     "communication3": {
-      "active": true,
+      "active": false,
       "description": "reader3",
       "offset": 8,
       "tcpip": {
@@ -62,13 +62,13 @@
     "startPosition": 0
   },
   "glue": {
-    "activeController": "controller_1",
+    "activeController": "controller_2",
     "controllers": {
       "controller_1": {
         "activePlan": "plan_1",
         "communication": "COM1",
         "enabled": false,
-        "encoder": 1.25,
+        "encoder": 1.26,
         "name": "c1",
         "pageLength": 100,
         "plans": {
@@ -78,7 +78,7 @@
               {
                 "from": 0,
                 "space": 5.0,
-                "to": 100
+                "to": 101
               },
               {
                 "from": 111,
@@ -86,7 +86,7 @@
                 "to": 222
               }
             ],
-            "sensorOffset": 10.0
+            "sensorOffset": 10
           },
           "plan_2": {
             "name": "p2",
@@ -115,9 +115,11 @@
       },
       "controller_2": {
         "activePlan": "plan_1",
-        "communication": "COM2",
-        "encoder": 1.57,
+        "communication": "",
+        "enabled": true,
+        "encoder": 1.59,
         "name": "c2",
+        "pageLength": 100,
         "plans": {
           "plan_1": {
             "name": "plan11",

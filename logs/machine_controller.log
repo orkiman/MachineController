@@ -1,98 +1,1243 @@
-08:07:38 [info] Application starting...
-08:07:38 [debug] [int __cdecl main(int,char *[])] Application started
-08:07:38 [debug] [int __cdecl main(int,char *[])] Multimedia timer resolution set to 1ms
-08:07:38 [debug] [int __cdecl main(int,char *[])] EventQueue created
-08:07:38 [error] Error ensuring default communication settings: resource deadlock would occur: resource deadlock would occur
-08:07:38 [error] Error ensuring default timer settings: resource deadlock would occur: resource deadlock would occur
-08:07:38 [error] Error ensuring default glue settings: resource deadlock would occur: resource deadlock would occur
-08:07:38 [debug] [int __cdecl main(int,char *[])] QApplication instance creating...
-08:07:38 [debug] [int __cdecl main(int,char *[])] QApplication instance created.
-08:07:38 [debug] [int __cdecl main(int,char *[])] MainWindow instance creating...
-08:07:38 [debug] [MainWindow] Constructor started
-08:07:38 [debug] [MainWindow] Calling ui->setupUi()...
-08:07:38 [debug] [MainWindow] ui->setupUi() finished.
-08:07:38 [debug] [MainWindow] Creating SettingsWindow...
-08:07:39 [debug] [MainWindow] SettingsWindow created.
-08:07:39 [debug] [MainWindow] Queuing emitWindowReady()...
-08:07:39 [debug] [MainWindow] emitWindowReady() queued.
-08:07:39 [debug] [MainWindow] Constructor finished
-08:07:39 [debug] [int __cdecl main(int,char *[])] MainWindow instance created.
-08:07:39 [debug] Initializing PCI-7248...
-08:07:39 [debug] PCI-7248 Card registered successfully (Card ID: 0).
-08:07:39 [debug] Configured Port A (0) as output
-08:07:39 [debug] Configured Port B (1) as input
-08:07:39 [debug] Configured Port CH (4) as input
-08:07:39 [debug] Configured Port CL (3) as output
-08:07:39 [debug] --- Configured Input Channels ---
-08:07:39 [debug] Input : i8 (Port B, Pin 8)
-08:07:39 [debug] Input : i13 (Port B, Pin 13)
-08:07:39 [debug] Input : i9 (Port B, Pin 9)
-08:07:39 [debug] Input : i12 (Port B, Pin 12)
-08:07:39 [debug] Input : i10 (Port B, Pin 10)
-08:07:39 [debug] Input : i11 (Port B, Pin 11)
-08:07:39 [debug] Input : i14 (Port B, Pin 14)
-08:07:39 [debug] Input : i15 (Port B, Pin 15)
-08:07:39 [debug] Input : i20 (Port CH, Pin 20)
-08:07:39 [debug] Input : i21 (Port CH, Pin 21)
-08:07:39 [debug] Input : i22 (Port CH, Pin 22)
-08:07:39 [debug] Input : i23 (Port CH, Pin 23)
-08:07:39 [debug] --- Configured Output Channels ---
-08:07:39 [debug] Output: o0 (Port A, Pin 0)
-08:07:39 [debug] Output: o1 (Port A, Pin 1)
-08:07:39 [debug] Output: o7 (Port A, Pin 7)
-08:07:39 [debug] ---------------------------------
-08:07:39 [debug] Resetting configured output ports to OFF state.
-08:07:39 [debug] Timer capabilities - Min: 1ms, Max: 1000000ms
-08:07:39 [debug] PCI7248IO initialized successfully. High-resolution timer started with 2ms interval.
-08:07:39 [debug] Polling thread set to high priority.
-08:07:39 [debug] [__cdecl Logic::Logic(class EventQueue<class std::variant<struct IOEvent,struct CommEvent,struct GuiEvent,struct TimerEvent,struct TerminationEvent> > &,const class Config &)] Logic initialized
-08:07:39 [debug] [int __cdecl main(int,char *[])] Showing MainWindow...
-08:07:39 [debug] [bool __cdecl Logic::initTimers(void)] Initializing timers...
-08:07:39 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer1 with duration: 77ms
-08:07:39 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer2 with duration: 2000ms
-08:07:39 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer3 with duration: 5000ms
-08:07:39 [debug] [bool __cdecl Logic::initTimers(void)] 3 timer(s) initialized successfully
-08:07:39 [debug] [void __cdecl Logic::initialize(void)] Timers initialized successfully
-08:07:39 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Initializing communication ports...
-08:07:39 [debug] [0x15d7d0ab598] RS232Communication constructor for 'communication1'
-08:07:39 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication1'
-08:07:39 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication1' initialization failed
-08:07:39 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication1'
-08:07:39 [debug] [0x15d7d0ab598] RS232Communication close() started for 'communication1'
-08:07:39 [debug] [void __cdecl RS232Communication::close(void)] Port communication1 already closed, skipping close operation
-08:07:39 [debug] [0x15d7d0ab598] RS232Communication constructor for 'communication2'
-08:07:39 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication2'
-08:07:39 [debug] Started receive thread for port communication2
-08:07:39 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication2' initialized successfully
-08:07:39 [debug] [0x15d7d0bbef8] RS232Communication constructor for 'communication3'
-08:07:39 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication3'
-08:07:39 [debug] [void __cdecl RS232Communication::receiveLoop(void)] RS232Communication receiveLoop() started for 'communication2'
-08:07:39 [warning] Port name is empty. Please specify a valid port.
-08:07:39 [warning] Communication settings validation failed for communication3. Aborting initialization.
-08:07:39 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication3' initialization failed
-08:07:39 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication3'
-08:07:39 [debug] [0x15d7d0bbef8] RS232Communication close() started for 'communication3'
-08:07:39 [debug] [void __cdecl RS232Communication::close(void)] Port communication3 already closed, skipping close operation
-08:07:39 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication4' is not active in config, skipping
-08:07:39 [warning] [bool __cdecl Logic::initializeCommunicationPorts(void)] 1 of 3 active communication ports initialized
-08:07:39 [debug] [void __cdecl Logic::initialize(void)] Communication ports initialized successfully
-08:07:39 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='GuiMessage', data='Communication settings loaded from JSON', target='info', intValue=0
-08:07:39 [debug] [int __cdecl main(int,char *[])] MainWindow show() called.
-08:07:39 [debug] [int __cdecl main(int,char *[])] Starting QApplication event loop (app.exec())...
-08:07:39 [debug] [MainWindow] emitWindowReady() called.
-08:07:39 [debug] [MainWindow] Emitting windowReady signal...
-08:07:39 [debug] SettingsWindow::onInitialLoadComplete() called.
-08:07:39 [debug] [MainWindow] windowReady signal emitted.
-08:07:39 [debug] [MainWindow] emitWindowReady() finished.
-08:08:00 [debug] Glue settings updated
-08:08:00 [debug] Configuration successfully saved to: config/settings.json
-08:08:00 [info] [on_glueControllerEnabledCheckBox_stateChanged] Controller 'controller_1' enabled 
-08:08:01 [debug] Glue settings updated
-08:08:01 [debug] Configuration successfully saved to: config/settings.json
-08:08:01 [info] [on_glueControllerEnabledCheckBox_stateChanged] Controller 'controller_1' disabled 
-08:08:08 [debug] Glue settings updated
-08:08:08 [debug] Configuration successfully saved to: config/settings.json
-08:08:08 [info] [on_glueControllerEnabledCheckBox_stateChanged] Controller 'controller_1' enabled 
-08:08:11 [debug] Glue settings updated
-08:08:11 [debug] Configuration successfully saved to: config/settings.json
-08:08:11 [info] [on_glueControllerEnabledCheckBox_stateChanged] Controller 'controller_1' disabled 
+18:18:35 [info] Application starting...
+18:18:35 [debug] [int __cdecl main(int,char *[])] Application started
+18:18:35 [debug] [int __cdecl main(int,char *[])] Multimedia timer resolution set to 1ms
+18:18:35 [debug] [int __cdecl main(int,char *[])] EventQueue created
+18:18:35 [error] Error ensuring default communication settings: resource deadlock would occur: resource deadlock would occur
+18:18:35 [error] Error ensuring default timer settings: resource deadlock would occur: resource deadlock would occur
+18:18:35 [error] Error ensuring default glue settings: resource deadlock would occur: resource deadlock would occur
+18:18:35 [debug] [int __cdecl main(int,char *[])] QApplication instance creating...
+18:18:35 [debug] [int __cdecl main(int,char *[])] QApplication instance created.
+18:18:35 [debug] [int __cdecl main(int,char *[])] MainWindow instance creating...
+18:18:35 [debug] [MainWindow] Constructor started
+18:18:35 [debug] [MainWindow] Calling ui->setupUi()...
+18:18:36 [debug] [MainWindow] ui->setupUi() finished.
+18:18:36 [debug] [MainWindow] Creating SettingsWindow...
+18:18:36 [debug] [populateGlueCommunicationComboBox] commSettings length: 4
+18:18:36 [debug] [populateGlueCommunicationComboBox] Full JSON: {
+  "communication1": {
+    "active": true,
+    "baudRate": 115200,
+    "dataBits": 8,
+    "description": "reader1",
+    "etx": 3,
+    "offset": 3,
+    "parity": "N",
+    "port": "COM1",
+    "stopBits": 1.0,
+    "stx": 2,
+    "trigger": "1234",
+    "type": "RS232"
+  },
+  "communication2": {
+    "active": false,
+    "baudRate": 115200,
+    "dataBits": 8,
+    "description": "reader2",
+    "etx": 3,
+    "offset": 2,
+    "parity": "N",
+    "port": "COM5",
+    "stopBits": 1.0,
+    "stx": 2,
+    "trigger": "t",
+    "type": "RS232"
+  },
+  "communication3": {
+    "active": false,
+    "description": "reader3",
+    "offset": 8,
+    "tcpip": {
+      "ip": "127.0.0.1",
+      "port": 502,
+      "timeout_ms": 1000
+    },
+    "type": "TCP/IP"
+  },
+  "communication4": {
+    "active": false,
+    "baudRate": 115200,
+    "dataBits": 8,
+    "description": "reader4",
+    "etx": 3,
+    "offset": 5,
+    "parity": "N",
+    "port": "COM8",
+    "stopBits": 1.0,
+    "stx": 2,
+    "trigger": "t",
+    "type": "RS232"
+  }
+}
+18:18:36 [debug] [populateGlueCommunicationComboBox] Loop 1: Processing 'communication1'
+18:18:36 [debug] [populateGlueCommunicationComboBox] 'communication1' active: true
+18:18:36 [debug] [populateGlueCommunicationComboBox] Added 'communication1' to combo box
+18:18:36 [debug] [populateGlueCommunicationComboBox] Loop 2: Processing 'communication2'
+18:18:36 [debug] [populateGlueCommunicationComboBox] 'communication2' active: false
+18:18:36 [debug] [populateGlueCommunicationComboBox] Loop 3: Processing 'communication3'
+18:18:36 [debug] [populateGlueCommunicationComboBox] 'communication3' active: false
+18:18:36 [debug] [populateGlueCommunicationComboBox] Loop 4: Processing 'communication4'
+18:18:36 [debug] [populateGlueCommunicationComboBox] 'communication4' active: false
+18:18:36 [debug] [populateGlueCommunicationComboBox] Total loop iterations: 4
+18:18:36 [debug] [MainWindow] SettingsWindow created.
+18:18:36 [debug] [MainWindow] Queuing emitWindowReady()...
+18:18:36 [debug] [MainWindow] emitWindowReady() queued.
+18:18:36 [debug] [MainWindow] Constructor finished
+18:18:36 [debug] [int __cdecl main(int,char *[])] MainWindow instance created.
+18:18:36 [debug] Initializing PCI-7248...
+18:18:36 [debug] PCI-7248 Card registered successfully (Card ID: 0).
+18:18:36 [debug] Configured Port A (0) as output
+18:18:36 [debug] Configured Port B (1) as input
+18:18:36 [debug] Configured Port CH (4) as input
+18:18:36 [debug] Configured Port CL (3) as output
+18:18:36 [debug] --- Configured Input Channels ---
+18:18:36 [debug] Input : i8 (Port B, Pin 8)
+18:18:36 [debug] Input : i13 (Port B, Pin 13)
+18:18:36 [debug] Input : i9 (Port B, Pin 9)
+18:18:36 [debug] Input : i12 (Port B, Pin 12)
+18:18:36 [debug] Input : i10 (Port B, Pin 10)
+18:18:36 [debug] Input : i11 (Port B, Pin 11)
+18:18:36 [debug] Input : i14 (Port B, Pin 14)
+18:18:36 [debug] Input : i15 (Port B, Pin 15)
+18:18:36 [debug] Input : i20 (Port CH, Pin 20)
+18:18:36 [debug] Input : i21 (Port CH, Pin 21)
+18:18:36 [debug] Input : i22 (Port CH, Pin 22)
+18:18:36 [debug] Input : i23 (Port CH, Pin 23)
+18:18:36 [debug] --- Configured Output Channels ---
+18:18:36 [debug] Output: o0 (Port A, Pin 0)
+18:18:36 [debug] Output: o1 (Port A, Pin 1)
+18:18:36 [debug] Output: o7 (Port A, Pin 7)
+18:18:36 [debug] ---------------------------------
+18:18:36 [debug] Resetting configured output ports to OFF state.
+18:18:36 [debug] Timer capabilities - Min: 1ms, Max: 1000000ms
+18:18:36 [debug] PCI7248IO initialized successfully. High-resolution timer started with 2ms interval.
+18:18:36 [debug] Polling thread set to high priority.
+18:18:36 [debug] [__cdecl Logic::Logic(class EventQueue<class std::variant<struct IOEvent,struct CommEvent,struct GuiEvent,struct TimerEvent,struct TerminationEvent> > &,const class Config &)] Logic initialized
+18:18:36 [debug] [int __cdecl main(int,char *[])] Showing MainWindow...
+18:18:36 [debug] [bool __cdecl Logic::initTimers(void)] Initializing timers...
+18:18:36 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer1 with duration: 77ms
+18:18:36 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer2 with duration: 2000ms
+18:18:36 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer3 with duration: 5000ms
+18:18:36 [debug] [bool __cdecl Logic::initTimers(void)] 3 timer(s) initialized successfully
+18:18:36 [debug] [void __cdecl Logic::initialize(void)] Timers initialized successfully
+18:18:36 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Initializing communication ports...
+18:18:36 [debug] [0x269a01d9c98] RS232Communication constructor for 'communication1'
+18:18:36 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication1'
+18:18:36 [debug] Started receive thread for port communication1
+18:18:36 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication1' initialized successfully
+18:18:36 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication2' is not active in config, skipping
+18:18:36 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication3' is not active in config, skipping
+18:18:36 [debug] [void __cdecl RS232Communication::receiveLoop(void)] RS232Communication receiveLoop() started for 'communication1'
+18:18:36 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication4' is not active in config, skipping
+18:18:36 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] 1 communication port(s) initialized successfully
+18:18:36 [debug] [void __cdecl Logic::initialize(void)] Communication ports initialized successfully
+18:18:36 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='GuiMessage', data='Communication settings loaded from JSON', target='info', intValue=0
+18:18:37 [debug] [int __cdecl main(int,char *[])] MainWindow show() called.
+18:18:37 [debug] [int __cdecl main(int,char *[])] Starting QApplication event loop (app.exec())...
+18:18:37 [debug] [MainWindow] emitWindowReady() called.
+18:18:37 [debug] [MainWindow] Emitting windowReady signal...
+18:18:37 [debug] SettingsWindow::onInitialLoadComplete() called.
+18:18:37 [debug] [MainWindow] windowReady signal emitted.
+18:18:37 [debug] [MainWindow] emitWindowReady() finished.
+18:18:48 [debug] Skipping config update while in refreshing mode
+18:18:50 [info] [saveSettingsToConfig] Saving settings to config
+18:18:50 [debug] Communication settings updated
+18:18:50 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='communication', intValue=0
+18:18:50 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+18:18:50 [debug] Timer settings updated
+18:18:50 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing communication ports due to parameter changes
+18:18:50 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Initializing communication ports...
+18:18:50 [debug] [0x269a01d9c98] RS232Communication close() started for 'communication1'
+18:18:50 [debug] [void __cdecl RS232Communication::close(void)] Closing port communication1
+18:18:50 [debug] Configuration successfully saved to: config/settings.json
+18:18:50 [debug] [void __cdecl RS232Communication::receiveLoop(void)] receiveLoop: WaitCommEvent aborted/cancelled for communication1
+18:18:50 [debug] [void __cdecl RS232Communication::receiveLoop(void)] receiveLoop: Breaking after WaitCommEvent processing due to stop requested.
+18:18:50 [debug] Settings saved to configuration file
+18:18:50 [debug] [void __cdecl RS232Communication::close(void)] close: Closing handle for communication1...
+18:18:50 [debug] [void __cdecl RS232Communication::receiveLoop(void)] RS232Communication receiveLoop() exited for 'communication1'
+18:18:50 [debug] Attempting to join receive thread for communication1
+18:18:50 [debug] Successfully joined receive thread for communication1
+18:18:50 [debug] Communication settings updated
+18:18:50 [debug] [void __cdecl RS232Communication::close(void)] RS232Communication close() finished for 'communication1' Port closed successfully
+18:18:50 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication1'
+18:18:50 [debug] [0x269a01d9c98] RS232Communication close() started for 'communication1'
+18:18:50 [debug] [void __cdecl RS232Communication::close(void)] Port communication1 already closed, skipping close operation
+18:18:50 [debug] [0x269a01e0448] RS232Communication constructor for 'communication1'
+18:18:50 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication1'
+18:18:50 [debug] Started receive thread for port communication1
+18:18:50 [debug] [void __cdecl RS232Communication::receiveLoop(void)] RS232Communication receiveLoop() started for 'communication1'
+18:18:50 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication1' initialized successfully
+18:18:50 [debug] [0x269a1589f58] RS232Communication constructor for 'communication2'
+18:18:50 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication2'
+18:18:50 [debug] Started receive thread for port communication2
+18:18:50 [debug] [void __cdecl RS232Communication::receiveLoop(void)] RS232Communication receiveLoop() started for 'communication2'
+18:18:50 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication2' initialized successfully
+18:18:50 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication3' is not active in config, skipping
+18:18:50 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication4' is not active in config, skipping
+18:18:50 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] 2 communication port(s) initialized successfully
+18:18:50 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping timers reinitialization as parameters don't affect them
+18:18:50 [debug] Glue settings updated
+18:18:50 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='timer', intValue=0
+18:18:50 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+18:18:50 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping communication ports reinitialization as parameters don't affect them
+18:18:50 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing timers due to parameter changes
+18:18:50 [debug] [bool __cdecl Logic::initTimers(void)] Initializing timers...
+18:18:50 [debug] Configuration successfully saved to: config/settings.json
+18:18:50 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer1 with duration: 77ms
+18:18:50 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer2 with duration: 2000ms
+18:18:50 [debug] [populateGlueCommunicationComboBox] commSettings length: 4
+18:18:50 [debug] [populateGlueCommunicationComboBox] Full JSON: {
+  "communication1": {
+    "active": true,
+    "baudRate": 115200,
+    "dataBits": 8,
+    "description": "reader1",
+    "etx": 3,
+    "offset": 3,
+    "parity": "N",
+    "port": "COM1",
+    "stopBits": 1.0,
+    "stx": 2,
+    "trigger": "1234",
+    "type": "RS232"
+  },
+  "communication2": {
+    "active": true,
+    "baudRate": 115200,
+    "dataBits": 8,
+    "description": "reader2",
+    "etx": 3,
+    "offset": 2,
+    "parity": "N",
+    "port": "COM5",
+    "stopBits": 1.0,
+    "stx": 2,
+    "trigger": "t",
+    "type": "RS232"
+  },
+  "communication3": {
+    "active": false,
+    "description": "reader3",
+    "offset": 8,
+    "tcpip": {
+      "ip": "127.0.0.1",
+      "port": 502,
+      "timeout_ms": 1000
+    },
+    "type": "TCP/IP"
+  },
+  "communication4": {
+    "active": false,
+    "baudRate": 115200,
+    "dataBits": 8,
+    "description": "reader4",
+    "etx": 3,
+    "offset": 5,
+    "parity": "N",
+    "port": "COM8",
+    "stopBits": 1.0,
+    "stx": 2,
+    "trigger": "t",
+    "type": "RS232"
+  }
+}
+18:18:50 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer3 with duration: 5000ms
+18:18:50 [debug] [populateGlueCommunicationComboBox] Loop 1: Processing 'communication1'
+18:18:50 [debug] [populateGlueCommunicationComboBox] 'communication1' active: true
+18:18:50 [debug] [bool __cdecl Logic::initTimers(void)] 3 timer(s) initialized successfully
+18:18:50 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='communication', intValue=0
+18:18:50 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+18:18:50 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing communication ports due to parameter changes
+18:18:50 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Initializing communication ports...
+18:18:50 [debug] [0x269a01e0448] RS232Communication close() started for 'communication1'
+18:18:50 [debug] [populateGlueCommunicationComboBox] Added 'communication1' to combo box
+18:18:50 [debug] [populateGlueCommunicationComboBox] Loop 2: Processing 'communication2'
+18:18:50 [debug] [void __cdecl RS232Communication::close(void)] Closing port communication1
+18:18:50 [debug] [populateGlueCommunicationComboBox] 'communication2' active: true
+18:18:50 [debug] [void __cdecl RS232Communication::receiveLoop(void)] receiveLoop: WaitCommEvent aborted/cancelled for communication1
+18:18:50 [debug] [void __cdecl RS232Communication::receiveLoop(void)] receiveLoop: Breaking after WaitCommEvent processing due to stop requested.
+18:18:50 [debug] [void __cdecl RS232Communication::receiveLoop(void)] RS232Communication receiveLoop() exited for 'communication1'
+18:18:50 [debug] [populateGlueCommunicationComboBox] Added 'communication2' to combo box
+18:18:50 [debug] [populateGlueCommunicationComboBox] Loop 3: Processing 'communication3'
+18:18:50 [debug] [populateGlueCommunicationComboBox] 'communication3' active: false
+18:18:50 [debug] [populateGlueCommunicationComboBox] Loop 4: Processing 'communication4'
+18:18:50 [debug] [populateGlueCommunicationComboBox] 'communication4' active: false
+18:18:50 [debug] [void __cdecl RS232Communication::close(void)] close: Closing handle for communication1...
+18:18:50 [debug] [populateGlueCommunicationComboBox] Total loop iterations: 4
+18:18:50 [debug] Attempting to join receive thread for communication1
+18:18:50 [debug] Successfully joined receive thread for communication1
+18:18:50 [debug] [void __cdecl RS232Communication::close(void)] RS232Communication close() finished for 'communication1' Port closed successfully
+18:18:50 [debug] [0x269a1589f58] RS232Communication close() started for 'communication2'
+18:18:50 [debug] [void __cdecl RS232Communication::close(void)] Closing port communication2
+18:18:50 [debug] [void __cdecl RS232Communication::receiveLoop(void)] receiveLoop: WaitCommEvent aborted/cancelled for communication2
+18:18:50 [debug] [void __cdecl RS232Communication::close(void)] close: Closing handle for communication2...
+18:18:50 [debug] [void __cdecl RS232Communication::receiveLoop(void)] receiveLoop: Breaking after WaitCommEvent processing due to stop requested.
+18:18:50 [debug] [void __cdecl RS232Communication::receiveLoop(void)] RS232Communication receiveLoop() exited for 'communication2'
+18:18:50 [warning] [sendConfigToController] No communication port for controller 'controller_2'
+18:18:50 [debug] Attempting to join receive thread for communication2
+18:18:50 [debug] Successfully joined receive thread for communication2
+18:18:50 [debug] [void __cdecl RS232Communication::close(void)] RS232Communication close() finished for 'communication2' Port closed successfully
+18:18:50 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication1'
+18:18:50 [debug] [0x269a01e0448] RS232Communication close() started for 'communication1'
+18:18:50 [debug] [void __cdecl RS232Communication::close(void)] Port communication1 already closed, skipping close operation
+18:18:50 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication2'
+18:18:50 [debug] [0x269a1589f58] RS232Communication close() started for 'communication2'
+18:18:50 [debug] [void __cdecl RS232Communication::close(void)] Port communication2 already closed, skipping close operation
+18:18:50 [debug] [populateGlueCommunicationComboBox] commSettings length: 4
+18:18:50 [debug] [0x269a159c338] RS232Communication constructor for 'communication1'
+18:18:50 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication1'
+18:18:50 [debug] [populateGlueCommunicationComboBox] Full JSON: {
+  "communication1": {
+    "active": true,
+    "baudRate": 115200,
+    "dataBits": 8,
+    "description": "reader1",
+    "etx": 3,
+    "offset": 3,
+    "parity": "N",
+    "port": "COM1",
+    "stopBits": 1.0,
+    "stx": 2,
+    "trigger": "1234",
+    "type": "RS232"
+  },
+  "communication2": {
+    "active": true,
+    "baudRate": 115200,
+    "dataBits": 8,
+    "description": "reader2",
+    "etx": 3,
+    "offset": 2,
+    "parity": "N",
+    "port": "COM5",
+    "stopBits": 1.0,
+    "stx": 2,
+    "trigger": "t",
+    "type": "RS232"
+  },
+  "communication3": {
+    "active": false,
+    "description": "reader3",
+    "offset": 8,
+    "tcpip": {
+      "ip": "127.0.0.1",
+      "port": 502,
+      "timeout_ms": 1000
+    },
+    "type": "TCP/IP"
+  },
+  "communication4": {
+    "active": false,
+    "baudRate": 115200,
+    "dataBits": 8,
+    "description": "reader4",
+    "etx": 3,
+    "offset": 5,
+    "parity": "N",
+    "port": "COM8",
+    "stopBits": 1.0,
+    "stx": 2,
+    "trigger": "t",
+    "type": "RS232"
+  }
+}
+18:18:50 [debug] [populateGlueCommunicationComboBox] Loop 1: Processing 'communication1'
+18:18:50 [debug] [populateGlueCommunicationComboBox] 'communication1' active: true
+18:18:50 [debug] [void __cdecl RS232Communication::receiveLoop(void)] RS232Communication receiveLoop() started for 'communication1'
+18:18:50 [debug] Started receive thread for port communication1
+18:18:50 [warning] [populateGlueCommunicationComboBox] 'communication1' already exists in combo box, skipping
+18:18:50 [debug] [populateGlueCommunicationComboBox] Loop 2: Processing 'communication2'
+18:18:50 [debug] [populateGlueCommunicationComboBox] 'communication2' active: true
+18:18:50 [warning] [populateGlueCommunicationComboBox] 'communication2' already exists in combo box, skipping
+18:18:50 [debug] [populateGlueCommunicationComboBox] Loop 3: Processing 'communication3'
+18:18:50 [debug] [populateGlueCommunicationComboBox] 'communication3' active: false
+18:18:50 [debug] [populateGlueCommunicationComboBox] Loop 4: Processing 'communication4'
+18:18:50 [debug] [populateGlueCommunicationComboBox] 'communication4' active: false
+18:18:50 [debug] [populateGlueCommunicationComboBox] Total loop iterations: 4
+18:18:50 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication1' initialized successfully
+18:18:50 [debug] [0x269a01be7d8] RS232Communication constructor for 'communication2'
+18:18:50 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication2'
+18:18:50 [debug] Started receive thread for port communication2
+18:18:50 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication2' initialized successfully
+18:18:50 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication3' is not active in config, skipping
+18:18:50 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication4' is not active in config, skipping
+18:18:50 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] 2 communication port(s) initialized successfully
+18:18:50 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping timers reinitialization as parameters don't affect them
+18:18:50 [debug] [void __cdecl RS232Communication::receiveLoop(void)] RS232Communication receiveLoop() started for 'communication2'
+18:18:58 [info] [saveSettingsToConfig] Saving settings to config
+18:18:58 [debug] Communication settings updated
+18:18:58 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='communication', intValue=0
+18:18:58 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+18:18:58 [debug] Timer settings updated
+18:18:58 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing communication ports due to parameter changes
+18:18:58 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Initializing communication ports...
+18:18:58 [debug] [0x269a159c338] RS232Communication close() started for 'communication1'
+18:18:58 [debug] [void __cdecl RS232Communication::close(void)] Closing port communication1
+18:18:58 [debug] [void __cdecl RS232Communication::receiveLoop(void)] receiveLoop: WaitCommEvent aborted/cancelled for communication1
+18:18:58 [debug] [void __cdecl RS232Communication::close(void)] close: Closing handle for communication1...
+18:18:58 [debug] [void __cdecl RS232Communication::receiveLoop(void)] receiveLoop: Breaking after WaitCommEvent processing due to stop requested.
+18:18:58 [debug] [void __cdecl RS232Communication::receiveLoop(void)] RS232Communication receiveLoop() exited for 'communication1'
+18:18:58 [debug] Attempting to join receive thread for communication1
+18:18:58 [debug] Configuration successfully saved to: config/settings.json
+18:18:58 [debug] Settings saved to configuration file
+18:18:58 [debug] Successfully joined receive thread for communication1
+18:18:58 [debug] [void __cdecl RS232Communication::close(void)] RS232Communication close() finished for 'communication1' Port closed successfully
+18:18:58 [debug] Communication settings updated
+18:18:58 [debug] [0x269a01be7d8] RS232Communication close() started for 'communication2'
+18:18:58 [debug] [void __cdecl RS232Communication::close(void)] Closing port communication2
+18:18:58 [debug] [void __cdecl RS232Communication::close(void)] close: Closing handle for communication2...
+18:18:58 [debug] [void __cdecl RS232Communication::receiveLoop(void)] receiveLoop: WaitCommEvent aborted/cancelled for communication2
+18:18:58 [debug] [void __cdecl RS232Communication::receiveLoop(void)] receiveLoop: Breaking after WaitCommEvent processing due to stop requested.
+18:18:58 [debug] [void __cdecl RS232Communication::receiveLoop(void)] RS232Communication receiveLoop() exited for 'communication2'
+18:18:58 [debug] Attempting to join receive thread for communication2
+18:18:58 [debug] Successfully joined receive thread for communication2
+18:18:58 [debug] [void __cdecl RS232Communication::close(void)] RS232Communication close() finished for 'communication2' Port closed successfully
+18:18:58 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication1'
+18:18:58 [debug] [0x269a159c338] RS232Communication close() started for 'communication1'
+18:18:58 [debug] [void __cdecl RS232Communication::close(void)] Port communication1 already closed, skipping close operation
+18:18:58 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication2'
+18:18:58 [debug] [0x269a01be7d8] RS232Communication close() started for 'communication2'
+18:18:58 [debug] [void __cdecl RS232Communication::close(void)] Port communication2 already closed, skipping close operation
+18:18:58 [debug] Glue settings updated
+18:18:58 [debug] Configuration successfully saved to: config/settings.json
+18:18:58 [debug] [0x269a01e79d8] RS232Communication constructor for 'communication1'
+18:18:58 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication1'
+18:18:58 [debug] [populateGlueCommunicationComboBox] commSettings length: 4
+18:18:58 [debug] [populateGlueCommunicationComboBox] Full JSON: {
+  "communication1": {
+    "active": true,
+    "baudRate": 115200,
+    "dataBits": 8,
+    "description": "reader1",
+    "etx": 3,
+    "offset": 3,
+    "parity": "N",
+    "port": "COM1",
+    "stopBits": 1.0,
+    "stx": 2,
+    "trigger": "1234",
+    "type": "RS232"
+  },
+  "communication2": {
+    "active": false,
+    "baudRate": 115200,
+    "dataBits": 8,
+    "description": "reader2",
+    "etx": 3,
+    "offset": 2,
+    "parity": "N",
+    "port": "COM5",
+    "stopBits": 1.0,
+    "stx": 2,
+    "trigger": "t",
+    "type": "RS232"
+  },
+  "communication3": {
+    "active": false,
+    "description": "reader3",
+    "offset": 8,
+    "tcpip": {
+      "ip": "127.0.0.1",
+      "port": 502,
+      "timeout_ms": 1000
+    },
+    "type": "TCP/IP"
+  },
+  "communication4": {
+    "active": false,
+    "baudRate": 115200,
+    "dataBits": 8,
+    "description": "reader4",
+    "etx": 3,
+    "offset": 5,
+    "parity": "N",
+    "port": "COM8",
+    "stopBits": 1.0,
+    "stx": 2,
+    "trigger": "t",
+    "type": "RS232"
+  }
+}
+18:18:58 [debug] [populateGlueCommunicationComboBox] Loop 1: Processing 'communication1'
+18:18:58 [debug] [void __cdecl RS232Communication::receiveLoop(void)] RS232Communication receiveLoop() started for 'communication1'
+18:18:58 [debug] Started receive thread for port communication1
+18:18:58 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication1' initialized successfully
+18:18:58 [debug] [populateGlueCommunicationComboBox] 'communication1' active: true
+18:18:58 [debug] [populateGlueCommunicationComboBox] Added 'communication1' to combo box
+18:18:58 [debug] [populateGlueCommunicationComboBox] Loop 2: Processing 'communication2'
+18:18:58 [debug] [populateGlueCommunicationComboBox] 'communication2' active: false
+18:18:58 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication2' is not active in config, skipping
+18:18:58 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication3' is not active in config, skipping
+18:18:58 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication4' is not active in config, skipping
+18:18:58 [debug] [populateGlueCommunicationComboBox] Loop 3: Processing 'communication3'
+18:18:59 [debug] [populateGlueCommunicationComboBox] 'communication3' active: false
+18:18:59 [debug] [populateGlueCommunicationComboBox] Loop 4: Processing 'communication4'
+18:18:59 [debug] [populateGlueCommunicationComboBox] 'communication4' active: false
+18:18:59 [debug] [populateGlueCommunicationComboBox] Total loop iterations: 4
+18:18:59 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] 1 communication port(s) initialized successfully
+18:18:59 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping timers reinitialization as parameters don't affect them
+18:18:59 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='timer', intValue=0
+18:18:59 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+18:18:59 [warning] [sendConfigToController] No communication port for controller 'controller_2'
+18:18:59 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping communication ports reinitialization as parameters don't affect them
+18:18:59 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing timers due to parameter changes
+18:18:59 [debug] [bool __cdecl Logic::initTimers(void)] Initializing timers...
+18:18:59 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer1 with duration: 77ms
+18:18:59 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer2 with duration: 2000ms
+18:18:59 [debug] [populateGlueCommunicationComboBox] commSettings length: 4
+18:18:59 [debug] [populateGlueCommunicationComboBox] Full JSON: {
+  "communication1": {
+    "active": true,
+    "baudRate": 115200,
+    "dataBits": 8,
+    "description": "reader1",
+    "etx": 3,
+    "offset": 3,
+    "parity": "N",
+    "port": "COM1",
+    "stopBits": 1.0,
+    "stx": 2,
+    "trigger": "1234",
+    "type": "RS232"
+  },
+  "communication2": {
+    "active": false,
+    "baudRate": 115200,
+    "dataBits": 8,
+    "description": "reader2",
+    "etx": 3,
+    "offset": 2,
+    "parity": "N",
+    "port": "COM5",
+    "stopBits": 1.0,
+    "stx": 2,
+    "trigger": "t",
+    "type": "RS232"
+  },
+  "communication3": {
+    "active": false,
+    "description": "reader3",
+    "offset": 8,
+    "tcpip": {
+      "ip": "127.0.0.1",
+      "port": 502,
+      "timeout_ms": 1000
+    },
+    "type": "TCP/IP"
+  },
+  "communication4": {
+    "active": false,
+    "baudRate": 115200,
+    "dataBits": 8,
+    "description": "reader4",
+    "etx": 3,
+    "offset": 5,
+    "parity": "N",
+    "port": "COM8",
+    "stopBits": 1.0,
+    "stx": 2,
+    "trigger": "t",
+    "type": "RS232"
+  }
+}
+18:18:59 [debug] [populateGlueCommunicationComboBox] Loop 1: Processing 'communication1'
+18:18:59 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer3 with duration: 5000ms
+18:18:59 [debug] [populateGlueCommunicationComboBox] 'communication1' active: true
+18:18:59 [debug] [bool __cdecl Logic::initTimers(void)] 3 timer(s) initialized successfully
+18:18:59 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='communication', intValue=0
+18:18:59 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+18:18:59 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing communication ports due to parameter changes
+18:18:59 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Initializing communication ports...
+18:18:59 [debug] [0x269a01e79d8] RS232Communication close() started for 'communication1'
+18:18:59 [warning] [populateGlueCommunicationComboBox] 'communication1' already exists in combo box, skipping
+18:18:59 [debug] [populateGlueCommunicationComboBox] Loop 2: Processing 'communication2'
+18:18:59 [error] [void __cdecl RS232Communication::receiveLoop(void)] Error in final GetOverlappedResult for WaitCommEvent on communication1: 996
+18:18:59 [debug] [void __cdecl RS232Communication::receiveLoop(void)] receiveLoop: Breaking after WaitCommEvent processing due to stop requested.
+18:18:59 [debug] [populateGlueCommunicationComboBox] 'communication2' active: false
+18:18:59 [debug] [populateGlueCommunicationComboBox] Loop 3: Processing 'communication3'
+18:18:59 [debug] [void __cdecl RS232Communication::receiveLoop(void)] RS232Communication receiveLoop() exited for 'communication1'
+18:18:59 [debug] [void __cdecl RS232Communication::close(void)] Closing port communication1
+18:18:59 [debug] [void __cdecl RS232Communication::close(void)] close: Closing handle for communication1...
+18:18:59 [debug] [populateGlueCommunicationComboBox] 'communication3' active: false
+18:18:59 [debug] [populateGlueCommunicationComboBox] Loop 4: Processing 'communication4'
+18:18:59 [debug] [populateGlueCommunicationComboBox] 'communication4' active: false
+18:18:59 [debug] [populateGlueCommunicationComboBox] Total loop iterations: 4
+18:18:59 [debug] Attempting to join receive thread for communication1
+18:18:59 [debug] Successfully joined receive thread for communication1
+18:18:59 [debug] [void __cdecl RS232Communication::close(void)] RS232Communication close() finished for 'communication1' Port closed successfully
+18:18:59 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication1'
+18:18:59 [debug] [0x269a01e79d8] RS232Communication close() started for 'communication1'
+18:18:59 [debug] [void __cdecl RS232Communication::close(void)] Port communication1 already closed, skipping close operation
+18:18:59 [debug] [0x269a030aa88] RS232Communication constructor for 'communication1'
+18:18:59 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication1'
+18:18:59 [debug] Started receive thread for port communication1
+18:18:59 [debug] [void __cdecl RS232Communication::receiveLoop(void)] RS232Communication receiveLoop() started for 'communication1'
+18:18:59 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication1' initialized successfully
+18:18:59 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication2' is not active in config, skipping
+18:18:59 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication3' is not active in config, skipping
+18:18:59 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication4' is not active in config, skipping
+18:18:59 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] 1 communication port(s) initialized successfully
+18:18:59 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping timers reinitialization as parameters don't affect them
+18:19:15 [info] [saveSettingsToConfig] Saving settings to config
+18:19:15 [debug] Communication settings updated
+18:19:15 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='communication', intValue=0
+18:19:15 [debug] Timer settings updated
+18:19:15 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+18:19:15 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing communication ports due to parameter changes
+18:19:15 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Initializing communication ports...
+18:19:15 [debug] [0x269a030aa88] RS232Communication close() started for 'communication1'
+18:19:15 [debug] [void __cdecl RS232Communication::close(void)] Closing port communication1
+18:19:15 [debug] Configuration successfully saved to: config/settings.json
+18:19:15 [debug] [void __cdecl RS232Communication::receiveLoop(void)] receiveLoop: WaitCommEvent aborted/cancelled for communication1
+18:19:15 [debug] [void __cdecl RS232Communication::receiveLoop(void)] receiveLoop: Breaking after WaitCommEvent processing due to stop requested.
+18:19:15 [debug] [void __cdecl RS232Communication::receiveLoop(void)] RS232Communication receiveLoop() exited for 'communication1'
+18:19:15 [debug] [void __cdecl RS232Communication::close(void)] close: Closing handle for communication1...
+18:19:15 [debug] Settings saved to configuration file
+18:19:15 [debug] Communication settings updated
+18:19:15 [debug] Attempting to join receive thread for communication1
+18:19:15 [debug] Successfully joined receive thread for communication1
+18:19:15 [debug] [void __cdecl RS232Communication::close(void)] RS232Communication close() finished for 'communication1' Port closed successfully
+18:19:15 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication1'
+18:19:15 [debug] [0x269a030aa88] RS232Communication close() started for 'communication1'
+18:19:15 [debug] [void __cdecl RS232Communication::close(void)] Port communication1 already closed, skipping close operation
+18:19:15 [debug] [0x269a01e2cc8] RS232Communication constructor for 'communication1'
+18:19:15 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication1'
+18:19:15 [debug] Started receive thread for port communication1
+18:19:15 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication1' initialized successfully
+18:19:15 [debug] [0x269a1597dc8] RS232Communication constructor for 'communication2'
+18:19:15 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication2'
+18:19:15 [debug] [void __cdecl RS232Communication::receiveLoop(void)] RS232Communication receiveLoop() started for 'communication1'
+18:19:15 [debug] Glue settings updated
+18:19:15 [debug] Configuration successfully saved to: config/settings.json
+18:19:15 [debug] [populateGlueCommunicationComboBox] commSettings length: 4
+18:19:15 [debug] [populateGlueCommunicationComboBox] Full JSON: {
+  "communication1": {
+    "active": true,
+    "baudRate": 115200,
+    "dataBits": 8,
+    "description": "reader1",
+    "etx": 3,
+    "offset": 3,
+    "parity": "N",
+    "port": "COM1",
+    "stopBits": 1.0,
+    "stx": 2,
+    "trigger": "1234",
+    "type": "RS232"
+  },
+  "communication2": {
+    "active": true,
+    "baudRate": 115200,
+    "dataBits": 8,
+    "description": "reader2",
+    "etx": 3,
+    "offset": 2,
+    "parity": "N",
+    "port": "COM5",
+    "stopBits": 1.0,
+    "stx": 2,
+    "trigger": "t",
+    "type": "RS232"
+  },
+  "communication3": {
+    "active": false,
+    "description": "reader3",
+    "offset": 8,
+    "tcpip": {
+      "ip": "127.0.0.1",
+      "port": 502,
+      "timeout_ms": 1000
+    },
+    "type": "TCP/IP"
+  },
+  "communication4": {
+    "active": false,
+    "baudRate": 115200,
+    "dataBits": 8,
+    "description": "reader4",
+    "etx": 3,
+    "offset": 5,
+    "parity": "N",
+    "port": "COM8",
+    "stopBits": 1.0,
+    "stx": 2,
+    "trigger": "t",
+    "type": "RS232"
+  }
+}
+18:19:15 [debug] [populateGlueCommunicationComboBox] Loop 1: Processing 'communication1'
+18:19:15 [debug] [populateGlueCommunicationComboBox] 'communication1' active: true
+18:19:15 [debug] [populateGlueCommunicationComboBox] Added 'communication1' to combo box
+18:19:15 [debug] [populateGlueCommunicationComboBox] Loop 2: Processing 'communication2'
+18:19:15 [debug] [populateGlueCommunicationComboBox] 'communication2' active: true
+18:19:15 [debug] Started receive thread for port communication2
+18:19:15 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication2' initialized successfully
+18:19:15 [debug] [void __cdecl RS232Communication::receiveLoop(void)] RS232Communication receiveLoop() started for 'communication2'
+18:19:15 [debug] [populateGlueCommunicationComboBox] Added 'communication2' to combo box
+18:19:15 [debug] [populateGlueCommunicationComboBox] Loop 3: Processing 'communication3'
+18:19:15 [debug] [populateGlueCommunicationComboBox] 'communication3' active: false
+18:19:15 [debug] [populateGlueCommunicationComboBox] Loop 4: Processing 'communication4'
+18:19:15 [debug] [populateGlueCommunicationComboBox] 'communication4' active: false
+18:19:15 [debug] [populateGlueCommunicationComboBox] Total loop iterations: 4
+18:19:15 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication3' is not active in config, skipping
+18:19:15 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication4' is not active in config, skipping
+18:19:15 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] 2 communication port(s) initialized successfully
+18:19:15 [warning] [sendConfigToController] No communication port for controller 'controller_2'
+18:19:15 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping timers reinitialization as parameters don't affect them
+18:19:15 [debug] [populateGlueCommunicationComboBox] commSettings length: 4
+18:19:15 [debug] [populateGlueCommunicationComboBox] Full JSON: {
+  "communication1": {
+    "active": true,
+    "baudRate": 115200,
+    "dataBits": 8,
+    "description": "reader1",
+    "etx": 3,
+    "offset": 3,
+    "parity": "N",
+    "port": "COM1",
+    "stopBits": 1.0,
+    "stx": 2,
+    "trigger": "1234",
+    "type": "RS232"
+  },
+  "communication2": {
+    "active": true,
+    "baudRate": 115200,
+    "dataBits": 8,
+    "description": "reader2",
+    "etx": 3,
+    "offset": 2,
+    "parity": "N",
+    "port": "COM5",
+    "stopBits": 1.0,
+    "stx": 2,
+    "trigger": "t",
+    "type": "RS232"
+  },
+  "communication3": {
+    "active": false,
+    "description": "reader3",
+    "offset": 8,
+    "tcpip": {
+      "ip": "127.0.0.1",
+      "port": 502,
+      "timeout_ms": 1000
+    },
+    "type": "TCP/IP"
+  },
+  "communication4": {
+    "active": false,
+    "baudRate": 115200,
+    "dataBits": 8,
+    "description": "reader4",
+    "etx": 3,
+    "offset": 5,
+    "parity": "N",
+    "port": "COM8",
+    "stopBits": 1.0,
+    "stx": 2,
+    "trigger": "t",
+    "type": "RS232"
+  }
+}
+18:19:15 [debug] [populateGlueCommunicationComboBox] Loop 1: Processing 'communication1'
+18:19:15 [debug] [populateGlueCommunicationComboBox] 'communication1' active: true
+18:19:15 [warning] [populateGlueCommunicationComboBox] 'communication1' already exists in combo box, skipping
+18:19:15 [debug] [populateGlueCommunicationComboBox] Loop 2: Processing 'communication2'
+18:19:15 [debug] [populateGlueCommunicationComboBox] 'communication2' active: true
+18:19:15 [warning] [populateGlueCommunicationComboBox] 'communication2' already exists in combo box, skipping
+18:19:15 [debug] [populateGlueCommunicationComboBox] Loop 3: Processing 'communication3'
+18:19:15 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='timer', intValue=0
+18:19:15 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+18:19:15 [debug] [populateGlueCommunicationComboBox] 'communication3' active: false
+18:19:15 [debug] [populateGlueCommunicationComboBox] Loop 4: Processing 'communication4'
+18:19:15 [debug] [populateGlueCommunicationComboBox] 'communication4' active: false
+18:19:15 [debug] [populateGlueCommunicationComboBox] Total loop iterations: 4
+18:19:15 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping communication ports reinitialization as parameters don't affect them
+18:19:15 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing timers due to parameter changes
+18:19:15 [debug] [bool __cdecl Logic::initTimers(void)] Initializing timers...
+18:19:15 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer1 with duration: 77ms
+18:19:15 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer2 with duration: 2000ms
+18:19:15 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer3 with duration: 5000ms
+18:19:15 [debug] [bool __cdecl Logic::initTimers(void)] 3 timer(s) initialized successfully
+18:19:15 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='communication', intValue=0
+18:19:15 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+18:19:15 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing communication ports due to parameter changes
+18:19:15 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Initializing communication ports...
+18:19:15 [debug] [0x269a01e2cc8] RS232Communication close() started for 'communication1'
+18:19:15 [debug] [void __cdecl RS232Communication::close(void)] Closing port communication1
+18:19:15 [debug] [void __cdecl RS232Communication::receiveLoop(void)] receiveLoop: WaitCommEvent aborted/cancelled for communication1
+18:19:15 [debug] [void __cdecl RS232Communication::receiveLoop(void)] receiveLoop: Breaking after WaitCommEvent processing due to stop requested.
+18:19:15 [debug] [void __cdecl RS232Communication::receiveLoop(void)] RS232Communication receiveLoop() exited for 'communication1'
+18:19:15 [debug] [void __cdecl RS232Communication::close(void)] close: Closing handle for communication1...
+18:19:15 [debug] Attempting to join receive thread for communication1
+18:19:15 [debug] Successfully joined receive thread for communication1
+18:19:15 [debug] [void __cdecl RS232Communication::close(void)] RS232Communication close() finished for 'communication1' Port closed successfully
+18:19:15 [debug] [0x269a1597dc8] RS232Communication close() started for 'communication2'
+18:19:15 [debug] [void __cdecl RS232Communication::close(void)] Closing port communication2
+18:19:15 [debug] [void __cdecl RS232Communication::receiveLoop(void)] receiveLoop: WaitCommEvent aborted/cancelled for communication2
+18:19:15 [debug] [void __cdecl RS232Communication::receiveLoop(void)] receiveLoop: Breaking after WaitCommEvent processing due to stop requested.
+18:19:15 [debug] [void __cdecl RS232Communication::receiveLoop(void)] RS232Communication receiveLoop() exited for 'communication2'
+18:19:15 [debug] [void __cdecl RS232Communication::close(void)] close: Closing handle for communication2...
+18:19:15 [debug] Attempting to join receive thread for communication2
+18:19:15 [debug] Successfully joined receive thread for communication2
+18:19:15 [debug] [void __cdecl RS232Communication::close(void)] RS232Communication close() finished for 'communication2' Port closed successfully
+18:19:15 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication1'
+18:19:15 [debug] [0x269a01e2cc8] RS232Communication close() started for 'communication1'
+18:19:15 [debug] [void __cdecl RS232Communication::close(void)] Port communication1 already closed, skipping close operation
+18:19:15 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication2'
+18:19:15 [debug] [0x269a1597dc8] RS232Communication close() started for 'communication2'
+18:19:15 [debug] [void __cdecl RS232Communication::close(void)] Port communication2 already closed, skipping close operation
+18:19:15 [debug] [0x269a01e8228] RS232Communication constructor for 'communication1'
+18:19:15 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication1'
+18:19:15 [debug] Started receive thread for port communication1
+18:19:15 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication1' initialized successfully
+18:19:15 [debug] [0x269a15a53b8] RS232Communication constructor for 'communication2'
+18:19:15 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication2'
+18:19:15 [debug] [void __cdecl RS232Communication::receiveLoop(void)] RS232Communication receiveLoop() started for 'communication1'
+18:19:15 [debug] Started receive thread for port communication2
+18:19:15 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication2' initialized successfully
+18:19:15 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication3' is not active in config, skipping
+18:19:15 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication4' is not active in config, skipping
+18:19:15 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] 2 communication port(s) initialized successfully
+18:19:15 [debug] [void __cdecl RS232Communication::receiveLoop(void)] RS232Communication receiveLoop() started for 'communication2'
+18:19:15 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping timers reinitialization as parameters don't affect them
+18:19:17 [info] [saveSettingsToConfig] Saving settings to config
+18:19:17 [debug] Communication settings updated
+18:19:17 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='communication', intValue=0
+18:19:17 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+18:19:17 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing communication ports due to parameter changes
+18:19:17 [debug] Timer settings updated
+18:19:17 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Initializing communication ports...
+18:19:17 [debug] [0x269a01e8228] RS232Communication close() started for 'communication1'
+18:19:17 [debug] [void __cdecl RS232Communication::close(void)] Closing port communication1
+18:19:17 [debug] [void __cdecl RS232Communication::receiveLoop(void)] receiveLoop: WaitCommEvent aborted/cancelled for communication1
+18:19:17 [debug] [void __cdecl RS232Communication::close(void)] close: Closing handle for communication1...
+18:19:17 [debug] [void __cdecl RS232Communication::receiveLoop(void)] receiveLoop: Breaking after WaitCommEvent processing due to stop requested.
+18:19:17 [debug] Configuration successfully saved to: config/settings.json
+18:19:17 [debug] [void __cdecl RS232Communication::receiveLoop(void)] RS232Communication receiveLoop() exited for 'communication1'
+18:19:17 [debug] Settings saved to configuration file
+18:19:17 [debug] Attempting to join receive thread for communication1
+18:19:17 [debug] Successfully joined receive thread for communication1
+18:19:17 [debug] [void __cdecl RS232Communication::close(void)] RS232Communication close() finished for 'communication1' Port closed successfully
+18:19:17 [debug] [0x269a15a53b8] RS232Communication close() started for 'communication2'
+18:19:17 [debug] [void __cdecl RS232Communication::close(void)] Closing port communication2
+18:19:17 [debug] Communication settings updated
+18:19:17 [debug] [void __cdecl RS232Communication::receiveLoop(void)] receiveLoop: WaitCommEvent aborted/cancelled for communication2
+18:19:17 [debug] [void __cdecl RS232Communication::receiveLoop(void)] receiveLoop: Breaking after WaitCommEvent processing due to stop requested.
+18:19:17 [debug] [void __cdecl RS232Communication::receiveLoop(void)] RS232Communication receiveLoop() exited for 'communication2'
+18:19:17 [debug] [void __cdecl RS232Communication::close(void)] close: Closing handle for communication2...
+18:19:18 [debug] Attempting to join receive thread for communication2
+18:19:18 [debug] Successfully joined receive thread for communication2
+18:19:18 [debug] [void __cdecl RS232Communication::close(void)] RS232Communication close() finished for 'communication2' Port closed successfully
+18:19:18 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication1'
+18:19:18 [debug] [0x269a01e8228] RS232Communication close() started for 'communication1'
+18:19:18 [debug] [void __cdecl RS232Communication::close(void)] Port communication1 already closed, skipping close operation
+18:19:18 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication2'
+18:19:18 [debug] [0x269a15a53b8] RS232Communication close() started for 'communication2'
+18:19:18 [debug] [void __cdecl RS232Communication::close(void)] Port communication2 already closed, skipping close operation
+18:19:18 [debug] Glue settings updated
+18:19:18 [debug] Configuration successfully saved to: config/settings.json
+18:19:18 [debug] [populateGlueCommunicationComboBox] commSettings length: 4
+18:19:18 [debug] [0x269a02dfb48] RS232Communication constructor for 'communication1'
+18:19:18 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication1'
+18:19:18 [debug] [populateGlueCommunicationComboBox] Full JSON: {
+  "communication1": {
+    "active": true,
+    "baudRate": 115200,
+    "dataBits": 8,
+    "description": "reader1",
+    "etx": 3,
+    "offset": 3,
+    "parity": "N",
+    "port": "COM1",
+    "stopBits": 1.0,
+    "stx": 2,
+    "trigger": "1234",
+    "type": "RS232"
+  },
+  "communication2": {
+    "active": false,
+    "baudRate": 115200,
+    "dataBits": 8,
+    "description": "reader2",
+    "etx": 3,
+    "offset": 2,
+    "parity": "N",
+    "port": "COM5",
+    "stopBits": 1.0,
+    "stx": 2,
+    "trigger": "t",
+    "type": "RS232"
+  },
+  "communication3": {
+    "active": false,
+    "description": "reader3",
+    "offset": 8,
+    "tcpip": {
+      "ip": "127.0.0.1",
+      "port": 502,
+      "timeout_ms": 1000
+    },
+    "type": "TCP/IP"
+  },
+  "communication4": {
+    "active": false,
+    "baudRate": 115200,
+    "dataBits": 8,
+    "description": "reader4",
+    "etx": 3,
+    "offset": 5,
+    "parity": "N",
+    "port": "COM8",
+    "stopBits": 1.0,
+    "stx": 2,
+    "trigger": "t",
+    "type": "RS232"
+  }
+}
+18:19:18 [debug] [populateGlueCommunicationComboBox] Loop 1: Processing 'communication1'
+18:19:18 [debug] [void __cdecl RS232Communication::receiveLoop(void)] RS232Communication receiveLoop() started for 'communication1'
+18:19:18 [debug] Started receive thread for port communication1
+18:19:18 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication1' initialized successfully
+18:19:18 [debug] [populateGlueCommunicationComboBox] 'communication1' active: true
+18:19:18 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication2' is not active in config, skipping
+18:19:18 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication3' is not active in config, skipping
+18:19:18 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication4' is not active in config, skipping
+18:19:18 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] 1 communication port(s) initialized successfully
+18:19:18 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping timers reinitialization as parameters don't affect them
+18:19:18 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='timer', intValue=0
+18:19:18 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+18:19:18 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping communication ports reinitialization as parameters don't affect them
+18:19:18 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing timers due to parameter changes
+18:19:18 [debug] [bool __cdecl Logic::initTimers(void)] Initializing timers...
+18:19:18 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer1 with duration: 77ms
+18:19:18 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer2 with duration: 2000ms
+18:19:18 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer3 with duration: 5000ms
+18:19:18 [debug] [populateGlueCommunicationComboBox] Added 'communication1' to combo box
+18:19:18 [debug] [populateGlueCommunicationComboBox] Loop 2: Processing 'communication2'
+18:19:18 [debug] [populateGlueCommunicationComboBox] 'communication2' active: false
+18:19:18 [debug] [populateGlueCommunicationComboBox] Loop 3: Processing 'communication3'
+18:19:18 [debug] [populateGlueCommunicationComboBox] 'communication3' active: false
+18:19:18 [debug] [populateGlueCommunicationComboBox] Loop 4: Processing 'communication4'
+18:19:18 [debug] [populateGlueCommunicationComboBox] 'communication4' active: false
+18:19:18 [debug] [populateGlueCommunicationComboBox] Total loop iterations: 4
+18:19:18 [debug] [bool __cdecl Logic::initTimers(void)] 3 timer(s) initialized successfully
+18:19:18 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='communication', intValue=0
+18:19:18 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+18:19:18 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing communication ports due to parameter changes
+18:19:18 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Initializing communication ports...
+18:19:18 [debug] [0x269a02dfb48] RS232Communication close() started for 'communication1'
+18:19:18 [debug] [void __cdecl RS232Communication::close(void)] Closing port communication1
+18:19:18 [warning] [sendConfigToController] No communication port for controller 'controller_2'
+18:19:18 [debug] [void __cdecl RS232Communication::receiveLoop(void)] receiveLoop: WaitCommEvent aborted/cancelled for communication1
+18:19:18 [debug] [void __cdecl RS232Communication::receiveLoop(void)] receiveLoop: Breaking after WaitCommEvent processing due to stop requested.
+18:19:18 [debug] [void __cdecl RS232Communication::receiveLoop(void)] RS232Communication receiveLoop() exited for 'communication1'
+18:19:18 [debug] [populateGlueCommunicationComboBox] commSettings length: 4
+18:19:18 [debug] [void __cdecl RS232Communication::close(void)] close: Closing handle for communication1...
+18:19:18 [debug] [populateGlueCommunicationComboBox] Full JSON: {
+  "communication1": {
+    "active": true,
+    "baudRate": 115200,
+    "dataBits": 8,
+    "description": "reader1",
+    "etx": 3,
+    "offset": 3,
+    "parity": "N",
+    "port": "COM1",
+    "stopBits": 1.0,
+    "stx": 2,
+    "trigger": "1234",
+    "type": "RS232"
+  },
+  "communication2": {
+    "active": false,
+    "baudRate": 115200,
+    "dataBits": 8,
+    "description": "reader2",
+    "etx": 3,
+    "offset": 2,
+    "parity": "N",
+    "port": "COM5",
+    "stopBits": 1.0,
+    "stx": 2,
+    "trigger": "t",
+    "type": "RS232"
+  },
+  "communication3": {
+    "active": false,
+    "description": "reader3",
+    "offset": 8,
+    "tcpip": {
+      "ip": "127.0.0.1",
+      "port": 502,
+      "timeout_ms": 1000
+    },
+    "type": "TCP/IP"
+  },
+  "communication4": {
+    "active": false,
+    "baudRate": 115200,
+    "dataBits": 8,
+    "description": "reader4",
+    "etx": 3,
+    "offset": 5,
+    "parity": "N",
+    "port": "COM8",
+    "stopBits": 1.0,
+    "stx": 2,
+    "trigger": "t",
+    "type": "RS232"
+  }
+}
+18:19:18 [debug] [populateGlueCommunicationComboBox] Loop 1: Processing 'communication1'
+18:19:18 [debug] [populateGlueCommunicationComboBox] 'communication1' active: true
+18:19:18 [debug] Attempting to join receive thread for communication1
+18:19:18 [debug] Successfully joined receive thread for communication1
+18:19:18 [debug] [void __cdecl RS232Communication::close(void)] RS232Communication close() finished for 'communication1' Port closed successfully
+18:19:18 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication1'
+18:19:18 [debug] [0x269a02dfb48] RS232Communication close() started for 'communication1'
+18:19:18 [warning] [populateGlueCommunicationComboBox] 'communication1' already exists in combo box, skipping
+18:19:18 [debug] [void __cdecl RS232Communication::close(void)] Port communication1 already closed, skipping close operation
+18:19:18 [debug] [populateGlueCommunicationComboBox] Loop 2: Processing 'communication2'
+18:19:18 [debug] [populateGlueCommunicationComboBox] 'communication2' active: false
+18:19:18 [debug] [populateGlueCommunicationComboBox] Loop 3: Processing 'communication3'
+18:19:18 [debug] [0x269a02dcd48] RS232Communication constructor for 'communication1'
+18:19:18 [debug] [populateGlueCommunicationComboBox] 'communication3' active: false
+18:19:18 [debug] [populateGlueCommunicationComboBox] Loop 4: Processing 'communication4'
+18:19:18 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication1'
+18:19:18 [debug] [populateGlueCommunicationComboBox] 'communication4' active: false
+18:19:18 [debug] [populateGlueCommunicationComboBox] Total loop iterations: 4
+18:19:18 [debug] Started receive thread for port communication1
+18:19:18 [debug] [void __cdecl RS232Communication::receiveLoop(void)] RS232Communication receiveLoop() started for 'communication1'
+18:19:18 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication1' initialized successfully
+18:19:18 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication2' is not active in config, skipping
+18:19:18 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication3' is not active in config, skipping
+18:19:18 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication4' is not active in config, skipping
+18:19:18 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] 1 communication port(s) initialized successfully
+18:19:18 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping timers reinitialization as parameters don't affect them
+18:19:19 [debug] Skipping config update while in refreshing mode
+18:19:21 [debug] Skipping config update while in refreshing mode
+18:19:21 [info] [saveSettingsToConfig] Saving settings to config
+18:19:21 [debug] Communication settings updated
+18:19:21 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='communication', intValue=0
+18:19:21 [debug] Timer settings updated
+18:19:21 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+18:19:21 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing communication ports due to parameter changes
+18:19:21 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Initializing communication ports...
+18:19:21 [debug] [0x269a02dcd48] RS232Communication close() started for 'communication1'
+18:19:21 [debug] [void __cdecl RS232Communication::close(void)] Closing port communication1
+18:19:21 [debug] Configuration successfully saved to: config/settings.json
+18:19:21 [debug] Settings saved to configuration file
+18:19:21 [debug] [void __cdecl RS232Communication::receiveLoop(void)] receiveLoop: WaitCommEvent aborted/cancelled for communication1
+18:19:21 [debug] [void __cdecl RS232Communication::close(void)] close: Closing handle for communication1...
+18:19:21 [debug] [void __cdecl RS232Communication::receiveLoop(void)] receiveLoop: Breaking after WaitCommEvent processing due to stop requested.
+18:19:21 [debug] [void __cdecl RS232Communication::receiveLoop(void)] RS232Communication receiveLoop() exited for 'communication1'
+18:19:21 [debug] Communication settings updated
+18:19:21 [debug] Attempting to join receive thread for communication1
+18:19:21 [debug] Successfully joined receive thread for communication1
+18:19:21 [debug] [void __cdecl RS232Communication::close(void)] RS232Communication close() finished for 'communication1' Port closed successfully
+18:19:21 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication1'
+18:19:21 [debug] [0x269a02dcd48] RS232Communication close() started for 'communication1'
+18:19:21 [debug] [void __cdecl RS232Communication::close(void)] Port communication1 already closed, skipping close operation
+18:19:21 [debug] [0x269a0276708] RS232Communication constructor for 'communication1'
+18:19:21 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication1'
+18:19:21 [debug] Started receive thread for port communication1
+18:19:21 [debug] [void __cdecl RS232Communication::receiveLoop(void)] RS232Communication receiveLoop() started for 'communication1'
+18:19:21 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication1' initialized successfully
+18:19:21 [debug] [0x269a1599d88] RS232Communication constructor for 'communication2'
+18:19:21 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication2'
+18:19:21 [debug] Glue settings updated
+18:19:21 [debug] Configuration successfully saved to: config/settings.json
+18:19:21 [debug] [populateGlueCommunicationComboBox] commSettings length: 4
+18:19:21 [debug] [populateGlueCommunicationComboBox] Full JSON: {
+  "communication1": {
+    "active": true,
+    "baudRate": 115200,
+    "dataBits": 8,
+    "description": "reader1",
+    "etx": 3,
+    "offset": 3,
+    "parity": "N",
+    "port": "COM1",
+    "stopBits": 1.0,
+    "stx": 2,
+    "trigger": "1234",
+    "type": "RS232"
+  },
+  "communication2": {
+    "active": true,
+    "baudRate": 115200,
+    "dataBits": 8,
+    "description": "reader2",
+    "etx": 3,
+    "offset": 2,
+    "parity": "N",
+    "port": "COM5",
+    "stopBits": 1.0,
+    "stx": 2,
+    "trigger": "t",
+    "type": "RS232"
+  },
+  "communication3": {
+    "active": false,
+    "description": "reader3",
+    "offset": 8,
+    "tcpip": {
+      "ip": "127.0.0.1",
+      "port": 502,
+      "timeout_ms": 1000
+    },
+    "type": "TCP/IP"
+  },
+  "communication4": {
+    "active": false,
+    "baudRate": 115200,
+    "dataBits": 8,
+    "description": "reader4",
+    "etx": 3,
+    "offset": 5,
+    "parity": "N",
+    "port": "COM8",
+    "stopBits": 1.0,
+    "stx": 2,
+    "trigger": "t",
+    "type": "RS232"
+  }
+}
+18:19:21 [debug] [populateGlueCommunicationComboBox] Loop 1: Processing 'communication1'
+18:19:21 [debug] [populateGlueCommunicationComboBox] 'communication1' active: true
+18:19:21 [debug] [populateGlueCommunicationComboBox] Added 'communication1' to combo box
+18:19:21 [debug] [populateGlueCommunicationComboBox] Loop 2: Processing 'communication2'
+18:19:21 [debug] [populateGlueCommunicationComboBox] 'communication2' active: true
+18:19:21 [debug] [populateGlueCommunicationComboBox] Added 'communication2' to combo box
+18:19:21 [debug] [populateGlueCommunicationComboBox] Loop 3: Processing 'communication3'
+18:19:21 [debug] [populateGlueCommunicationComboBox] 'communication3' active: false
+18:19:21 [debug] [populateGlueCommunicationComboBox] Loop 4: Processing 'communication4'
+18:19:21 [debug] [populateGlueCommunicationComboBox] 'communication4' active: false
+18:19:21 [debug] Started receive thread for port communication2
+18:19:21 [debug] [void __cdecl RS232Communication::receiveLoop(void)] RS232Communication receiveLoop() started for 'communication2'
+18:19:21 [debug] [populateGlueCommunicationComboBox] Total loop iterations: 4
+18:19:21 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication2' initialized successfully
+18:19:21 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication3' is not active in config, skipping
+18:19:21 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication4' is not active in config, skipping
+18:19:21 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] 2 communication port(s) initialized successfully
+18:19:21 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping timers reinitialization as parameters don't affect them
+18:19:21 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='timer', intValue=0
+18:19:21 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+18:19:21 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping communication ports reinitialization as parameters don't affect them
+18:19:21 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing timers due to parameter changes
+18:19:21 [debug] [bool __cdecl Logic::initTimers(void)] Initializing timers...
+18:19:21 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer1 with duration: 77ms
+18:19:21 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer2 with duration: 2000ms
+18:19:21 [warning] [sendConfigToController] No communication port for controller 'controller_2'
+18:19:21 [debug] [bool __cdecl Logic::initTimers(void)] Initialized timer: timer3 with duration: 5000ms
+18:19:21 [debug] [bool __cdecl Logic::initTimers(void)] 3 timer(s) initialized successfully
+18:19:21 [debug] [populateGlueCommunicationComboBox] commSettings length: 4
+18:19:21 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] GUI Event] Received: keyword='ParameterChange', data='', target='communication', intValue=0
+18:19:21 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Parameters changed: 
+18:19:21 [debug] [populateGlueCommunicationComboBox] Full JSON: {
+  "communication1": {
+    "active": true,
+    "baudRate": 115200,
+    "dataBits": 8,
+    "description": "reader1",
+    "etx": 3,
+    "offset": 3,
+    "parity": "N",
+    "port": "COM1",
+    "stopBits": 1.0,
+    "stx": 2,
+    "trigger": "1234",
+    "type": "RS232"
+  },
+  "communication2": {
+    "active": true,
+    "baudRate": 115200,
+    "dataBits": 8,
+    "description": "reader2",
+    "etx": 3,
+    "offset": 2,
+    "parity": "N",
+    "port": "COM5",
+    "stopBits": 1.0,
+    "stx": 2,
+    "trigger": "t",
+    "type": "RS232"
+  },
+  "communication3": {
+    "active": false,
+    "description": "reader3",
+    "offset": 8,
+    "tcpip": {
+      "ip": "127.0.0.1",
+      "port": 502,
+      "timeout_ms": 1000
+    },
+    "type": "TCP/IP"
+  },
+  "communication4": {
+    "active": false,
+    "baudRate": 115200,
+    "dataBits": 8,
+    "description": "reader4",
+    "etx": 3,
+    "offset": 5,
+    "parity": "N",
+    "port": "COM8",
+    "stopBits": 1.0,
+    "stx": 2,
+    "trigger": "t",
+    "type": "RS232"
+  }
+}
+18:19:22 [debug] [populateGlueCommunicationComboBox] Loop 1: Processing 'communication1'
+18:19:22 [debug] [populateGlueCommunicationComboBox] 'communication1' active: true
+18:19:22 [warning] [populateGlueCommunicationComboBox] 'communication1' already exists in combo box, skipping
+18:19:22 [debug] [populateGlueCommunicationComboBox] Loop 2: Processing 'communication2'
+18:19:21 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Reinitializing communication ports due to parameter changes
+18:19:22 [debug] [populateGlueCommunicationComboBox] 'communication2' active: true
+18:19:22 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Initializing communication ports...
+18:19:22 [warning] [populateGlueCommunicationComboBox] 'communication2' already exists in combo box, skipping
+18:19:22 [debug] [populateGlueCommunicationComboBox] Loop 3: Processing 'communication3'
+18:19:22 [debug] [populateGlueCommunicationComboBox] 'communication3' active: false
+18:19:22 [debug] [populateGlueCommunicationComboBox] Loop 4: Processing 'communication4'
+18:19:22 [debug] [populateGlueCommunicationComboBox] 'communication4' active: false
+18:19:22 [debug] [populateGlueCommunicationComboBox] Total loop iterations: 4
+18:19:22 [debug] [0x269a0276708] RS232Communication close() started for 'communication1'
+18:19:22 [debug] [void __cdecl RS232Communication::close(void)] Closing port communication1
+18:19:22 [debug] [void __cdecl RS232Communication::receiveLoop(void)] receiveLoop: WaitCommEvent aborted/cancelled for communication1
+18:19:22 [debug] [void __cdecl RS232Communication::receiveLoop(void)] receiveLoop: Breaking after WaitCommEvent processing due to stop requested.
+18:19:22 [debug] [void __cdecl RS232Communication::receiveLoop(void)] RS232Communication receiveLoop() exited for 'communication1'
+18:19:22 [debug] [void __cdecl RS232Communication::close(void)] close: Closing handle for communication1...
+18:19:22 [debug] Attempting to join receive thread for communication1
+18:19:22 [debug] Successfully joined receive thread for communication1
+18:19:22 [debug] [void __cdecl RS232Communication::close(void)] RS232Communication close() finished for 'communication1' Port closed successfully
+18:19:22 [debug] [0x269a1599d88] RS232Communication close() started for 'communication2'
+18:19:22 [debug] [void __cdecl RS232Communication::close(void)] Closing port communication2
+18:19:22 [debug] [void __cdecl RS232Communication::receiveLoop(void)] receiveLoop: WaitCommEvent aborted/cancelled for communication2
+18:19:22 [debug] [void __cdecl RS232Communication::receiveLoop(void)] receiveLoop: Breaking after WaitCommEvent processing due to stop requested.
+18:19:22 [debug] [void __cdecl RS232Communication::close(void)] close: Closing handle for communication2...
+18:19:22 [debug] [void __cdecl RS232Communication::receiveLoop(void)] RS232Communication receiveLoop() exited for 'communication2'
+18:19:22 [debug] Attempting to join receive thread for communication2
+18:19:22 [debug] Successfully joined receive thread for communication2
+18:19:22 [debug] [void __cdecl RS232Communication::close(void)] RS232Communication close() finished for 'communication2' Port closed successfully
+18:19:22 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication1'
+18:19:22 [debug] [0x269a0276708] RS232Communication close() started for 'communication1'
+18:19:22 [debug] [void __cdecl RS232Communication::close(void)] Port communication1 already closed, skipping close operation
+18:19:22 [debug] [__cdecl RS232Communication::~RS232Communication(void)] RS232Communication destructor for 'communication2'
+18:19:22 [debug] [0x269a1599d88] RS232Communication close() started for 'communication2'
+18:19:22 [debug] [void __cdecl RS232Communication::close(void)] Port communication2 already closed, skipping close operation
+18:19:22 [debug] [0x269a0276908] RS232Communication constructor for 'communication1'
+18:19:22 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication1'
+18:19:22 [debug] Started receive thread for port communication1
+18:19:22 [debug] [void __cdecl RS232Communication::receiveLoop(void)] RS232Communication receiveLoop() started for 'communication1'
+18:19:22 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication1' initialized successfully
+18:19:22 [debug] [0x269a0304c08] RS232Communication constructor for 'communication2'
+18:19:22 [debug] [bool __cdecl RS232Communication::initialize(void)] RS232Communication initialize() started for 'communication2'
+18:19:22 [debug] Started receive thread for port communication2
+18:19:22 [debug] [void __cdecl RS232Communication::receiveLoop(void)] RS232Communication receiveLoop() started for 'communication2'
+18:19:22 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication2' initialized successfully
+18:19:22 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication3' is not active in config, skipping
+18:19:22 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] Communication port 'communication4' is not active in config, skipping
+18:19:22 [debug] [bool __cdecl Logic::initializeCommunicationPorts(void)] 2 communication port(s) initialized successfully
+18:19:22 [debug] [void __cdecl Logic::handleEvent(const struct GuiEvent &)] Skipping timers reinitialization as parameters don't affect them

@@ -67,9 +67,10 @@
       "controller_1": {
         "activePlan": "plan_1",
         "communication": "COM1",
-        "enabled": true,
-        "encoder": 1.26,
+        "enabled": false,
+        "encoder": 1.25,
         "name": "c1",
+        "pageLength": 100,
         "plans": {
           "plan_1": {
             "name": "p1",

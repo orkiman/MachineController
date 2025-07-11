@@ -13,6 +13,7 @@
 #include "EventQueue.h"
 #include "Config.h"
 #include "json.hpp"  // Include the nlohmann JSON header
+#include "communication/ArduinoProtocol.h"
 
 namespace Ui {
     class SettingsWindow;
@@ -146,6 +147,11 @@ private:
     
     // Connect change events for all editable fields
     void connectChangeEvents();
+    
+    // Arduino protocol helper methods
+    void sendConfigToController(const std::string& controllerName);
+    void sendPlanToController(const std::string& controllerName, const std::string& planName);
+    void sendRunStopToEnabledControllers(bool run);
 
     Ui::SettingsWindow *ui;
     EventQueue<EventVariant>& eventQueue_;

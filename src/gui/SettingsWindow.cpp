@@ -1535,6 +1535,9 @@ void SettingsWindow::saveCurrentGlueControllerSettings()
         // Reload the tab to reflect changes
         fillGlueTabFields();
         
+        // Send updated config to Arduino
+        sendConfigToController(currentGlueControllerName_);
+        
     } catch (const std::exception& e) {
         getLogger()->warn("[saveCurrentGlueControllerSettings] Exception: {}", e.what());
     }
@@ -1603,6 +1606,9 @@ void SettingsWindow::saveCurrentGluePlanSettings()
         }
         
         fillGlueTabFields();
+        
+        // Send updated plan to Arduino
+        sendPlanToController(currentGlueControllerName_, currentGluePlanName_);
         
     } catch (const std::exception& e) {
         getLogger()->warn("[saveCurrentGluePlanSettings] Exception: {}", e.what());
@@ -2051,9 +2057,22 @@ void SettingsWindow::on_glueCalibrateButton_clicked()
         getLogger()->info("[on_glueCalibrateButton_clicked] Starting encoder calibration for controller '{}' with page length {} mm", 
                          controllerName, pageLength);
         
-        // TODO: Send calibration command to Arduino
-        // This will be implemented when we design the protocol
-        // For now, just log the action
+        // Get the communication port for this controller
+        std::string communicationPort = ui->glueCommunicationComboBox->currentText().toStdString();
+        if (communicationPort.empty()) {
+            getLogger()->warn("[on_glueCalibrateButton_clicked] No communication port selected for controller '{}'", controllerName);
+            return;
+        }
+        
+        // Send calibration command to Arduino
+        std::string calibrateMessage = ArduinoProtocol::createCalibrateMessage(pageLength);
+        if (!calibrateMessage.empty()) {
+            ArduinoProtocol::sendMessage(eventQueue_, communicationPort, calibrateMessage);
+            getLogger()->info("[on_glueCalibrateButton_clicked] Sent calibration command to '{}': {}", communicationPort, calibrateMessage);
+        } else {
+            getLogger()->error("[on_glueCalibrateButton_clicked] Failed to create calibration message");
+            return;
+        }
         
         // Disable the button temporarily to prevent multiple clicks
         ui->glueCalibrateButton->setEnabled(false);
@@ -2098,6 +2117,140 @@ void SettingsWindow::on_glueControllerEnabledCheckBox_stateChanged(int state)
         
     } catch (const std::exception& e) {
         getLogger()->warn("[on_glueControllerEnabledCheckBox_stateChanged] Exception: {}", e.what());
+    }
+}
+
+// ============================================================================
+//  Arduino Protocol Helper Methods
+// ============================================================================
+
+// Send config message to specified controller
+void SettingsWindow::sendConfigToController(const std::string& controllerName) {
+    if (!config_ || controllerName.empty()) {
+        return;
+    }
+    
+    try {
+        nlohmann::json glueSettings = config_->getGlueSettings();
+        if (!glueSettings.contains("controllers") || 
+            !glueSettings["controllers"].contains(controllerName)) {
+            getLogger()->warn("[sendConfigToController] Controller '{}' not found", controllerName);
+            return;
+        }
+        
+        auto controller = glueSettings["controllers"][controllerName];
+        
+        // Get controller settings
+        double encoderResolution = controller.value("encoder", 1.0);
+        int sensorOffset = controller.value("sensorOffset", 10);
+        std::string communicationPort = controller.value("communication", "");
+        
+        if (communicationPort.empty()) {
+            getLogger()->warn("[sendConfigToController] No communication port for controller '{}'", controllerName);
+            return;
+        }
+        
+        // Create and send config message
+        std::string configMessage = ArduinoProtocol::createConfigMessage(encoderResolution, sensorOffset);
+        if (!configMessage.empty()) {
+            ArduinoProtocol::sendMessage(eventQueue_, communicationPort, configMessage);
+            getLogger()->info("[sendConfigToController] Sent config to '{}' via '{}': {}", 
+                             controllerName, communicationPort, configMessage);
+        }
+        
+    } catch (const std::exception& e) {
+        getLogger()->error("[sendConfigToController] Exception: {}", e.what());
+    }
+}
+
+// Send plan message to specified controller
+void SettingsWindow::sendPlanToController(const std::string& controllerName, const std::string& planName) {
+    if (!config_ || controllerName.empty() || planName.empty()) {
+        return;
+    }
+    
+    try {
+        nlohmann::json glueSettings = config_->getGlueSettings();
+        if (!glueSettings.contains("controllers") || 
+            !glueSettings["controllers"].contains(controllerName) ||
+            !glueSettings["controllers"][controllerName].contains("plans") ||
+            !glueSettings["controllers"][controllerName]["plans"].contains(planName)) {
+            getLogger()->warn("[sendPlanToController] Plan '{}' not found for controller '{}'", planName, controllerName);
+            return;
+        }
+        
+        auto controller = glueSettings["controllers"][controllerName];
+        auto plan = controller["plans"][planName];
+        std::string communicationPort = controller.value("communication", "");
+        
+        if (communicationPort.empty()) {
+            getLogger()->warn("[sendPlanToController] No communication port for controller '{}'", controllerName);
+            return;
+        }
+        
+        // Extract rows from plan
+        std::vector<ArduinoProtocol::GlueRow> rows;
+        if (plan.contains("rows") && plan["rows"].is_array()) {
+            for (const auto& row : plan["rows"]) {
+                ArduinoProtocol::GlueRow glueRow;
+                glueRow.from = row.value("from", 0);
+                glueRow.to = row.value("to", 100);
+                glueRow.space = row.value("space", 5.0);
+                rows.push_back(glueRow);
+            }
+        }
+        
+        // Create and send plan message
+        std::string planMessage = ArduinoProtocol::createPlanMessage(rows);
+        if (!planMessage.empty()) {
+            ArduinoProtocol::sendMessage(eventQueue_, communicationPort, planMessage);
+            getLogger()->info("[sendPlanToController] Sent plan '{}' to '{}' via '{}': {}", 
+                             planName, controllerName, communicationPort, planMessage);
+        }
+        
+    } catch (const std::exception& e) {
+        getLogger()->error("[sendPlanToController] Exception: {}", e.what());
+    }
+}
+
+// Send run/stop command to all enabled controllers
+void SettingsWindow::sendRunStopToEnabledControllers(bool run) {
+    if (!config_) {
+        return;
+    }
+    
+    try {
+        nlohmann::json glueSettings = config_->getGlueSettings();
+        if (!glueSettings.contains("controllers")) {
+            return;
+        }
+        
+        std::string command = run ? "run" : "stop";
+        
+        for (const auto& [controllerName, controller] : glueSettings["controllers"].items()) {
+            // Check if controller is enabled
+            bool enabled = controller.value("enabled", false);
+            if (!enabled) {
+                continue;
+            }
+            
+            std::string communicationPort = controller.value("communication", "");
+            if (communicationPort.empty()) {
+                getLogger()->warn("[sendRunStopToEnabledControllers] No communication port for controller '{}'", controllerName);
+                continue;
+            }
+            
+            // Create and send run/stop message
+            std::string message = run ? ArduinoProtocol::createRunMessage() : ArduinoProtocol::createStopMessage();
+            if (!message.empty()) {
+                ArduinoProtocol::sendMessage(eventQueue_, communicationPort, message);
+                getLogger()->info("[sendRunStopToEnabledControllers] Sent '{}' to '{}' via '{}': {}", 
+                                 command, controllerName, communicationPort, message);
+            }
+        }
+        
+    } catch (const std::exception& e) {
+        getLogger()->error("[sendRunStopToEnabledControllers] Exception: {}", e.what());
     }
 }
 
@@ -2518,6 +2671,11 @@ void SettingsWindow::connectChangeEvents() {
     for (QCheckBox* checkBox : checkBoxes) {
         // Skip output override checkboxes which are handled separately
         if (checkBox->objectName().contains("outputOverride")) {
+            continue;
+        }
+        
+        // Skip glue tab checkboxes - they have their own specific save handlers
+        if (checkBox->objectName() == "glueControllerEnabledCheckBox") {
             continue;
         }
         

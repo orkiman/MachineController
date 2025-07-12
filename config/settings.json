@@ -115,7 +115,7 @@
       },
       "controller_2": {
         "activePlan": "plan_1",
-        "communication": "",
+        "communication": "communication2",
         "enabled": true,
         "encoder": 1.59,
         "name": "c2",

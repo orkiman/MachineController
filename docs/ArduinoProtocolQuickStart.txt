@@ -1,0 +1,56 @@
+ARDUINO PROTOCOL - QUICK START
+===============================
+
+MINIMAL COMMUNICATION EXAMPLE (Both Directions)
+
+1. SETUP MESSAGE (PC → Arduino)
+   {"type": "config", "encoder": 1.5, "sensorOffset": 10}
+
+2. PLAN MESSAGE (PC → Arduino)  
+   {"type": "plan", "rows": [{"from": 10, "to": 50, "space": 5.0}]}
+
+3. CALIBRATE REQUEST (PC → Arduino)
+   {"type": "calibrate", "pageLength": 100}
+
+4. CALIBRATE RESPONSE (Arduino → PC)
+   {"type": "calibration_result", "pulsesPerPage": 12345}
+
+5. RUN COMMAND (PC → Arduino)
+   {"type": "run"}
+
+6. STOP COMMAND (PC → Arduino)
+   {"type": "stop"}
+
+7. HEARTBEAT (PC → Arduino)
+   {"type": "heartbeat"}
+
+ARDUINO CODE SNIPPET:
+====================
+#include <ArduinoJson.h>
+
+void setup() {
+  Serial.begin(115200);
+}
+
+void loop() {
+  if (Serial.available()) {
+    String json = Serial.readString();
+    StaticJsonDocument<200> doc;
+    deserializeJson(doc, json);
+    
+    String type = doc["type"];
+    if (type == "config") {
+      float encoder = doc["encoder"];
+      int offset = doc["sensorOffset"];
+      // Use values...
+    }
+    else if (type == "calibrate") {
+      int pageLen = doc["pageLength"];
+      // Perform calibration...
+      Serial.println("{\"type\":\"calibration_result\",\"pulsesPerPage\":12345}");
+    }
+    else if (type == "run") {
+      // Start operation
+    }
+  }
+}

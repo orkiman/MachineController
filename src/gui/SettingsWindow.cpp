@@ -16,11 +16,11 @@
 #include <QDir>
 #include <QStackedWidget>
 #include <QTimer>
+#include <vector>
 
 // ============================================================================
 //  UI Setup Helper Functions
 // ============================================================================
-
 // Populate the Data File tab with settings from config
 void SettingsWindow::fillDataFileTabFields() {
     if (!config_) return;

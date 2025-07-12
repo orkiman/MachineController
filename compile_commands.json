@@ -1,0 +1,122 @@
+[
+{
+  "directory": "C:/or/windsurfProjects/MachineController/build-ninja",
+  "command": "C:\\PROGRA~1\\LLVM\\bin\\CLANG_~1.EXE -DNOMINMAX -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -DSPDLOG_COMPILED_LIB -DUNICODE -DWIN32 -DWIN64 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -D_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS -D_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING -D_UNICODE -D_WIN64 -IC:/or/windsurfProjects/MachineController/build-ninja/MachineController_autogen/include -IC:/or/windsurfProjects/MachineController/build-ninja -IC:/or/windsurfProjects/MachineController/include -IC:/or/windsurfProjects/MachineController/external/nlohmann -IC:/ADLINK/DASK/Include -IC:/or/windsurfProjects/MachineController/build-ninja/_deps/spdlog-src/include -isystem C:/Qt/6.9.1/msvc2022_64/include/QtWidgets -isystem C:/Qt/6.9.1/msvc2022_64/include -isystem C:/Qt/6.9.1/msvc2022_64/include/QtCore -isystem C:/Qt/6.9.1/msvc2022_64/mkspecs/win32-msvc -isystem C:/Qt/6.9.1/msvc2022_64/include/QtGui -O0 -g -Xclang -gcodeview -std=c++17 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -o CMakeFiles\\MachineController.dir\\MachineController_autogen\\mocs_compilation.cpp.obj -c C:\\or\\windsurfProjects\\MachineController\\build-ninja\\MachineController_autogen\\mocs_compilation.cpp",
+  "file": "C:\\or\\windsurfProjects\\MachineController\\build-ninja\\MachineController_autogen\\mocs_compilation.cpp",
+  "output": "CMakeFiles\\MachineController.dir\\MachineController_autogen\\mocs_compilation.cpp.obj"
+},
+{
+  "directory": "C:/or/windsurfProjects/MachineController/build-ninja",
+  "command": "C:\\PROGRA~1\\LLVM\\bin\\CLANG_~1.EXE -DNOMINMAX -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -DSPDLOG_COMPILED_LIB -DUNICODE -DWIN32 -DWIN64 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -D_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS -D_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING -D_UNICODE -D_WIN64 -IC:/or/windsurfProjects/MachineController/build-ninja/MachineController_autogen/include -IC:/or/windsurfProjects/MachineController/build-ninja -IC:/or/windsurfProjects/MachineController/include -IC:/or/windsurfProjects/MachineController/external/nlohmann -IC:/ADLINK/DASK/Include -IC:/or/windsurfProjects/MachineController/build-ninja/_deps/spdlog-src/include -isystem C:/Qt/6.9.1/msvc2022_64/include/QtWidgets -isystem C:/Qt/6.9.1/msvc2022_64/include -isystem C:/Qt/6.9.1/msvc2022_64/include/QtCore -isystem C:/Qt/6.9.1/msvc2022_64/mkspecs/win32-msvc -isystem C:/Qt/6.9.1/msvc2022_64/include/QtGui -O0 -g -Xclang -gcodeview -std=c++17 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -o CMakeFiles\\MachineController.dir\\src\\main.cpp.obj -c C:\\or\\windsurfProjects\\MachineController\\src\\main.cpp",
+  "file": "C:\\or\\windsurfProjects\\MachineController\\src\\main.cpp",
+  "output": "CMakeFiles\\MachineController.dir\\src\\main.cpp.obj"
+},
+{
+  "directory": "C:/or/windsurfProjects/MachineController/build-ninja",
+  "command": "C:\\PROGRA~1\\LLVM\\bin\\CLANG_~1.EXE -DNOMINMAX -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -DSPDLOG_COMPILED_LIB -DUNICODE -DWIN32 -DWIN64 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -D_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS -D_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING -D_UNICODE -D_WIN64 -IC:/or/windsurfProjects/MachineController/build-ninja/MachineController_autogen/include -IC:/or/windsurfProjects/MachineController/build-ninja -IC:/or/windsurfProjects/MachineController/include -IC:/or/windsurfProjects/MachineController/external/nlohmann -IC:/ADLINK/DASK/Include -IC:/or/windsurfProjects/MachineController/build-ninja/_deps/spdlog-src/include -isystem C:/Qt/6.9.1/msvc2022_64/include/QtWidgets -isystem C:/Qt/6.9.1/msvc2022_64/include -isystem C:/Qt/6.9.1/msvc2022_64/include/QtCore -isystem C:/Qt/6.9.1/msvc2022_64/mkspecs/win32-msvc -isystem C:/Qt/6.9.1/msvc2022_64/include/QtGui -O0 -g -Xclang -gcodeview -std=c++17 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -o CMakeFiles\\MachineController.dir\\src\\io\\windows\\PCI7248IO.cpp.obj -c C:\\or\\windsurfProjects\\MachineController\\src\\io\\windows\\PCI7248IO.cpp",
+  "file": "C:\\or\\windsurfProjects\\MachineController\\src\\io\\windows\\PCI7248IO.cpp",
+  "output": "CMakeFiles\\MachineController.dir\\src\\io\\windows\\PCI7248IO.cpp.obj"
+},
+{
+  "directory": "C:/or/windsurfProjects/MachineController/build-ninja",
+  "command": "C:\\PROGRA~1\\LLVM\\bin\\CLANG_~1.EXE -DNOMINMAX -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -DSPDLOG_COMPILED_LIB -DUNICODE -DWIN32 -DWIN64 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -D_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS -D_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING -D_UNICODE -D_WIN64 -IC:/or/windsurfProjects/MachineController/build-ninja/MachineController_autogen/include -IC:/or/windsurfProjects/MachineController/build-ninja -IC:/or/windsurfProjects/MachineController/include -IC:/or/windsurfProjects/MachineController/external/nlohmann -IC:/ADLINK/DASK/Include -IC:/or/windsurfProjects/MachineController/build-ninja/_deps/spdlog-src/include -isystem C:/Qt/6.9.1/msvc2022_64/include/QtWidgets -isystem C:/Qt/6.9.1/msvc2022_64/include -isystem C:/Qt/6.9.1/msvc2022_64/include/QtCore -isystem C:/Qt/6.9.1/msvc2022_64/mkspecs/win32-msvc -isystem C:/Qt/6.9.1/msvc2022_64/include/QtGui -O0 -g -Xclang -gcodeview -std=c++17 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -o CMakeFiles\\MachineController.dir\\src\\Config.cpp.obj -c C:\\or\\windsurfProjects\\MachineController\\src\\Config.cpp",
+  "file": "C:\\or\\windsurfProjects\\MachineController\\src\\Config.cpp",
+  "output": "CMakeFiles\\MachineController.dir\\src\\Config.cpp.obj"
+},
+{
+  "directory": "C:/or/windsurfProjects/MachineController/build-ninja",
+  "command": "C:\\PROGRA~1\\LLVM\\bin\\CLANG_~1.EXE -DNOMINMAX -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -DSPDLOG_COMPILED_LIB -DUNICODE -DWIN32 -DWIN64 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -D_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS -D_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING -D_UNICODE -D_WIN64 -IC:/or/windsurfProjects/MachineController/build-ninja/MachineController_autogen/include -IC:/or/windsurfProjects/MachineController/build-ninja -IC:/or/windsurfProjects/MachineController/include -IC:/or/windsurfProjects/MachineController/external/nlohmann -IC:/ADLINK/DASK/Include -IC:/or/windsurfProjects/MachineController/build-ninja/_deps/spdlog-src/include -isystem C:/Qt/6.9.1/msvc2022_64/include/QtWidgets -isystem C:/Qt/6.9.1/msvc2022_64/include -isystem C:/Qt/6.9.1/msvc2022_64/include/QtCore -isystem C:/Qt/6.9.1/msvc2022_64/mkspecs/win32-msvc -isystem C:/Qt/6.9.1/msvc2022_64/include/QtGui -O0 -g -Xclang -gcodeview -std=c++17 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -o CMakeFiles\\MachineController.dir\\src\\Logic.cpp.obj -c C:\\or\\windsurfProjects\\MachineController\\src\\Logic.cpp",
+  "file": "C:\\or\\windsurfProjects\\MachineController\\src\\Logic.cpp",
+  "output": "CMakeFiles\\MachineController.dir\\src\\Logic.cpp.obj"
+},
+{
+  "directory": "C:/or/windsurfProjects/MachineController/build-ninja",
+  "command": "C:\\PROGRA~1\\LLVM\\bin\\CLANG_~1.EXE -DNOMINMAX -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -DSPDLOG_COMPILED_LIB -DUNICODE -DWIN32 -DWIN64 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -D_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS -D_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING -D_UNICODE -D_WIN64 -IC:/or/windsurfProjects/MachineController/build-ninja/MachineController_autogen/include -IC:/or/windsurfProjects/MachineController/build-ninja -IC:/or/windsurfProjects/MachineController/include -IC:/or/windsurfProjects/MachineController/external/nlohmann -IC:/ADLINK/DASK/Include -IC:/or/windsurfProjects/MachineController/build-ninja/_deps/spdlog-src/include -isystem C:/Qt/6.9.1/msvc2022_64/include/QtWidgets -isystem C:/Qt/6.9.1/msvc2022_64/include -isystem C:/Qt/6.9.1/msvc2022_64/include/QtCore -isystem C:/Qt/6.9.1/msvc2022_64/mkspecs/win32-msvc -isystem C:/Qt/6.9.1/msvc2022_64/include/QtGui -O0 -g -Xclang -gcodeview -std=c++17 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -o CMakeFiles\\MachineController.dir\\src\\gui\\MainWindow.cpp.obj -c C:\\or\\windsurfProjects\\MachineController\\src\\gui\\MainWindow.cpp",
+  "file": "C:\\or\\windsurfProjects\\MachineController\\src\\gui\\MainWindow.cpp",
+  "output": "CMakeFiles\\MachineController.dir\\src\\gui\\MainWindow.cpp.obj"
+},
+{
+  "directory": "C:/or/windsurfProjects/MachineController/build-ninja",
+  "command": "C:\\PROGRA~1\\LLVM\\bin\\CLANG_~1.EXE -DNOMINMAX -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -DSPDLOG_COMPILED_LIB -DUNICODE -DWIN32 -DWIN64 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -D_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS -D_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING -D_UNICODE -D_WIN64 -IC:/or/windsurfProjects/MachineController/build-ninja/MachineController_autogen/include -IC:/or/windsurfProjects/MachineController/build-ninja -IC:/or/windsurfProjects/MachineController/include -IC:/or/windsurfProjects/MachineController/external/nlohmann -IC:/ADLINK/DASK/Include -IC:/or/windsurfProjects/MachineController/build-ninja/_deps/spdlog-src/include -isystem C:/Qt/6.9.1/msvc2022_64/include/QtWidgets -isystem C:/Qt/6.9.1/msvc2022_64/include -isystem C:/Qt/6.9.1/msvc2022_64/include/QtCore -isystem C:/Qt/6.9.1/msvc2022_64/mkspecs/win32-msvc -isystem C:/Qt/6.9.1/msvc2022_64/include/QtGui -O0 -g -Xclang -gcodeview -std=c++17 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -o CMakeFiles\\MachineController.dir\\src\\gui\\SettingsWindow.cpp.obj -c C:\\or\\windsurfProjects\\MachineController\\src\\gui\\SettingsWindow.cpp",
+  "file": "C:\\or\\windsurfProjects\\MachineController\\src\\gui\\SettingsWindow.cpp",
+  "output": "CMakeFiles\\MachineController.dir\\src\\gui\\SettingsWindow.cpp.obj"
+},
+{
+  "directory": "C:/or/windsurfProjects/MachineController/build-ninja",
+  "command": "C:\\PROGRA~1\\LLVM\\bin\\CLANG_~1.EXE -DNOMINMAX -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -DSPDLOG_COMPILED_LIB -DUNICODE -DWIN32 -DWIN64 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -D_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS -D_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING -D_UNICODE -D_WIN64 -IC:/or/windsurfProjects/MachineController/build-ninja/MachineController_autogen/include -IC:/or/windsurfProjects/MachineController/build-ninja -IC:/or/windsurfProjects/MachineController/include -IC:/or/windsurfProjects/MachineController/external/nlohmann -IC:/ADLINK/DASK/Include -IC:/or/windsurfProjects/MachineController/build-ninja/_deps/spdlog-src/include -isystem C:/Qt/6.9.1/msvc2022_64/include/QtWidgets -isystem C:/Qt/6.9.1/msvc2022_64/include -isystem C:/Qt/6.9.1/msvc2022_64/include/QtCore -isystem C:/Qt/6.9.1/msvc2022_64/mkspecs/win32-msvc -isystem C:/Qt/6.9.1/msvc2022_64/include/QtGui -O0 -g -Xclang -gcodeview -std=c++17 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -o CMakeFiles\\MachineController.dir\\src\\communication\\RS232Communication.cpp.obj -c C:\\or\\windsurfProjects\\MachineController\\src\\communication\\RS232Communication.cpp",
+  "file": "C:\\or\\windsurfProjects\\MachineController\\src\\communication\\RS232Communication.cpp",
+  "output": "CMakeFiles\\MachineController.dir\\src\\communication\\RS232Communication.cpp.obj"
+},
+{
+  "directory": "C:/or/windsurfProjects/MachineController/build-ninja",
+  "command": "C:\\PROGRA~1\\LLVM\\bin\\CLANG_~1.EXE -DNOMINMAX -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -DSPDLOG_COMPILED_LIB -DUNICODE -DWIN32 -DWIN64 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -D_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS -D_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING -D_UNICODE -D_WIN64 -IC:/or/windsurfProjects/MachineController/build-ninja/MachineController_autogen/include -IC:/or/windsurfProjects/MachineController/build-ninja -IC:/or/windsurfProjects/MachineController/include -IC:/or/windsurfProjects/MachineController/external/nlohmann -IC:/ADLINK/DASK/Include -IC:/or/windsurfProjects/MachineController/build-ninja/_deps/spdlog-src/include -isystem C:/Qt/6.9.1/msvc2022_64/include/QtWidgets -isystem C:/Qt/6.9.1/msvc2022_64/include -isystem C:/Qt/6.9.1/msvc2022_64/include/QtCore -isystem C:/Qt/6.9.1/msvc2022_64/mkspecs/win32-msvc -isystem C:/Qt/6.9.1/msvc2022_64/include/QtGui -O0 -g -Xclang -gcodeview -std=c++17 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -o CMakeFiles\\MachineController.dir\\src\\communication\\ArduinoProtocol.cpp.obj -c C:\\or\\windsurfProjects\\MachineController\\src\\communication\\ArduinoProtocol.cpp",
+  "file": "C:\\or\\windsurfProjects\\MachineController\\src\\communication\\ArduinoProtocol.cpp",
+  "output": "CMakeFiles\\MachineController.dir\\src\\communication\\ArduinoProtocol.cpp.obj"
+},
+{
+  "directory": "C:/or/windsurfProjects/MachineController/build-ninja",
+  "command": "C:\\PROGRA~1\\LLVM\\bin\\CLANG_~1.EXE -DNOMINMAX -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -DSPDLOG_COMPILED_LIB -DUNICODE -DWIN32 -DWIN64 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -D_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS -D_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING -D_UNICODE -D_WIN64 -IC:/or/windsurfProjects/MachineController/build-ninja/MachineController_autogen/include -IC:/or/windsurfProjects/MachineController/build-ninja -IC:/or/windsurfProjects/MachineController/include -IC:/or/windsurfProjects/MachineController/external/nlohmann -IC:/ADLINK/DASK/Include -IC:/or/windsurfProjects/MachineController/build-ninja/_deps/spdlog-src/include -isystem C:/Qt/6.9.1/msvc2022_64/include/QtWidgets -isystem C:/Qt/6.9.1/msvc2022_64/include -isystem C:/Qt/6.9.1/msvc2022_64/include/QtCore -isystem C:/Qt/6.9.1/msvc2022_64/mkspecs/win32-msvc -isystem C:/Qt/6.9.1/msvc2022_64/include/QtGui -O0 -g -Xclang -gcodeview -std=c++17 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -o CMakeFiles\\MachineController.dir\\src\\dataFile\\DataFile.cpp.obj -c C:\\or\\windsurfProjects\\MachineController\\src\\dataFile\\DataFile.cpp",
+  "file": "C:\\or\\windsurfProjects\\MachineController\\src\\dataFile\\DataFile.cpp",
+  "output": "CMakeFiles\\MachineController.dir\\src\\dataFile\\DataFile.cpp.obj"
+},
+{
+  "directory": "C:/or/windsurfProjects/MachineController/build-ninja",
+  "command": "C:\\PROGRA~1\\LLVM\\bin\\CLANG_~1.EXE -DNOMINMAX -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -DSPDLOG_COMPILED_LIB -DUNICODE -DWIN32 -DWIN64 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -D_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS -D_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING -D_UNICODE -D_WIN64 -IC:/or/windsurfProjects/MachineController/build-ninja/MachineController_autogen/include -IC:/or/windsurfProjects/MachineController/build-ninja -IC:/or/windsurfProjects/MachineController/include -IC:/or/windsurfProjects/MachineController/external/nlohmann -IC:/ADLINK/DASK/Include -IC:/or/windsurfProjects/MachineController/build-ninja/_deps/spdlog-src/include -isystem C:/Qt/6.9.1/msvc2022_64/include/QtWidgets -isystem C:/Qt/6.9.1/msvc2022_64/include -isystem C:/Qt/6.9.1/msvc2022_64/include/QtCore -isystem C:/Qt/6.9.1/msvc2022_64/mkspecs/win32-msvc -isystem C:/Qt/6.9.1/msvc2022_64/include/QtGui -O0 -g -Xclang -gcodeview -std=c++17 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -o CMakeFiles\\MachineController.dir\\include\\gui\\moc_MainWindow.cpp.obj -c C:\\or\\windsurfProjects\\MachineController\\build-ninja\\include\\gui\\moc_MainWindow.cpp",
+  "file": "C:\\or\\windsurfProjects\\MachineController\\build-ninja\\include\\gui\\moc_MainWindow.cpp",
+  "output": "CMakeFiles\\MachineController.dir\\include\\gui\\moc_MainWindow.cpp.obj"
+},
+{
+  "directory": "C:/or/windsurfProjects/MachineController/build-ninja",
+  "command": "C:\\PROGRA~1\\LLVM\\bin\\CLANG_~1.EXE -DNOMINMAX -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -DSPDLOG_COMPILED_LIB -DUNICODE -DWIN32 -DWIN64 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -D_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS -D_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING -D_UNICODE -D_WIN64 -IC:/or/windsurfProjects/MachineController/build-ninja/MachineController_autogen/include -IC:/or/windsurfProjects/MachineController/build-ninja -IC:/or/windsurfProjects/MachineController/include -IC:/or/windsurfProjects/MachineController/external/nlohmann -IC:/ADLINK/DASK/Include -IC:/or/windsurfProjects/MachineController/build-ninja/_deps/spdlog-src/include -isystem C:/Qt/6.9.1/msvc2022_64/include/QtWidgets -isystem C:/Qt/6.9.1/msvc2022_64/include -isystem C:/Qt/6.9.1/msvc2022_64/include/QtCore -isystem C:/Qt/6.9.1/msvc2022_64/mkspecs/win32-msvc -isystem C:/Qt/6.9.1/msvc2022_64/include/QtGui -O0 -g -Xclang -gcodeview -std=c++17 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -o CMakeFiles\\MachineController.dir\\include\\gui\\moc_SettingsWindow.cpp.obj -c C:\\or\\windsurfProjects\\MachineController\\build-ninja\\include\\gui\\moc_SettingsWindow.cpp",
+  "file": "C:\\or\\windsurfProjects\\MachineController\\build-ninja\\include\\gui\\moc_SettingsWindow.cpp",
+  "output": "CMakeFiles\\MachineController.dir\\include\\gui\\moc_SettingsWindow.cpp.obj"
+},
+{
+  "directory": "C:/or/windsurfProjects/MachineController/build-ninja",
+  "command": "C:\\PROGRA~1\\LLVM\\bin\\CLANG_~1.EXE -DSPDLOG_COMPILED_LIB -DSPDLOG_FWRITE_UNLOCKED -IC:/or/windsurfProjects/MachineController/build-ninja/_deps/spdlog-build/spdlog_autogen/include -IC:/or/windsurfProjects/MachineController/build-ninja/_deps/spdlog-src/include -O0 -g -Xclang -gcodeview -std=c++17 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -o _deps\\spdlog-build\\CMakeFiles\\spdlog.dir\\spdlog_autogen\\mocs_compilation.cpp.obj -c C:\\or\\windsurfProjects\\MachineController\\build-ninja\\_deps\\spdlog-build\\spdlog_autogen\\mocs_compilation.cpp",
+  "file": "C:\\or\\windsurfProjects\\MachineController\\build-ninja\\_deps\\spdlog-build\\spdlog_autogen\\mocs_compilation.cpp",
+  "output": "_deps\\spdlog-build\\CMakeFiles\\spdlog.dir\\spdlog_autogen\\mocs_compilation.cpp.obj"
+},
+{
+  "directory": "C:/or/windsurfProjects/MachineController/build-ninja",
+  "command": "C:\\PROGRA~1\\LLVM\\bin\\CLANG_~1.EXE -DSPDLOG_COMPILED_LIB -DSPDLOG_FWRITE_UNLOCKED -IC:/or/windsurfProjects/MachineController/build-ninja/_deps/spdlog-build/spdlog_autogen/include -IC:/or/windsurfProjects/MachineController/build-ninja/_deps/spdlog-src/include -O0 -g -Xclang -gcodeview -std=c++17 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -o _deps\\spdlog-build\\CMakeFiles\\spdlog.dir\\src\\spdlog.cpp.obj -c C:\\or\\windsurfProjects\\MachineController\\build-ninja\\_deps\\spdlog-src\\src\\spdlog.cpp",
+  "file": "C:\\or\\windsurfProjects\\MachineController\\build-ninja\\_deps\\spdlog-src\\src\\spdlog.cpp",
+  "output": "_deps\\spdlog-build\\CMakeFiles\\spdlog.dir\\src\\spdlog.cpp.obj"
+},
+{
+  "directory": "C:/or/windsurfProjects/MachineController/build-ninja",
+  "command": "C:\\PROGRA~1\\LLVM\\bin\\CLANG_~1.EXE -DSPDLOG_COMPILED_LIB -DSPDLOG_FWRITE_UNLOCKED -IC:/or/windsurfProjects/MachineController/build-ninja/_deps/spdlog-build/spdlog_autogen/include -IC:/or/windsurfProjects/MachineController/build-ninja/_deps/spdlog-src/include -O0 -g -Xclang -gcodeview -std=c++17 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -o _deps\\spdlog-build\\CMakeFiles\\spdlog.dir\\src\\stdout_sinks.cpp.obj -c C:\\or\\windsurfProjects\\MachineController\\build-ninja\\_deps\\spdlog-src\\src\\stdout_sinks.cpp",
+  "file": "C:\\or\\windsurfProjects\\MachineController\\build-ninja\\_deps\\spdlog-src\\src\\stdout_sinks.cpp",
+  "output": "_deps\\spdlog-build\\CMakeFiles\\spdlog.dir\\src\\stdout_sinks.cpp.obj"
+},
+{
+  "directory": "C:/or/windsurfProjects/MachineController/build-ninja",
+  "command": "C:\\PROGRA~1\\LLVM\\bin\\CLANG_~1.EXE -DSPDLOG_COMPILED_LIB -DSPDLOG_FWRITE_UNLOCKED -IC:/or/windsurfProjects/MachineController/build-ninja/_deps/spdlog-build/spdlog_autogen/include -IC:/or/windsurfProjects/MachineController/build-ninja/_deps/spdlog-src/include -O0 -g -Xclang -gcodeview -std=c++17 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -o _deps\\spdlog-build\\CMakeFiles\\spdlog.dir\\src\\color_sinks.cpp.obj -c C:\\or\\windsurfProjects\\MachineController\\build-ninja\\_deps\\spdlog-src\\src\\color_sinks.cpp",
+  "file": "C:\\or\\windsurfProjects\\MachineController\\build-ninja\\_deps\\spdlog-src\\src\\color_sinks.cpp",
+  "output": "_deps\\spdlog-build\\CMakeFiles\\spdlog.dir\\src\\color_sinks.cpp.obj"
+},
+{
+  "directory": "C:/or/windsurfProjects/MachineController/build-ninja",
+  "command": "C:\\PROGRA~1\\LLVM\\bin\\CLANG_~1.EXE -DSPDLOG_COMPILED_LIB -DSPDLOG_FWRITE_UNLOCKED -IC:/or/windsurfProjects/MachineController/build-ninja/_deps/spdlog-build/spdlog_autogen/include -IC:/or/windsurfProjects/MachineController/build-ninja/_deps/spdlog-src/include -O0 -g -Xclang -gcodeview -std=c++17 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -o _deps\\spdlog-build\\CMakeFiles\\spdlog.dir\\src\\file_sinks.cpp.obj -c C:\\or\\windsurfProjects\\MachineController\\build-ninja\\_deps\\spdlog-src\\src\\file_sinks.cpp",
+  "file": "C:\\or\\windsurfProjects\\MachineController\\build-ninja\\_deps\\spdlog-src\\src\\file_sinks.cpp",
+  "output": "_deps\\spdlog-build\\CMakeFiles\\spdlog.dir\\src\\file_sinks.cpp.obj"
+},
+{
+  "directory": "C:/or/windsurfProjects/MachineController/build-ninja",
+  "command": "C:\\PROGRA~1\\LLVM\\bin\\CLANG_~1.EXE -DSPDLOG_COMPILED_LIB -DSPDLOG_FWRITE_UNLOCKED -IC:/or/windsurfProjects/MachineController/build-ninja/_deps/spdlog-build/spdlog_autogen/include -IC:/or/windsurfProjects/MachineController/build-ninja/_deps/spdlog-src/include -O0 -g -Xclang -gcodeview -std=c++17 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -o _deps\\spdlog-build\\CMakeFiles\\spdlog.dir\\src\\async.cpp.obj -c C:\\or\\windsurfProjects\\MachineController\\build-ninja\\_deps\\spdlog-src\\src\\async.cpp",
+  "file": "C:\\or\\windsurfProjects\\MachineController\\build-ninja\\_deps\\spdlog-src\\src\\async.cpp",
+  "output": "_deps\\spdlog-build\\CMakeFiles\\spdlog.dir\\src\\async.cpp.obj"
+},
+{
+  "directory": "C:/or/windsurfProjects/MachineController/build-ninja",
+  "command": "C:\\PROGRA~1\\LLVM\\bin\\CLANG_~1.EXE -DSPDLOG_COMPILED_LIB -DSPDLOG_FWRITE_UNLOCKED -IC:/or/windsurfProjects/MachineController/build-ninja/_deps/spdlog-build/spdlog_autogen/include -IC:/or/windsurfProjects/MachineController/build-ninja/_deps/spdlog-src/include -O0 -g -Xclang -gcodeview -std=c++17 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -o _deps\\spdlog-build\\CMakeFiles\\spdlog.dir\\src\\cfg.cpp.obj -c C:\\or\\windsurfProjects\\MachineController\\build-ninja\\_deps\\spdlog-src\\src\\cfg.cpp",
+  "file": "C:\\or\\windsurfProjects\\MachineController\\build-ninja\\_deps\\spdlog-src\\src\\cfg.cpp",
+  "output": "_deps\\spdlog-build\\CMakeFiles\\spdlog.dir\\src\\cfg.cpp.obj"
+},
+{
+  "directory": "C:/or/windsurfProjects/MachineController/build-ninja",
+  "command": "C:\\PROGRA~1\\LLVM\\bin\\CLANG_~1.EXE -DSPDLOG_COMPILED_LIB -DSPDLOG_FWRITE_UNLOCKED -IC:/or/windsurfProjects/MachineController/build-ninja/_deps/spdlog-build/spdlog_autogen/include -IC:/or/windsurfProjects/MachineController/build-ninja/_deps/spdlog-src/include -O0 -g -Xclang -gcodeview -std=c++17 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -o _deps\\spdlog-build\\CMakeFiles\\spdlog.dir\\src\\bundled_fmtlib_format.cpp.obj -c C:\\or\\windsurfProjects\\MachineController\\build-ninja\\_deps\\spdlog-src\\src\\bundled_fmtlib_format.cpp",
+  "file": "C:\\or\\windsurfProjects\\MachineController\\build-ninja\\_deps\\spdlog-src\\src\\bundled_fmtlib_format.cpp",
+  "output": "_deps\\spdlog-build\\CMakeFiles\\spdlog.dir\\src\\bundled_fmtlib_format.cpp.obj"
+}
+]

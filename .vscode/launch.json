@@ -2,24 +2,39 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Debug with LLDB",
             "type": "lldb",
             "request": "launch",
-            "name": "Launch (LLDB)",
-            "program": "${workspaceFolder}/build/Debug/machineController.exe",
+            "program": "${workspaceFolder}/build-ninja/bin/Debug/machineController.exe",
+            "args": [],
             "cwd": "${workspaceFolder}",
-            "preLaunchTask": "Build with CMake Preset"
+            "console": "externalTerminal",
+            "preLaunchTask": "Build (Debug)",
+            "sourceMap": {
+                "/mnt/c": "C:\\"
+            }
         },
         {
-            "name": "(MSVC) Launch",
+            "name": "Debug with MSVC",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/Debug/machineController.exe",
+            "program": "${workspaceFolder}/build-ninja/bin/Debug/machineController.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
-            "environment": [],
             "console": "externalTerminal",
-            "preLaunchTask": "Build with CMake Preset"
+            "preLaunchTask": "Build (Debug)"
+        },
+        {
+            "name": "Release with MSVC",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build-ninja/bin/Release/machineController.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "console": "externalTerminal",
+            "preLaunchTask": "Build (Release)"
         }
     ]
 }

@@ -1,5 +1,6 @@
 # Ignore the build directory
 build/
+build-ninja/
 *.o
 *.obj
 *.exe

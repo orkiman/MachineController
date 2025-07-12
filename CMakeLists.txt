@@ -1,44 +1,49 @@
 cmake_minimum_required(VERSION 3.15)
 project(MachineController LANGUAGES CXX)
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    message(STATUS "Using Clang: setting DWARF flags for LLDB")
-    set(CMAKE_CXX_FLAGS_DEBUG "-fno-ms-compatibility -gdwarf-4 -g")
-else()
-    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-        set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Zi")
-    endif()
+# Set default build type to Debug if not specified
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build" FORCE)
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
-# Set C++ standard to C++17
+# Enable compile_commands.json (used by clangd)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE BOOL "Generate compile_commands.json" FORCE)
+
+# Set output directories
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/$<CONFIG>)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/$<CONFIG>)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/$<CONFIG>)
+
+# Make sure the output directories exist
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin/Debug)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin/Release)
+
+# C++ standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Find Qt Widgets
+# Find Qt
 find_package(Qt6 REQUIRED COMPONENTS Widgets)
 
-# Enable automatic processing for Qt UI, MOC, and RCC
+# Enable Qt UI/MOC/RCC auto-processing
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-# Set the directory where .ui files are located
+# UI files
 set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_SOURCE_DIR}/src/gui)
-
-# Add UI files explicitly
 set(UI_FILES
     src/gui/MainWindow.ui
     src/gui/SettingsWindow.ui
 )
 
-# Process UI files
 qt6_wrap_ui(UI_HEADERS ${UI_FILES})
-
-# ✅ Ensure `MainWindow.h` is processed for Qt Meta-Object System (MOC)
 qt6_wrap_cpp(GENERATED_MOC_SOURCES include/gui/MainWindow.h)
 qt6_wrap_cpp(GENERATED_MOC_SOURCES include/gui/SettingsWindow.h)
 
-# Define source files
+# Sources
 set(SOURCES
     src/main.cpp
     src/io/windows/PCI7248IO.cpp
@@ -49,27 +54,22 @@ set(SOURCES
     src/communication/RS232Communication.cpp
     src/communication/ArduinoProtocol.cpp
     src/dataFile/DataFile.cpp
-    ${GENERATED_MOC_SOURCES} # ✅ Add generated MOC files here
-    ${UI_HEADERS} # Add UI headers here
-
-   
+    ${GENERATED_MOC_SOURCES}
+    ${UI_HEADERS}
 )
 
-# Create the executable target
 add_executable(MachineController ${SOURCES})
-
-# Set executable output name
 set_target_properties(MachineController PROPERTIES OUTPUT_NAME "machineController")
 
-# Include directories for auto-generated headers and project headers
+# Includes
 target_include_directories(MachineController PRIVATE
-    ${CMAKE_BINARY_DIR}       # Auto-generated headers (e.g., ui_MainWindow.h)
+    ${CMAKE_BINARY_DIR}
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/external/nlohmann
     "C:/ADLINK/DASK/Include"
 )
 
-# Include spdlog via FetchContent
+# spdlog
 include(FetchContent)
 FetchContent_Declare(
     spdlog
@@ -78,13 +78,17 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(spdlog)
 
-# Suppress spdlog deprecation warnings
-add_definitions(-D_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING -D_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS)
+# Warnings and macros
+add_definitions(
+    -D_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING
+    -D_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS
+    -DNOMINMAX
+)
 
-# Specify library directory for ADLINK DASK
+# DASK library directory
 link_directories("C:/ADLINK/DASK/Lib")
 
-# Link with required libraries
+# Link libraries
 target_link_libraries(MachineController PRIVATE
     "C:/ADLINK/DASK/Lib/PCI-Dask64.lib"
     winmm
@@ -92,38 +96,19 @@ target_link_libraries(MachineController PRIVATE
     Qt6::Widgets
 )
 
-# MSVC-specific optimizations and warnings
+# MSVC-specific flags
 if(MSVC)
-    message(STATUS "MSVC Compiler detected")
     target_compile_options(MachineController PRIVATE
-        $<$<CONFIG:Debug>:/W4>
-        $<$<CONFIG:Debug>:/RTC1>
-        $<$<CONFIG:Release>:/W4>
-        $<$<CONFIG:Release>:/O2>
+        $<$<CONFIG:Debug>:/W4 /Zi /RTC1>
+        $<$<CONFIG:Release>:/W4 /O2>
     )
 endif()
 
-# Debug symbols for Debug builds
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Zi")
-endif()
-
-# Additional compiler definitions
-add_definitions(-DNOMINMAX)
-
-# Copy Qt DLLs after build on Windows
+# Deploy Qt DLLs on Windows after build
 if(WIN32)
-  add_custom_command(TARGET MachineController POST_BUILD
-      COMMAND "C:/Qt/6.9.1/msvc2022_64/bin/windeployqt.exe" "$<TARGET_FILE:MachineController>"
-      WORKING_DIRECTORY "$<TARGET_FILE_DIR:MachineController>"
-      COMMENT "Deploying Qt dependencies with windeployqt..."
-  )
-endif()
-
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    message(STATUS "Using Clang: setting DWARF flags for LLDB")
-    set(CMAKE_CXX_FLAGS_DEBUG "-fno-ms-compatibility -gdwarf-4 -g")
-    # Remove any occurrences of /Zi that might be appended
-    string(REPLACE "/Zi" "" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
-    message(STATUS "Final Debug Flags: ${CMAKE_CXX_FLAGS_DEBUG}")
+    add_custom_command(TARGET MachineController POST_BUILD
+        COMMAND "C:/Qt/6.9.1/msvc2022_64/bin/windeployqt.exe" "$<TARGET_FILE:MachineController>"
+        WORKING_DIRECTORY "$<TARGET_FILE_DIR:MachineController>"
+        COMMENT "Deploying Qt dependencies with windeployqt..."
+    )
 endif()

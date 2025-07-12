@@ -1,6 +1,5 @@
 #include "communication/ArduinoProtocol.h"
 #include "Logger.h"
-#include <stdexcept>
 
 std::string ArduinoProtocol::createConfigMessage(double encoderResolution, int sensorOffset) {
     try {

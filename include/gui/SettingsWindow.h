@@ -6,6 +6,7 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QSet>
+#include <QTableWidget>
 #include <memory> // For std::shared_ptr
 #include <spdlog/spdlog.h> // Include spdlog
 
@@ -50,6 +51,26 @@ public:
     
     // Slot to indicate initial loading is done
     void onInitialLoadComplete();
+
+    // Gun selector slots
+    void on_gunSelectorComboBox_currentIndexChanged(int index);
+    void on_gunEnabledCheckBox_stateChanged(int state);
+    void on_glueRowsTable_itemChanged(QTableWidgetItem* item);
+    
+    // Row button slots
+    void on_addGlueRowButton_clicked();
+    void on_removeGlueRowButton_clicked();
+    
+    // Helper functions for gun management
+    void loadCurrentGunData(int gunIndex);
+    void loadGunRowsIntoTable(const nlohmann::json& gun);
+    void saveCurrentGunSettings();
+    
+    // Timer settings
+    void saveTimersToConfig();
+    
+    // Controller setup message
+    void sendControllerSetupToActiveController();
 
 signals:
     // Signal emitted when output override is enabled/disabled
@@ -100,8 +121,6 @@ private slots:
     void on_removeGluePlanButton_clicked();
     void on_gluePlanNameLineEdit_textChanged(const QString& text);
     void on_gluePlanSensorOffsetSpinBox_valueChanged(int value);
-    void on_addGlueRowButton_clicked();
-    void on_removeGlueRowButton_clicked();
     void onGlueRowCellChanged(int row, int column);
 
 private:

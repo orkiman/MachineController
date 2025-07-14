@@ -687,12 +687,67 @@ QDialog[overrideOutputs=&quot;true&quot;] {
                </layout>
               </item>
               <item>
+               <layout class="QHBoxLayout" name="gunSelectorLayout">
+                <item>
+                 <widget class="QLabel" name="gunSelectorLabel">
+                  <property name="text">
+                   <string>Select Gun:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QComboBox" name="gunSelectorComboBox">
+                  <item>
+                   <property name="text">
+                    <string>Gun 1</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>Gun 2</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>Gun 3</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>Gun 4</string>
+                   </property>
+                  </item>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="gunSelectorSpacer">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QCheckBox" name="gunEnabledCheckBox">
+                  <property name="text">
+                   <string>Enable Gun</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
                <widget class="QTableWidget" name="glueRowsTable">
                 <property name="selectionMode">
-                 <enum>QAbstractItemView::SingleSelection</enum>
+                 <enum>QAbstractItemView::SelectionMode::SingleSelection</enum>
                 </property>
                 <property name="selectionBehavior">
-                 <enum>QAbstractItemView::SelectRows</enum>
+                 <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
                 </property>
                 <column>
                  <property name="text">

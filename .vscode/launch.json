@@ -8,7 +8,6 @@
             "program": "${workspaceFolder}/build-ninja/bin/Debug/machineController.exe",
             "args": [],
             "cwd": "${workspaceFolder}",
-            "console": "externalTerminal",
             "preLaunchTask": "Build (Debug)",
             "sourceMap": {
                 "/mnt/c": "C:\\"

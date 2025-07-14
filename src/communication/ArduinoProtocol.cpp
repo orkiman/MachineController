@@ -15,23 +15,64 @@ std::string ArduinoProtocol::createConfigMessage(double encoderResolution, int s
     }
 }
 
-std::string ArduinoProtocol::createPlanMessage(const std::vector<GlueRow>& rows) {
+std::string ArduinoProtocol::createPlanMessage(const std::vector<std::vector<GlueRow>>& guns) {
     try {
         nlohmann::json planMsg;
         planMsg["type"] = "plan";
-        planMsg["rows"] = nlohmann::json::array();
+        planMsg["guns"] = nlohmann::json::array();
         
-        for (const auto& row : rows) {
-            nlohmann::json rowObj;
-            rowObj["from"] = row.from;
-            rowObj["to"] = row.to;
-            rowObj["space"] = row.space;
-            planMsg["rows"].push_back(rowObj);
+        for (const auto& gun : guns) {
+            nlohmann::json gunObj;
+            gunObj["rows"] = nlohmann::json::array();
+            for (const auto& row : gun) {
+                nlohmann::json rowObj;
+                rowObj["from"] = row.from;
+                rowObj["to"] = row.to;
+                rowObj["space"] = row.space;
+                gunObj["rows"].push_back(rowObj);
+            }
+            planMsg["guns"].push_back(gunObj);
         }
         
         return planMsg.dump();
     } catch (const std::exception& e) {
         getLogger()->error("[ArduinoProtocol::createPlanMessage] Exception: {}", e.what());
+        return "";
+    }
+}
+
+std::string ArduinoProtocol::createControllerSetupMessage(const std::string& controllerType,
+                                                        double encoderResolution,
+                                                        int sensorOffset,
+                                                        const std::vector<std::pair<bool, std::vector<GlueRow>>>& guns) {
+    try {
+        nlohmann::json setupMsg;
+        setupMsg["type"] = "controller_setup";
+        setupMsg["controllerType"] = controllerType;
+        setupMsg["encoder"] = encoderResolution;
+        setupMsg["sensorOffset"] = sensorOffset;
+        setupMsg["guns"] = nlohmann::json::array();
+        
+        for (size_t i = 0; i < guns.size(); ++i) {
+            nlohmann::json gunObj;
+            gunObj["gunId"] = i + 1;  // Gun IDs are 1-based
+            gunObj["enabled"] = guns[i].first;
+            gunObj["rows"] = nlohmann::json::array();
+            
+            for (const auto& row : guns[i].second) {
+                nlohmann::json rowObj;
+                rowObj["from"] = row.from;
+                rowObj["to"] = row.to;
+                rowObj["space"] = row.space;
+                gunObj["rows"].push_back(rowObj);
+            }
+            
+            setupMsg["guns"].push_back(gunObj);
+        }
+        
+        return setupMsg.dump();
+    } catch (const std::exception& e) {
+        getLogger()->error("[ArduinoProtocol::createControllerSetupMessage] Exception: {}", e.what());
         return "";
     }
 }

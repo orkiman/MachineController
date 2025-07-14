@@ -11,3 +11,4 @@ build-ninja/
 *.pdb
 .cache/
 src/logs/
+*.log

@@ -1145,7 +1145,7 @@ void SettingsWindow::populateGlueCommunicationComboBox()
 // Handle glue controller selection change
 void SettingsWindow::onGlueControllerSelectorChanged(int index)
 {
-    if (!config_) {
+    if (!config_ || currentGlueControllerName_.empty()) {
         return;
     }
     
@@ -1647,8 +1647,8 @@ void SettingsWindow::saveCurrentGluePlanSettings()
         
         fillGlueTabFields();
         
-        // Send updated plan to Arduino
-        sendPlanToController(currentGlueControllerName_, currentGluePlanName_);
+        // Send updated controller setup to Arduino
+        sendControllerSetupToActiveController();
         
     } catch (const std::exception& e) {
         getLogger()->warn("[saveCurrentGluePlanSettings] Exception: {}", e.what());
@@ -1971,8 +1971,8 @@ void SettingsWindow::on_addGlueRowButton_clicked()
     // Add a new row with default values
     addGlueRowToTable(0, 100, 10.0);
     
-    // Save changes
-    saveCurrentGluePlanSettings();
+    // Save changes for the current gun
+    saveCurrentGunSettings();
 }
 
 // Handle removing a row from the glue plan
@@ -1989,8 +1989,8 @@ void SettingsWindow::on_removeGlueRowButton_clicked()
     if (selectedRow >= 0 && selectedRow < ui->glueRowsTable->rowCount()) {
         ui->glueRowsTable->removeRow(selectedRow);
         
-        // Save changes
-        saveCurrentGluePlanSettings();
+        // Save changes for the current gun
+        saveCurrentGunSettings();
     }
 }
 
@@ -2015,6 +2015,9 @@ void SettingsWindow::on_glueControllerNameLineEdit_textChanged(const QString& te
     
     // Save changes
     saveCurrentGlueControllerSettings();
+    
+    // Send updated controller setup to Arduino
+    sendControllerSetupToActiveController();
 }
 
 // Handle communication combo box change
@@ -2026,6 +2029,9 @@ void SettingsWindow::on_glueCommunicationComboBox_currentIndexChanged(int index)
     
     // Save changes
     saveCurrentGlueControllerSettings();
+    
+    // Send updated controller setup to Arduino
+    sendControllerSetupToActiveController();
 }
 
 // Handle glue type combo box change
@@ -2040,6 +2046,9 @@ void SettingsWindow::on_glueTypeComboBox_currentIndexChanged(int index)
     
     // Save changes
     saveCurrentGlueControllerSettings();
+    
+    // Send updated controller setup to Arduino
+    sendControllerSetupToActiveController();
 }
 
 // Handle encoder value change
@@ -2051,6 +2060,9 @@ void SettingsWindow::on_glueEncoderSpinBox_valueChanged(double value)
     
     // Save changes
     saveCurrentGlueControllerSettings();
+    
+    // Send updated controller setup to Arduino
+    sendControllerSetupToActiveController();
 }
 
 // Handle page length change
@@ -2077,6 +2089,9 @@ void SettingsWindow::on_gluePageLengthSpinBox_valueChanged(int value)
         if (!mutableConfig->saveToFile()) {
             getLogger()->warn("[on_gluePageLengthSpinBox_valueChanged] Failed to save settings to file");
         }
+        
+        // Send updated controller setup to Arduino
+        sendControllerSetupToActiveController();
         
     } catch (const std::exception& e) {
         getLogger()->warn("[on_gluePageLengthSpinBox_valueChanged] Exception: {}", e.what());
@@ -2155,6 +2170,9 @@ void SettingsWindow::on_glueControllerEnabledCheckBox_stateChanged(int state)
         getLogger()->info("[on_glueControllerEnabledCheckBox_stateChanged] Controller '{}' {} ", 
                          currentGlueControllerName_, enabled ? "enabled" : "disabled");
         
+        // Send updated controller setup to Arduino
+        sendControllerSetupToActiveController();
+        
     } catch (const std::exception& e) {
         getLogger()->warn("[on_glueControllerEnabledCheckBox_stateChanged] Exception: {}", e.what());
     }
@@ -2228,20 +2246,26 @@ void SettingsWindow::sendPlanToController(const std::string& controllerName, con
             return;
         }
         
-        // Extract rows from plan
-        std::vector<ArduinoProtocol::GlueRow> rows;
-        if (plan.contains("rows") && plan["rows"].is_array()) {
-            for (const auto& row : plan["rows"]) {
-                ArduinoProtocol::GlueRow glueRow;
-                glueRow.from = row.value("from", 0);
-                glueRow.to = row.value("to", 100);
-                glueRow.space = row.value("space", 5.0);
-                rows.push_back(glueRow);
+        // Extract guns and their rows from plan
+        std::vector<std::vector<ArduinoProtocol::GlueRow>> guns;
+        if (plan.contains("guns") && plan["guns"].is_array()) {
+            for (const auto& gun : plan["guns"]) {
+                std::vector<ArduinoProtocol::GlueRow> gunRows;
+                if (gun.contains("rows") && gun["rows"].is_array()) {
+                    for (const auto& row : gun["rows"]) {
+                        ArduinoProtocol::GlueRow glueRow;
+                        glueRow.from = row.value("from", 0);
+                        glueRow.to = row.value("to", 100);
+                        glueRow.space = row.value("space", 5.0);
+                        gunRows.push_back(glueRow);
+                    }
+                }
+                guns.push_back(gunRows);
             }
         }
         
         // Create and send plan message
-        std::string planMessage = ArduinoProtocol::createPlanMessage(rows);
+        std::string planMessage = ArduinoProtocol::createPlanMessage(guns);
         if (!planMessage.empty()) {
             ArduinoProtocol::sendMessage(eventQueue_, communicationPort, planMessage);
             getLogger()->info("[sendPlanToController] Sent plan '{}' to '{}' via '{}': {}", 
@@ -2563,25 +2587,16 @@ int SettingsWindow::parseCharSetting(const nlohmann::json &settings, const std::
 //  Settings Management Functions
 // ============================================================================
 
-// Save all settings from the UI to the config and persist to file
-bool SettingsWindow::saveSettingsToConfig() {
-    if (!config_) {
-        getLogger()->warn("[saveSettingsToConfig] Config object is null. Cannot save settings.");
-        return false;
+// Save timer settings to config
+void SettingsWindow::saveTimersToConfig() {
+    if (!config_ || !ui->timersTable) {
+        getLogger()->warn("[saveTimersToConfig] Config object or timers table is null. Cannot save timer settings.");
+        return;
     }
     
-    // We need to cast away the const-ness of config_ to modify it
-    // This is safe because we know the Config object is owned by MainWindow and outlives SettingsWindow
     Config* mutableConfig = const_cast<Config*>(config_);
-    getLogger()->info("[saveSettingsToConfig] Saving settings to config");
-    // Create a new JSON object for communication settings
-    nlohmann::json commSettings = nlohmann::json::object();
+    getLogger()->info("[saveTimersToConfig] Saving timer settings to config");
     
-    // We'll use the saveCurrentCommunicationSettings method to save the current communication settings
-    // This will ensure that all settings are saved properly
-    saveCurrentCommunicationSettings();
-    
-    // Update timer settings via fine-grained setters
     // Gather all timer settings from the UI and update the config
     nlohmann::json timersJson = nlohmann::json::object();
     if (ui->timersTable->rowCount() > 0) {
@@ -2600,12 +2615,32 @@ bool SettingsWindow::saveSettingsToConfig() {
             }
         }
         mutableConfig->updateTimerSettings(timersJson);
+        
         // Send a ParameterChange event to notify Logic to reinitialize affected components
         GuiEvent paramEvent;
         paramEvent.keyword = "ParameterChange";
         paramEvent.target = "timer";
         eventQueue_.push(paramEvent);
     }
+}
+
+// Save all settings from the UI to the config and persist to file
+bool SettingsWindow::saveSettingsToConfig() {
+    if (!config_) {
+        getLogger()->warn("[saveSettingsToConfig] Config object is null. Cannot save settings.");
+        return false;
+    }
+    
+    // We need to cast away the const-ness of config_ to modify it
+    // This is safe because we know the Config object is owned by MainWindow and outlives SettingsWindow
+    Config* mutableConfig = const_cast<Config*>(config_);
+    getLogger()->info("[saveSettingsToConfig] Saving settings to config");
+    
+    // Save communication settings
+    saveCurrentCommunicationSettings();
+    
+    // Save timer settings
+    saveTimersToConfig();
     
     // --- Save Data File Tab Values ---
     Config::DataFileSettings dataFileSettings;
@@ -2675,6 +2710,14 @@ void SettingsWindow::connectChangeEvents() {
             comboBox->objectName() == "gluePlanSelectorComboBox" ||
             comboBox->objectName() == "glueCommunicationComboBox" ||
             comboBox->objectName() == "glueTypeComboBox") {
+            continue;
+        }
+        
+        // Skip gun combo boxes
+        if (comboBox->objectName() == "gun1ComboBox" ||
+            comboBox->objectName() == "gun2ComboBox" ||
+            comboBox->objectName() == "gun3ComboBox" ||
+            comboBox->objectName() == "gun4ComboBox") {
             continue;
         }
         
@@ -2871,7 +2914,7 @@ void SettingsWindow::onCommunicationActiveCheckBoxChanged(int state) {
         QGroupBox* rs232Group = currentPage->findChild<QGroupBox*>("rs232Group");
         QGroupBox* tcpipGroup = currentPage->findChild<QGroupBox*>("tcpipGroup");
         
-        // Enable/disable the type combo box
+        // Enable/disable the type combo box (reuse existing typeComboBox)
         if (typeComboBox) {
             typeComboBox->setEnabled(isActive);
         }
@@ -3265,4 +3308,291 @@ void SettingsWindow::onCommunicationCellChanged(int row, int column)
     
     // Save changes
     saveCurrentCommunicationSettings();
+}
+
+// Gun selector slot implementations
+
+void SettingsWindow::on_gunSelectorComboBox_currentIndexChanged(int index)
+{
+    if (isRefreshing_ || !config_) {
+        return;
+    }
+    
+    // Load the gun data for the selected gun index (0-3 for Gun 1-4)
+    loadCurrentGunData(index);
+}
+
+void SettingsWindow::on_gunEnabledCheckBox_stateChanged(int state)
+{
+    if (isRefreshing_ || !config_) {
+        return;
+    }
+    
+    // Save the enabled state for the currently selected gun
+    saveCurrentGunSettings();
+    
+    // Send updated controller setup to Arduino
+    sendControllerSetupToActiveController();
+}
+
+void SettingsWindow::on_glueRowsTable_itemChanged(QTableWidgetItem* item)
+{
+    if (isRefreshing_ || !config_ || !item) {
+        return;
+    }
+    
+    // Save gun settings when table items are changed
+    saveCurrentGunSettings();
+}
+
+
+
+// Helper function to load gun data for the selected gun
+void SettingsWindow::loadCurrentGunData(int gunIndex)
+{
+    if (!config_ || currentGlueControllerName_.empty() || currentGluePlanName_.empty()) {
+        return;
+    }
+    
+    try {
+        nlohmann::json glueSettings = config_->getGlueSettings();
+        if (!glueSettings.contains("controllers") || 
+            !glueSettings["controllers"].contains(currentGlueControllerName_) ||
+            !glueSettings["controllers"][currentGlueControllerName_].contains("plans") ||
+            !glueSettings["controllers"][currentGlueControllerName_]["plans"].contains(currentGluePlanName_)) {
+            return;
+        }
+        
+        auto plan = glueSettings["controllers"][currentGlueControllerName_]["plans"][currentGluePlanName_];
+        
+        // Load gun data if it exists
+        if (plan.contains("guns") && plan["guns"].is_array() && gunIndex < plan["guns"].size()) {
+            auto gun = plan["guns"][gunIndex];
+            
+            // Set gun enabled state
+            bool enabled = gun.value("enabled", true);
+            ui->gunEnabledCheckBox->setChecked(enabled);
+            
+            // Load gun rows into the table
+            loadGunRowsIntoTable(gun);
+        } else {
+            // Default values for new gun
+            ui->gunEnabledCheckBox->setChecked(true);
+            ui->glueRowsTable->setRowCount(0);
+        }
+        
+    } catch (const std::exception& e) {
+        getLogger()->error("[loadCurrentGunData] Exception: {}", e.what());
+    }
+}
+
+// Helper function to load gun rows into the table
+void SettingsWindow::loadGunRowsIntoTable(const nlohmann::json& gun)
+{
+    if (!gun.contains("rows") || !gun["rows"].is_array()) {
+        ui->glueRowsTable->setRowCount(0);
+        return;
+    }
+    
+    auto rows = gun["rows"];
+    ui->glueRowsTable->setRowCount(rows.size());
+    
+    for (size_t i = 0; i < rows.size(); ++i) {
+        auto row = rows[i];
+        
+        // From column
+        QTableWidgetItem* fromItem = new QTableWidgetItem(QString::number(row.value("from", 0)));
+        ui->glueRowsTable->setItem(i, 0, fromItem);
+        
+        // To column
+        QTableWidgetItem* toItem = new QTableWidgetItem(QString::number(row.value("to", 100)));
+        ui->glueRowsTable->setItem(i, 1, toItem);
+        
+        // Space column
+        QTableWidgetItem* spaceItem = new QTableWidgetItem(QString::number(row.value("space", 5.0)));
+        ui->glueRowsTable->setItem(i, 2, spaceItem);
+    }
+}
+
+// Helper function to save current gun settings
+void SettingsWindow::saveCurrentGunSettings()
+{
+    if (!config_ || currentGlueControllerName_.empty() || currentGluePlanName_.empty()) {
+        return;
+    }
+    
+    try {
+        int gunIndex = ui->gunSelectorComboBox->currentIndex();
+        if (gunIndex < 0 || gunIndex >= 4) {
+            return;
+        }
+        
+        Config* mutableConfig = const_cast<Config*>(config_);
+        nlohmann::json glueSettings = mutableConfig->getGlueSettings();
+        
+        // Ensure the structure exists
+        if (!glueSettings.contains("controllers")) {
+            glueSettings["controllers"] = nlohmann::json::object();
+        }
+        if (!glueSettings["controllers"].contains(currentGlueControllerName_)) {
+            glueSettings["controllers"][currentGlueControllerName_] = nlohmann::json::object();
+        }
+        if (!glueSettings["controllers"][currentGlueControllerName_].contains("plans")) {
+            glueSettings["controllers"][currentGlueControllerName_]["plans"] = nlohmann::json::object();
+        }
+        if (!glueSettings["controllers"][currentGlueControllerName_]["plans"].contains(currentGluePlanName_)) {
+            glueSettings["controllers"][currentGlueControllerName_]["plans"][currentGluePlanName_] = nlohmann::json::object();
+        }
+        
+        auto& plan = glueSettings["controllers"][currentGlueControllerName_]["plans"][currentGluePlanName_];
+        
+        // Ensure guns array exists
+        if (!plan.contains("guns") || !plan["guns"].is_array()) {
+            plan["guns"] = nlohmann::json::array();
+            // Initialize with 4 empty guns
+            for (int i = 0; i < 4; ++i) {
+                nlohmann::json gun;
+                gun["gunId"] = i + 1;
+                gun["enabled"] = true;
+                gun["rows"] = nlohmann::json::array();
+                plan["guns"].push_back(gun);
+            }
+        }
+        
+        // Update the current gun's enabled state
+        if (gunIndex < plan["guns"].size()) {
+            plan["guns"][gunIndex]["enabled"] = ui->gunEnabledCheckBox->isChecked();
+            
+            // Save rows from table
+            nlohmann::json rows = nlohmann::json::array();
+            for (int i = 0; i < ui->glueRowsTable->rowCount(); ++i) {
+                nlohmann::json row;
+                
+                QTableWidgetItem* fromItem = ui->glueRowsTable->item(i, 0);
+                QTableWidgetItem* toItem = ui->glueRowsTable->item(i, 1);
+                QTableWidgetItem* spaceItem = ui->glueRowsTable->item(i, 2);
+                
+                if (fromItem && toItem && spaceItem) {
+                    row["from"] = fromItem->text().toInt();
+                    row["to"] = toItem->text().toInt();
+                    row["space"] = spaceItem->text().toDouble();
+                    rows.push_back(row);
+                }
+            }
+            plan["guns"][gunIndex]["rows"] = rows;
+        }
+        
+        // Save the updated settings
+        mutableConfig->updateGlueSettings(glueSettings);
+        
+        // Persist changes to file
+        if (!mutableConfig->saveToFile()) {
+            getLogger()->warn("[saveCurrentGunSettings] Failed to save settings to file");
+        }
+        
+        // Send updated controller setup to Arduino
+        sendControllerSetupToActiveController();
+        
+    } catch (const std::exception& e) {
+        getLogger()->error("[saveCurrentGunSettings] Exception: {}", e.what());
+    }
+}
+
+// Send comprehensive controller setup message to active controller
+void SettingsWindow::sendControllerSetupToActiveController()
+{
+    if (!config_) {
+        return;
+    }
+    
+    try {
+        nlohmann::json glueSettings = config_->getGlueSettings();
+        if (!glueSettings.contains("activeController") || !glueSettings.contains("controllers")) {
+            getLogger()->warn("[sendControllerSetupToActiveController] No active controller or controllers found");
+            return;
+        }
+        
+        std::string activeControllerName = glueSettings["activeController"];
+        if (!glueSettings["controllers"].contains(activeControllerName)) {
+            getLogger()->warn("[sendControllerSetupToActiveController] Active controller '{}' not found", activeControllerName);
+            return;
+        }
+        
+        auto controller = glueSettings["controllers"][activeControllerName];
+        
+        // Check if controller is enabled
+        if (!controller.value("enabled", false)) {
+            getLogger()->info("[sendControllerSetupToActiveController] Controller '{}' is disabled, skipping setup", activeControllerName);
+            return;
+        }
+        
+        // Get communication port
+        std::string communicationPort = controller.value("communication", "");
+        if (communicationPort.empty()) {
+            getLogger()->warn("[sendControllerSetupToActiveController] No communication port for controller '{}'", activeControllerName);
+            return;
+        }
+        
+        // Get controller data
+        std::string controllerType = controller.value("type", "dots");
+        double encoderResolution = controller.value("encoder", 1.0);
+        
+        // Get active plan
+        std::string activePlanName = controller.value("activePlan", "");
+        if (activePlanName.empty() || !controller.contains("plans") || !controller["plans"].contains(activePlanName)) {
+            getLogger()->warn("[sendControllerSetupToActiveController] No active plan for controller '{}'", activeControllerName);
+            return;
+        }
+        
+        auto plan = controller["plans"][activePlanName];
+        int sensorOffset = plan.value("sensorOffset", 10);
+        
+        // Extract gun configurations
+        std::vector<std::pair<bool, std::vector<ArduinoProtocol::GlueRow>>> guns;
+        
+        if (plan.contains("guns") && plan["guns"].is_array()) {
+            for (const auto& gun : plan["guns"]) {
+                bool enabled = gun.value("enabled", true);
+                std::vector<ArduinoProtocol::GlueRow> gunRows;
+                
+                if (gun.contains("rows") && gun["rows"].is_array()) {
+                    for (const auto& row : gun["rows"]) {
+                        ArduinoProtocol::GlueRow glueRow;
+                        glueRow.from = row.value("from", 0);
+                        glueRow.to = row.value("to", 100);
+                        glueRow.space = row.value("space", 5.0);
+                        gunRows.push_back(glueRow);
+                    }
+                }
+                
+                guns.push_back(std::make_pair(enabled, gunRows));
+            }
+        } else {
+            // Fallback: if no guns array, create 4 empty guns
+            for (int i = 0; i < 4; ++i) {
+                guns.push_back(std::make_pair(true, std::vector<ArduinoProtocol::GlueRow>()));
+            }
+        }
+        
+        // Ensure we have exactly 4 guns
+        while (guns.size() < 4) {
+            guns.push_back(std::make_pair(false, std::vector<ArduinoProtocol::GlueRow>()));
+        }
+        if (guns.size() > 4) {
+            guns.resize(4);
+        }
+        
+        // Create and send comprehensive controller setup message
+        std::string setupMessage = ArduinoProtocol::createControllerSetupMessage(
+            controllerType, encoderResolution, sensorOffset, guns);
+            
+        if (!setupMessage.empty()) {
+            ArduinoProtocol::sendMessage(eventQueue_, communicationPort, setupMessage);
+            getLogger()->info("[sendControllerSetupToActiveController] Sent controller setup to '{}' via '{}': {}", 
+                             activeControllerName, communicationPort, setupMessage);
+        }
+        
+    } catch (const std::exception& e) {
+        getLogger()->error("[sendControllerSetupToActiveController] Exception: {}", e.what());
+    }
 }

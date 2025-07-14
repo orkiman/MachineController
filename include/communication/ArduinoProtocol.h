@@ -35,10 +35,23 @@ public:
     
     /**
      * @brief Create plan message for Arduino
-     * @param rows Vector of glue rows with from/to/space values
+     * @param guns Vector of vectors of glue rows with from/to/space values
      * @return JSON string for plan message
      */
-    static std::string createPlanMessage(const std::vector<GlueRow>& rows);
+    static std::string createPlanMessage(const std::vector<std::vector<GlueRow>>& guns);
+    
+    /**
+     * @brief Create comprehensive controller setup message for Arduino
+     * @param controllerType Type of controller (e.g., "dots")
+     * @param encoderResolution Encoder resolution in pulses per mm
+     * @param sensorOffset Sensor offset in mm
+     * @param guns Vector of gun configurations with enable state and rows
+     * @return JSON string for controller setup message
+     */
+    static std::string createControllerSetupMessage(const std::string& controllerType,
+                                                   double encoderResolution,
+                                                   int sensorOffset,
+                                                   const std::vector<std::pair<bool, std::vector<GlueRow>>>& guns);
     
     /**
      * @brief Create calibration message for Arduino

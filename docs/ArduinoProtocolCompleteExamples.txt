@@ -1,0 +1,245 @@
+ARDUINO PROTOCOL - COMPLETE MESSAGE EXAMPLES
+=============================================
+
+This document contains complete JSON message examples for the Arduino communication protocol.
+All messages are sent as JSON strings over RS232 or TCP/IP communication.
+
+=============================================================================
+1. CONTROLLER SETUP MESSAGE (PC → Arduino) - NEW COMPREHENSIVE MESSAGE
+=============================================================================
+
+This is the main message that contains ALL controller configuration in one organized structure:
+
+{
+  "type": "controller_setup",
+  "controllerType": "dots",
+  "encoder": 1.25,
+  "sensorOffset": 10,
+  "guns": [
+    {
+      "gunId": 1,
+      "enabled": true,
+      "rows": [
+        {
+          "from": 0,
+          "to": 100,
+          "space": 10.0
+        },
+        {
+          "from": 150,
+          "to": 200,
+          "space": 5.0
+        }
+      ]
+    },
+    {
+      "gunId": 2,
+      "enabled": true,
+      "rows": [
+        {
+          "from": 0,
+          "to": 100,
+          "space": 10.0
+        }
+      ]
+    },
+    {
+      "gunId": 3,
+      "enabled": false,
+      "rows": []
+    },
+    {
+      "gunId": 4,
+      "enabled": false,
+      "rows": []
+    }
+  ]
+}
+
+DESCRIPTION:
+- type: Always "controller_setup"
+- controllerType: Type of controller (e.g., "dots", "lines", etc.)
+- encoder: Encoder resolution in pulses per mm
+- sensorOffset: Sensor offset in mm
+- guns: Array of exactly 4 gun configurations
+  - gunId: Gun identifier (1, 2, 3, 4)
+  - enabled: Whether this gun is active
+  - rows: Array of glue application rows for this gun
+    - from: Start position in mm
+    - to: End position in mm
+    - space: Space between dots/lines in mm
+
+=============================================================================
+2. LEGACY CONFIG MESSAGE (PC → Arduino) - STILL SUPPORTED
+=============================================================================
+
+{
+  "type": "config",
+  "encoder": 1.25,
+  "sensorOffset": 10
+}
+
+DESCRIPTION:
+- type: Always "config"
+- encoder: Encoder resolution in pulses per mm
+- sensorOffset: Sensor offset in mm
+
+=============================================================================
+3. LEGACY PLAN MESSAGE (PC → Arduino) - STILL SUPPORTED
+=============================================================================
+
+{
+  "type": "plan",
+  "guns": [
+    {
+      "rows": [
+        {
+          "from": 0,
+          "to": 100,
+          "space": 10.0
+        }
+      ]
+    },
+    {
+      "rows": [
+        {
+          "from": 0,
+          "to": 100,
+          "space": 10.0
+        }
+      ]
+    },
+    {
+      "rows": []
+    },
+    {
+      "rows": []
+    }
+  ]
+}
+
+DESCRIPTION:
+- type: Always "plan"
+- guns: Array of gun configurations (without enable state)
+
+=============================================================================
+4. CALIBRATION REQUEST (PC → Arduino)
+=============================================================================
+
+{
+  "type": "calibrate",
+  "pageLength": 100
+}
+
+DESCRIPTION:
+- type: Always "calibrate"
+- pageLength: Length of calibration page in mm
+
+=============================================================================
+5. CALIBRATION RESPONSE (Arduino → PC)
+=============================================================================
+
+{
+  "type": "calibration_result",
+  "pulsesPerPage": 12345
+}
+
+DESCRIPTION:
+- type: Always "calibration_result"
+- pulsesPerPage: Number of encoder pulses measured during calibration
+
+=============================================================================
+6. RUN COMMAND (PC → Arduino)
+=============================================================================
+
+{
+  "type": "run"
+}
+
+DESCRIPTION:
+- type: Always "run"
+- Starts the glue application process
+
+=============================================================================
+7. STOP COMMAND (PC → Arduino)
+=============================================================================
+
+{
+  "type": "stop"
+}
+
+DESCRIPTION:
+- type: Always "stop"
+- Stops the glue application process
+
+=============================================================================
+8. HEARTBEAT (PC → Arduino)
+=============================================================================
+
+{
+  "type": "heartbeat"
+}
+
+DESCRIPTION:
+- type: Always "heartbeat"
+- Used to check if Arduino is responsive
+
+=============================================================================
+RECOMMENDED COMMUNICATION FLOW
+=============================================================================
+
+1. Send CONTROLLER_SETUP message with complete configuration
+2. Send CALIBRATE request if needed
+3. Wait for CALIBRATION_RESULT response
+4. Send RUN command to start operation
+5. Send STOP command to stop operation
+6. Send HEARTBEAT periodically to check connection
+
+=============================================================================
+ARDUINO IMPLEMENTATION NOTES
+=============================================================================
+
+The Arduino should:
+1. Parse incoming JSON messages
+2. Extract configuration from CONTROLLER_SETUP message
+3. Store gun configurations and enable states
+4. Apply glue only for enabled guns
+5. Use the rows data for each enabled gun
+6. Respond to calibration requests
+7. Handle run/stop commands
+8. Respond to heartbeat messages
+
+Example Arduino code structure:
+- Use ArduinoJson library for parsing
+- Maintain state for each gun (enabled/disabled)
+- Store rows data for each gun
+- Implement calibration functionality
+- Handle encoder counting and position tracking
+
+=============================================================================
+MESSAGE VALIDATION
+=============================================================================
+
+All messages should be validated for:
+- Correct JSON format
+- Required fields present
+- Valid data types
+- Reasonable value ranges
+- Gun array contains exactly 4 elements
+- Gun IDs are 1, 2, 3, 4
+- Position values are non-negative
+- Space values are positive
+
+=============================================================================
+ERROR HANDLING
+=============================================================================
+
+If Arduino receives invalid messages:
+- Log the error
+- Continue with previous valid configuration
+- Optionally send error response (not implemented yet)
+
+If PC doesn't receive expected responses:
+- Retry after timeout
+- Log communication errors
+- Check communication settings

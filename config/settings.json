@@ -311,7 +311,7 @@
   "timers": {
     "timer1": {
       "description": "General purpose timer 1",
-      "duration": 1000
+      "duration": 88
     },
     "timer2": {
       "description": "General purpose timer 2",

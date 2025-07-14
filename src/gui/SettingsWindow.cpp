@@ -63,8 +63,9 @@ SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQ
     isRefreshing_ = true;
     ui->setupUi(this);
 
-    // Set up explicit connections for communication tab
+    // Set up explicit connections for tabs
     setupCommunicationTabConnections();
+    setupDataFileTabConnections();
 
     // Style for timers table selection
     ui->timersTable->setStyleSheet("QTableWidget::item:selected { color: black; background-color: #c0c0ff; }");
@@ -117,8 +118,6 @@ SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQ
     fillDataFileTabFields();
     fillGlueTabFields();
 
-    // Connect change signals/slots (commented out as we're using explicit connections)
-    // connectChangeEvents();
 
     // Timers table: auto-save on duration edit
     connect(ui->timersTable, &QTableWidget::itemChanged, this, [this](QTableWidgetItem* item) {
@@ -763,6 +762,56 @@ void SettingsWindow::updateInputStates(const std::unordered_map<std::string, IOC
             }
         }
     }
+}
+
+// Set up explicit connections for data file tab elements
+void SettingsWindow::setupDataFileTabConnections() {
+    if (!ui) {
+        getLogger()->error("[setupDataFileTabConnections] UI not initialized");
+        return;
+    }
+
+    // Connect start position spin box
+    if (auto spinBox = ui->startPositionSpinBox) {
+        connect(spinBox, QOverload<int>::of(&QSpinBox::valueChanged),
+                this, [this](int) {
+                    if (!isRefreshing_) saveDataFileSettingsToConfig();
+                });
+    }
+
+    // Connect end position spin box
+    if (auto spinBox = ui->endPositionSpinBox) {
+        connect(spinBox, QOverload<int>::of(&QSpinBox::valueChanged),
+                this, [this](int) {
+                    if (!isRefreshing_) saveDataFileSettingsToConfig();
+                });
+    }
+
+    // Connect sequence check box
+    if (auto checkBox = ui->sequenceCheckBox) {
+        connect(checkBox, &QCheckBox::stateChanged,
+                this, [this](int) {
+                    if (!isRefreshing_) saveDataFileSettingsToConfig();
+                });
+    }
+
+    // Connect existence check box
+    if (auto checkBox = ui->existenceCheckBox) {
+        connect(checkBox, &QCheckBox::stateChanged,
+                this, [this](int) {
+                    if (!isRefreshing_) saveDataFileSettingsToConfig();
+                });
+    }
+
+    // Connect sequence direction combo box
+    if (auto comboBox = ui->sequenceDirectionComboBox) {
+        connect(comboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
+                this, [this](int) {
+                    if (!isRefreshing_) saveDataFileSettingsToConfig();
+                });
+    }
+
+    getLogger()->debug("[setupDataFileTabConnections] Data file tab connections established");
 }
 
 
@@ -2641,25 +2690,22 @@ void SettingsWindow::saveTimersToConfig() {
     }
 }
 
-// Save all settings from the UI to the config and persist to file
-bool SettingsWindow::saveSettingsToConfig() {
-    if (!config_) {
-        getLogger()->warn("[saveSettingsToConfig] Config object is null. Cannot save settings.");
-        return false;
+// Save data file tab settings to config
+void SettingsWindow::saveDataFileSettingsToConfig() {
+    if (!config_ || !ui) {
+        getLogger()->warn("[saveDataFileSettingsToConfig] Config object or UI is null. Cannot save data file settings.");
+        return;
     }
     
-    // We need to cast away the const-ness of config_ to modify it
-    // This is safe because we know the Config object is owned by MainWindow and outlives SettingsWindow
     Config* mutableConfig = const_cast<Config*>(config_);
-    getLogger()->info("[saveSettingsToConfig] Saving settings to config");
-    
-    // Save communication settings
-    saveCurrentCommunicationSettings();
-    
-    
-    
-    // --- Save Data File Tab Values ---
+    if (!mutableConfig) {
+        getLogger()->error("[saveDataFileSettingsToConfig] Failed to get mutable config");
+        return;
+    }
+
     Config::DataFileSettings dataFileSettings;
+    
+    // Get values from UI elements if they exist
     if (ui->startPositionSpinBox)
         dataFileSettings.startPosition = ui->startPositionSpinBox->value();
     if (ui->endPositionSpinBox)
@@ -2671,28 +2717,18 @@ bool SettingsWindow::saveSettingsToConfig() {
     if (ui->sequenceDirectionComboBox)
         dataFileSettings.sequenceDirection = ui->sequenceDirectionComboBox->currentText().toStdString();
     
+    // Update the config
     mutableConfig->setDataFileSettings(dataFileSettings);
-    // todo : update logic
-
-
-    // Update the Config object with the new settings
-    try {
-        // Timer settings are now updated via setTimerSetting above; no need to call updateTimerSettings here.
-        
-        // Save the configuration to file
-        if (mutableConfig->saveToFile()) {
-            getLogger()->debug("Settings saved to configuration file");
-            
-            return true;
-        } else {
-            getLogger()->warn("[saveSettingsToConfig] Failed to save settings to configuration file");
-            return false;
-        }
-    } catch (const std::exception& e) {
-        getLogger()->warn("[saveSettingsToConfig] Exception while saving settings: {}", e.what());
-        return false;
+    
+    // Save the configuration to file
+    if (mutableConfig->saveToFile()) {
+        getLogger()->debug("[saveDataFileSettingsToConfig] Data file settings saved to file");
+    } else {
+        getLogger()->warn("[saveDataFileSettingsToConfig] Failed to save data file settings to file");
     }
 }
+
+// Note: saveSettingsToConfig() has been removed in favor of per-tab save handlers
 
 // ============================================================================
 //  UI Event Handler Functions
@@ -2806,143 +2842,7 @@ void SettingsWindow::resetChangedFields() {
     // since we're saving changes immediately and not marking fields as changed
 }
 
-// Connect UI change events to save logic
-void SettingsWindow::connectChangeEvents() {
-    // Connect change events for all combo boxes
-    QList<QComboBox*> comboBoxes = findChildren<QComboBox*>();
-    for (QComboBox* comboBox : comboBoxes) {
-        // Skip communication tab combo boxes - they're handled by setupCommunicationTabConnections()
-        if (comboBox->parent() == ui->communicationTab) {
-            continue;
-        }
-        
-        // Skip the communication selector dropdown - we handle it separately
-        if (comboBox->objectName() == "communicationSelectorComboBox") {
-            continue;
-        }
-        
-        // Skip glue tab combo boxes - they have their own specific save handlers
-        if (comboBox->objectName() == "glueControllerSelectorComboBox" ||
-            comboBox->objectName() == "gluePlanSelectorComboBox" ||
-            comboBox->objectName() == "glueCommunicationComboBox" ||
-            comboBox->objectName() == "glueTypeComboBox") {
-            continue;
-        }
-        
-        // Skip gun combo boxes
-        if (comboBox->objectName() == "gun1ComboBox" ||
-            comboBox->objectName() == "gun2ComboBox" ||
-            comboBox->objectName() == "gun3ComboBox" ||
-            comboBox->objectName() == "gun4ComboBox") {
-            continue;
-        }
-        
-        // Connect the combo box to save settings when changed
-        connect(comboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), 
-                this, [this](int) {
-                    if (!isRefreshing_) {
-                        saveSettingsToConfig();
-                    }
-                });
-    }
-    
-    // Connect change events for LineEdits
-    QList<QLineEdit*> lineEdits = findChildren<QLineEdit*>();
-    for (QLineEdit* lineEdit : lineEdits) {
-        // Skip communication tab line edits - they're handled by setupCommunicationTabConnections()
-        if (lineEdit->parent() == ui->communicationTab) {
-            continue;
-        }
-        
-        // Skip glue tab line edits - they have their own specific save handlers
-        if (lineEdit->objectName() == "glueControllerNameLineEdit" ||
-            lineEdit->objectName() == "gluePlanNameLineEdit") {
-            continue;
-        }
-        
-        connect(lineEdit, &QLineEdit::textChanged, [this, lineEdit](const QString&) {
-            // Skip if we're refreshing the UI
-            if (isRefreshing_) return;
-            
-            // Save changes immediately
-            saveSettingsToConfig();
-        });
-    }
-    
-    // Connect change events for CheckBoxes
-    QList<QCheckBox*> checkBoxes = findChildren<QCheckBox*>();
-    for (QCheckBox* checkBox : checkBoxes) {
-        // Skip communication tab checkboxes - they're handled by setupCommunicationTabConnections()
-        if (checkBox->parent() == ui->communicationTab) {
-            continue;
-        }
-        
-        // Skip output override checkboxes which are handled separately
-        if (checkBox->objectName().contains("outputOverride")) {
-            continue;
-        }
-        
-        // Skip glue tab checkboxes - they have their own specific save handlers
-        if (checkBox->objectName() == "glueControllerEnabledCheckBox") {
-            continue;
-        }
-        
-        connect(checkBox, &QCheckBox::checkStateChanged, [this, checkBox](int) {
-            // Skip if we're refreshing the UI
-            if (isRefreshing_) return;
-            
-            // Save changes immediately
-            saveSettingsToConfig();
-        });
-    }
-    
-    // Connect change events for SpinBoxes
-    QList<QSpinBox*> spinBoxes = findChildren<QSpinBox*>();
-    for (QSpinBox* spinBox : spinBoxes) {
-        // Skip communication tab spinboxes - they're handled by setupCommunicationTabConnections()
-        if (spinBox->parent() == ui->communicationTab) {
-            continue;
-        }
-        
-        // Skip glue tab spinboxes - they have their own specific save handlers
-        if (spinBox->objectName() == "glueEncoderSpinBox") {
-            continue;
-        }
-        
-        connect(spinBox, QOverload<int>::of(&QSpinBox::valueChanged), [this, spinBox](int) {
-            // Skip if we're refreshing the UI
-            if (isRefreshing_) return;
-            
-            // Save changes immediately
-            saveSettingsToConfig();
-        });
-    }
-    
-    // Connect change events for DoubleSpinBoxes
-    QList<QDoubleSpinBox*> doubleSpinBoxes = findChildren<QDoubleSpinBox*>();
-    for (QDoubleSpinBox* doubleSpinBox : doubleSpinBoxes) {
-        // Skip communication tab double spinboxes - they're handled by setupCommunicationTabConnections()
-        if (doubleSpinBox->parent() == ui->communicationTab) {
-            continue;
-        }
-        
-        // Skip glue tab double spinboxes - they have their own specific save handlers
-        if (doubleSpinBox->objectName() == "glueEncoderSpinBox") {
-            continue;
-        }
-        
-        connect(doubleSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), [this, doubleSpinBox](double) {
-            // Skip if we're refreshing the UI
-            if (isRefreshing_) return;
-            
-            // Save changes immediately
-            saveSettingsToConfig();
-        });
-    }
-    
-    // Note: Timer table itemChanged signal is connected in fillTimersTabFields
-    // to properly handle disconnection/reconnection during initialization
-}
+// connectChangeEvents() has been removed as part of the migration to explicit per-tab save handlers
 
 void SettingsWindow::on_communicationSendPushButton_clicked()
 {

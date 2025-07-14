@@ -137,8 +137,8 @@ private:
     // Helper function to parse char settings (STX, ETX) similar to RS232Communication::parseCharSetting
     int parseCharSetting(const nlohmann::json &settings, const std::string &key, int defaultValue);
     
-    // Save settings from UI to Config
-    bool saveSettingsToConfig();
+    // Save timers tab settings to config
+    void saveDataFileSettingsToConfig();
     
     // Collect and send current output states to Logic
     void sendCurrentOutputStates();
@@ -165,8 +165,8 @@ private:
     void resetChangedFields();
     
     // UI Event Handler Functions
-    void connectChangeEvents();
     void setupCommunicationTabConnections();
+    void setupDataFileTabConnections();
     
     // Arduino protocol helper methods
     void sendConfigToController(const std::string& controllerName);

@@ -63,6 +63,9 @@ SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQ
     isRefreshing_ = true;
     ui->setupUi(this);
 
+    // Set up explicit connections for communication tab
+    setupCommunicationTabConnections();
+
     // Style for timers table selection
     ui->timersTable->setStyleSheet("QTableWidget::item:selected { color: black; background-color: #c0c0ff; }");
 
@@ -114,14 +117,14 @@ SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQ
     fillDataFileTabFields();
     fillGlueTabFields();
 
-    // Connect change signals/slots
-    connectChangeEvents();
+    // Connect change signals/slots (commented out as we're using explicit connections)
+    // connectChangeEvents();
 
     // Timers table: auto-save on duration edit
     connect(ui->timersTable, &QTableWidget::itemChanged, this, [this](QTableWidgetItem* item) {
         // Only handle duration column (column 1) and only if not refreshing
         if (item && item->column() == 1 && !isRefreshing_) {
-            saveSettingsToConfig();
+            saveTimersToConfig();
             item->setForeground(QBrush(Qt::black));
         }
     });
@@ -633,7 +636,7 @@ void SettingsWindow::onCommunicationDefaultsButtonClicked() {
         }
         
         // Save the default settings
-        saveSettingsToConfig();
+        saveCurrentCommunicationSettings();
         
         // Notify user
         GuiEvent successEvent;
@@ -695,7 +698,7 @@ void SettingsWindow::onTimersDefaultsButtonClicked() {
     ui->timersTable->setItem(row, 2, descriptionItem3);
     
     // Save the default settings
-    saveSettingsToConfig();
+    saveTimersToConfig();
     
     // Notify user
     GuiEvent successEvent;
@@ -2621,6 +2624,20 @@ void SettingsWindow::saveTimersToConfig() {
         paramEvent.keyword = "ParameterChange";
         paramEvent.target = "timer";
         eventQueue_.push(paramEvent);
+
+        try {
+            // Timer settings are now updated via setTimerSetting above; no need to call updateTimerSettings here.            
+            // Save the configuration to file
+            if (mutableConfig->saveToFile()) {
+                getLogger()->debug("Settings saved to configuration file");
+                
+            } else {
+                getLogger()->warn("[saveTimersToConfig] Failed to save settings to configuration file");
+            }
+        } catch (const std::exception& e) {
+            getLogger()->warn("[saveTimersToConfig] Exception while saving settings: {}", e.what());
+        }
+
     }
 }
 
@@ -2639,8 +2656,7 @@ bool SettingsWindow::saveSettingsToConfig() {
     // Save communication settings
     saveCurrentCommunicationSettings();
     
-    // Save timer settings
-    saveTimersToConfig();
+    
     
     // --- Save Data File Tab Values ---
     Config::DataFileSettings dataFileSettings;
@@ -2682,6 +2698,101 @@ bool SettingsWindow::saveSettingsToConfig() {
 //  UI Event Handler Functions
 // ============================================================================
 
+// Set up explicit connections for communication tab elements
+void SettingsWindow::setupCommunicationTabConnections() {
+    // Connect communication selector combo box
+    connect(ui->communicationSelectorComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &SettingsWindow::onCommunicationSelectorChanged);
+    
+    // Connect communication type combo box
+    connect(ui->communicationTypeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, [this](int) {
+                if (!isRefreshing_) {
+                    saveCurrentCommunicationSettings();
+                    updateCommunicationTypeVisibility(ui->communicationTypeComboBox->currentIndex());
+                }
+            });
+    
+    // Connect all communication parameter widgets
+    auto connectCommunicationWidget = [this](QWidget* widget) {
+        if (auto comboBox = qobject_cast<QComboBox*>(widget)) {
+            connect(comboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
+                    this, [this](int) { 
+                        if (!isRefreshing_) saveCurrentCommunicationSettings(); 
+                    });
+        } else if (auto lineEdit = qobject_cast<QLineEdit*>(widget)) {
+            connect(lineEdit, &QLineEdit::textChanged,
+                    this, [this](const QString&) { 
+                        if (!isRefreshing_) saveCurrentCommunicationSettings(); 
+                    });
+        } else if (auto checkBox = qobject_cast<QCheckBox*>(widget)) {
+            connect(checkBox, &QCheckBox::stateChanged,
+                    this, [this](int) { 
+                        if (!isRefreshing_) saveCurrentCommunicationSettings(); 
+                    });
+        } else if (auto spinBox = qobject_cast<QSpinBox*>(widget)) {
+            connect(spinBox, QOverload<int>::of(&QSpinBox::valueChanged),
+                    this, [this](int) { 
+                        if (!isRefreshing_) saveCurrentCommunicationSettings(); 
+                    });
+        } else if (auto doubleSpinBox = qobject_cast<QDoubleSpinBox*>(widget)) {
+            connect(doubleSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+                    this, [this](double) { 
+                        if (!isRefreshing_) saveCurrentCommunicationSettings(); 
+                    });
+        }
+    };
+    
+    // Connect all widgets in the communication tab
+    QList<QWidget*> communicationWidgets = ui->communicationTab->findChildren<QWidget*>(
+        QString(), Qt::FindDirectChildrenOnly);
+    
+    for (QWidget* widget : communicationWidgets) {
+        // Skip non-editable widgets and buttons
+        if (qobject_cast<QPushButton*>(widget) || qobject_cast<QLabel*>(widget) || 
+            qobject_cast<QGroupBox*>(widget) || qobject_cast<QStackedWidget*>(widget)) {
+            continue;
+        }
+        connectCommunicationWidget(widget);
+    }
+    
+    // Connect RS232 group box widgets and other communication widgets
+    QStackedWidget* commStack = findChild<QStackedWidget*>("communicationStackedWidget");
+    if (commStack) {
+        for (int i = 0; i < commStack->count(); ++i) {
+            QWidget* commPage = commStack->widget(i);
+            if (!commPage) continue;
+            
+            // Find and connect offset spin box
+            if (QSpinBox* offsetSpinBox = commPage->findChild<QSpinBox*>(QStringLiteral("offsetSpinBox"))) {
+                connect(offsetSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
+                        this, [this](int) { 
+                            if (!isRefreshing_) saveCurrentCommunicationSettings();
+                        });
+            }
+            
+            // Find RS232 group box
+            QGroupBox* rs232Group = commPage->findChild<QGroupBox*>(QString(), Qt::FindDirectChildrenOnly);
+            if (rs232Group) {
+                // Connect all child widgets of RS232 group
+                QList<QWidget*> rs232Widgets = rs232Group->findChildren<QWidget*>(
+                    QString(), Qt::FindDirectChildrenOnly);
+                    
+                for (QWidget* widget : rs232Widgets) {
+                    if (qobject_cast<QLabel*>(widget)) {
+                        continue;  // Skip labels
+                    }
+                    connectCommunicationWidget(widget);
+                }
+            }
+        }
+    }
+    
+    // Connect the active checkbox separately as it has special handling
+    connect(ui->communicationActiveCheckBox, &QCheckBox::stateChanged,
+            this, &SettingsWindow::onCommunicationActiveCheckBoxChanged);
+}
+
 // Mark a widget as changed (legacy, now a no-op)
 void SettingsWindow::markAsChanged(QWidget* widget) {
     // This method is kept for backward compatibility but no longer changes the widget appearance
@@ -2700,6 +2811,11 @@ void SettingsWindow::connectChangeEvents() {
     // Connect change events for all combo boxes
     QList<QComboBox*> comboBoxes = findChildren<QComboBox*>();
     for (QComboBox* comboBox : comboBoxes) {
+        // Skip communication tab combo boxes - they're handled by setupCommunicationTabConnections()
+        if (comboBox->parent() == ui->communicationTab) {
+            continue;
+        }
+        
         // Skip the communication selector dropdown - we handle it separately
         if (comboBox->objectName() == "communicationSelectorComboBox") {
             continue;
@@ -2721,19 +2837,23 @@ void SettingsWindow::connectChangeEvents() {
             continue;
         }
         
-        connect(comboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), [this, comboBox](int) {
-            // Skip if we're refreshing the UI
-            if (isRefreshing_) return;
-            
-            // Save changes immediately
-            // saveCurrentCommunicationSettings() is called inside saveSettingsToConfig()
-            saveSettingsToConfig();
-        });
+        // Connect the combo box to save settings when changed
+        connect(comboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), 
+                this, [this](int) {
+                    if (!isRefreshing_) {
+                        saveSettingsToConfig();
+                    }
+                });
     }
     
     // Connect change events for LineEdits
     QList<QLineEdit*> lineEdits = findChildren<QLineEdit*>();
     for (QLineEdit* lineEdit : lineEdits) {
+        // Skip communication tab line edits - they're handled by setupCommunicationTabConnections()
+        if (lineEdit->parent() == ui->communicationTab) {
+            continue;
+        }
+        
         // Skip glue tab line edits - they have their own specific save handlers
         if (lineEdit->objectName() == "glueControllerNameLineEdit" ||
             lineEdit->objectName() == "gluePlanNameLineEdit") {
@@ -2752,6 +2872,11 @@ void SettingsWindow::connectChangeEvents() {
     // Connect change events for CheckBoxes
     QList<QCheckBox*> checkBoxes = findChildren<QCheckBox*>();
     for (QCheckBox* checkBox : checkBoxes) {
+        // Skip communication tab checkboxes - they're handled by setupCommunicationTabConnections()
+        if (checkBox->parent() == ui->communicationTab) {
+            continue;
+        }
+        
         // Skip output override checkboxes which are handled separately
         if (checkBox->objectName().contains("outputOverride")) {
             continue;
@@ -2774,6 +2899,11 @@ void SettingsWindow::connectChangeEvents() {
     // Connect change events for SpinBoxes
     QList<QSpinBox*> spinBoxes = findChildren<QSpinBox*>();
     for (QSpinBox* spinBox : spinBoxes) {
+        // Skip communication tab spinboxes - they're handled by setupCommunicationTabConnections()
+        if (spinBox->parent() == ui->communicationTab) {
+            continue;
+        }
+        
         // Skip glue tab spinboxes - they have their own specific save handlers
         if (spinBox->objectName() == "glueEncoderSpinBox") {
             continue;
@@ -2791,6 +2921,11 @@ void SettingsWindow::connectChangeEvents() {
     // Connect change events for DoubleSpinBoxes
     QList<QDoubleSpinBox*> doubleSpinBoxes = findChildren<QDoubleSpinBox*>();
     for (QDoubleSpinBox* doubleSpinBox : doubleSpinBoxes) {
+        // Skip communication tab double spinboxes - they're handled by setupCommunicationTabConnections()
+        if (doubleSpinBox->parent() == ui->communicationTab) {
+            continue;
+        }
+        
         // Skip glue tab double spinboxes - they have their own specific save handlers
         if (doubleSpinBox->objectName() == "glueEncoderSpinBox") {
             continue;
@@ -3285,12 +3420,25 @@ void SettingsWindow::saveCurrentCommunicationSettings() {
         event.keyword = "ParameterChange";
         event.target = "communication";
         eventQueue_.push(event);
+        try {
+            // Timer settings are now updated via setTimerSetting above; no need to call updateTimerSettings here.            
+            // Save the configuration to file
+            if (mutableConfig->saveToFile()) {
+                getLogger()->debug("communication Settings saved to configuration file");
+                
+            } else {
+                getLogger()->warn("Failed to save communication settings to configuration file");
+            }
+        } catch (const std::exception& e) {
+            getLogger()->warn("Exception while saving communication settings: {}", e.what());
+        }
     } else {
         // We're just storing the settings in memory for later use
         // This happens when switching between communication channels
         // We don't want to trigger a save event in this case
         getLogger()->debug("Skipping config update while in refreshing mode");
     }
+    
 }
 
 void SettingsWindow::onInitialLoadComplete()

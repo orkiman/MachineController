@@ -164,8 +164,9 @@ private:
     // Reset all changed field markings
     void resetChangedFields();
     
-    // Connect change events for all editable fields
+    // UI Event Handler Functions
     void connectChangeEvents();
+    void setupCommunicationTabConnections();
     
     // Arduino protocol helper methods
     void sendConfigToController(const std::string& controllerName);

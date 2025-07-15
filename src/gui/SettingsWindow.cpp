@@ -1820,11 +1820,13 @@ void SettingsWindow::on_addGlueControllerButton_clicked()
             glueSettings["controllers"] = nlohmann::json::object();
         }
         
-        // Generate a unique ID for the new controller
-        std::string newControllerId = "controller_" + std::to_string(glueSettings["controllers"].size() + 1);
-        while (glueSettings["controllers"].contains(newControllerId)) {
-            newControllerId = "controller_" + std::to_string(std::rand());
-        }
+        // Generate a unique ID for the new controller starting from 1
+        std::string newControllerId;
+        int id = 1;
+        do {
+            newControllerId = "controller_" + std::to_string(id);
+            id++;
+        } while (glueSettings["controllers"].contains(newControllerId));
         
         // Create new controller with default values
         nlohmann::json newController = {
@@ -1909,13 +1911,43 @@ void SettingsWindow::on_removeGlueControllerButton_clicked()
         // Remove the controller
         glueSettings["controllers"].erase(currentGlueControllerName_);
         
+        // Find the next available controller to set as active
+        std::string nextActiveController = "";
+        if (glueSettings.contains("controllers") && !glueSettings["controllers"].empty()) {
+            for (auto it = glueSettings["controllers"].begin(); 
+                 it != glueSettings["controllers"].end(); ++it) {
+                if (it.key() != currentGlueControllerName_) {
+                    nextActiveController = it.key();
+                    break;
+                }
+            }
+        }
+        
+        // Update active controller in settings
+        glueSettings["activeController"] = nextActiveController;
+        
         // Update glue settings in config
         Config* mutableConfig = const_cast<Config*>(config_);
         mutableConfig->updateGlueSettings(glueSettings);
         
-        // Clear current controller name
-        currentGlueControllerName_ = "";
+        // Save to file
+        if (!mutableConfig->saveToFile()) {
+            getLogger()->warn("[on_removeGlueControllerButton_clicked] Failed to save settings to file");
+        }
+        
+        // Update current controller name
+        currentGlueControllerName_ = nextActiveController;
         currentGluePlanName_ = "";
+        
+        // If we have a new active controller, update the UI
+        if (!nextActiveController.empty()) {
+            // Force UI update by setting index to -1 and then back to the new controller
+            ui->glueControllerSelectorComboBox->setCurrentIndex(-1);
+            int index = ui->glueControllerSelectorComboBox->findText(QString::fromStdString(nextActiveController));
+            if (index >= 0) {
+                ui->glueControllerSelectorComboBox->setCurrentIndex(index);
+            }
+        }
         
         // Refresh the glue tab
         fillGlueTabFields();

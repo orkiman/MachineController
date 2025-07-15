@@ -62,86 +62,14 @@
     "startPosition": 0
   },
   "glue": {
-    "activeController": "controller_3",
+    "activeController": "controller_1",
     "controllers": {
       "controller_1": {
         "communication": "communication1",
         "enabled": true,
-        "encoder": 1.01,
+        "encoder": 1.0,
         "name": "New Controller",
-        "pageLength": 101,
-        "plans": {
-          "plan_1": {
-            "guns": [
-              {
-                "enabled": false,
-                "gunId": 1,
-                "rows": []
-              },
-              {
-                "enabled": false,
-                "gunId": 2,
-                "rows": []
-              },
-              {
-                "enabled": false,
-                "gunId": 3,
-                "rows": []
-              },
-              {
-                "enabled": false,
-                "gunId": 4,
-                "rows": []
-              }
-            ],
-            "name": "Default Plan",
-            "sensorOffset": 10
-          }
-        },
-        "type": "dots"
-      },
-      "controller_2": {
-        "communication": "communication1",
-        "enabled": true,
-        "encoder": 0.99,
-        "name": "New Controller",
-        "pageLength": 99,
-        "plans": {
-          "plan_1": {
-            "guns": [
-              {
-                "enabled": false,
-                "gunId": 1,
-                "rows": []
-              },
-              {
-                "enabled": false,
-                "gunId": 2,
-                "rows": []
-              },
-              {
-                "enabled": false,
-                "gunId": 3,
-                "rows": []
-              },
-              {
-                "enabled": false,
-                "gunId": 4,
-                "rows": []
-              }
-            ],
-            "name": "Default Plan",
-            "sensorOffset": 10
-          }
-        },
-        "type": "dots"
-      },
-      "controller_3": {
-        "communication": "communication1",
-        "enabled": true,
-        "encoder": 0.98,
-        "name": "New Controller",
-        "pageLength": 98,
+        "pageLength": 100,
         "plans": {
           "plan_1": {
             "guns": [

@@ -116,6 +116,7 @@ SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQ
     fillTimersTabFields();
     fillIOTabFields();
     fillDataFileTabFields();
+    populateGlueCommunicationComboBox();
     fillGlueTabFields();
 
 
@@ -1831,22 +1832,34 @@ void SettingsWindow::on_addGlueControllerButton_clicked()
             {"communication", ui->glueCommunicationComboBox->currentText().toStdString()},
             {"type", "dots"},
             {"encoder", 1.0},
+            {"enabled", true},
+            {"pageLength", 100},
             {"plans", nlohmann::json::object()}
         };
         
         // Add a default plan
         std::string newPlanId = "plan_1";
-        newController["plans"][newPlanId] = {
+        nlohmann::json defaultPlan = {
             {"name", "Default Plan"},
-            {"rows", nlohmann::json::array()}
+            {"sensorOffset", 10},
+            {"guns", nlohmann::json::array()}
         };
-        
-        // Add default row
-        newController["plans"][newPlanId]["rows"].push_back({
-            {"from", 0},
-            {"to", 100},
-            {"space", 10.0}
-        });
+
+        // Add 4 default guns
+        for (int i = 1; i <= 4; ++i) {
+            nlohmann::json gun = {
+                {"enabled", false},
+                {"gunId", i},
+                {"rows", nlohmann::json::array()}
+            };
+            defaultPlan["guns"].push_back(gun);
+        }
+
+        // Add the plan to the controller
+        newController["plans"][newPlanId] = defaultPlan;
+
+        // select activeController
+        glueSettings["activeController"] = newControllerId;
         
         // Add new controller to settings
         glueSettings["controllers"][newControllerId] = newController;
@@ -1854,6 +1867,11 @@ void SettingsWindow::on_addGlueControllerButton_clicked()
         // Update glue settings in config
         Config* mutableConfig = const_cast<Config*>(config_);
         mutableConfig->updateGlueSettings(glueSettings);
+        
+        // Persist changes to file
+        if (!mutableConfig->saveToFile()) {
+            getLogger()->warn("[on_addGlueControllerButton_clicked] Failed to save settings to file");
+        }
         
         // Refresh the glue tab
         fillGlueTabFields();

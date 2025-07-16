@@ -146,9 +146,6 @@ private:
     // Handle output checkbox state change
     void handleOutputCheckboxStateChanged(const QString& outputName, int state);
     
-    // Mark a field as changed (with light red background)
-    void markAsChanged(QWidget* widget);
-    
     // Glue tab helper methods
     void saveCurrentGlueControllerSettings();
     void saveCurrentControllerWithoutReload();
@@ -160,9 +157,6 @@ private:
     void updateGlueTypeVisibility(int index = 0);
     void populateGlueCommunicationComboBox();
     void addGlueRowToTable(int from, int to, double space);
-    
-    // Reset all changed field markings
-    void resetChangedFields();
     
     // UI Event Handler Functions
     void setupCommunicationTabConnections();

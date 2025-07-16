@@ -65,6 +65,7 @@
     "activeController": "controller_1",
     "controllers": {
       "controller_1": {
+        "activePlan": "plan_1",
         "communication": "communication1",
         "enabled": true,
         "encoder": 1.0,
@@ -76,29 +77,12 @@
               {
                 "enabled": false,
                 "gunId": 1,
-                "rows": [
-                  {
-                    "from": 0,
-                    "space": 10.0,
-                    "to": 100
-                  },
-                  {
-                    "from": 0,
-                    "space": 10.0,
-                    "to": 100
-                  }
-                ]
+                "rows": []
               },
               {
                 "enabled": false,
                 "gunId": 2,
-                "rows": [
-                  {
-                    "from": 0,
-                    "space": 10.0,
-                    "to": 102
-                  }
-                ]
+                "rows": []
               },
               {
                 "enabled": false,

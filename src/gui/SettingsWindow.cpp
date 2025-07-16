@@ -63,9 +63,8 @@ SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQ
     isRefreshing_ = true;
     ui->setupUi(this);
 
-    // Set up explicit connections for tabs
-    setupCommunicationTabConnections();
-    setupDataFileTabConnections();
+    // Connections are now handled by Qt's auto-connect feature via on_<objectName>_<signalName>() naming
+    // and direct connections in the constructor
 
     // Style for timers table selection
     ui->timersTable->setStyleSheet("QTableWidget::item:selected { color: black; background-color: #c0c0ff; }");
@@ -129,7 +128,6 @@ SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQ
         }
     });
     isRefreshing_ = false;
-    resetChangedFields();
 
     // Ensure communication type visibility is correct after setup
     QMetaObject::invokeMethod(this, [this]() { updateCommunicationTypeVisibility(-1); }, Qt::QueuedConnection);
@@ -161,10 +159,6 @@ SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQ
 SettingsWindow::~SettingsWindow() {
     delete ui;
 }
-
-// Removed redundant loadSettingsFromJson. Config handles file absence and defaults internally.
-// Directly call fillTimersTabFields() and fillDataFileTabFields() in initialization or refresh logic as needed.
-
 
 // Populate the Communication tab with settings from config
 void SettingsWindow::fillCommunicationTabFields() {
@@ -711,13 +705,12 @@ void SettingsWindow::onTimersDefaultsButtonClicked() {
     isRefreshing_ = false;
 }
 
-
 void SettingsWindow::on_refreshButton_clicked()
 {
     getLogger()->debug("Refresh button clicked");
     fillIOTabFields();
     GuiEvent event;
-event.keyword = "GuiMessage";
+    event.keyword = "GuiMessage";
 }
 
 // ============================================================================
@@ -764,57 +757,6 @@ void SettingsWindow::updateInputStates(const std::unordered_map<std::string, IOC
         }
     }
 }
-
-// Set up explicit connections for data file tab elements
-void SettingsWindow::setupDataFileTabConnections() {
-    if (!ui) {
-        getLogger()->error("[setupDataFileTabConnections] UI not initialized");
-        return;
-    }
-
-    // Connect start position spin box
-    if (auto spinBox = ui->startPositionSpinBox) {
-        connect(spinBox, QOverload<int>::of(&QSpinBox::valueChanged),
-                this, [this](int) {
-                    if (!isRefreshing_) saveDataFileSettingsToConfig();
-                });
-    }
-
-    // Connect end position spin box
-    if (auto spinBox = ui->endPositionSpinBox) {
-        connect(spinBox, QOverload<int>::of(&QSpinBox::valueChanged),
-                this, [this](int) {
-                    if (!isRefreshing_) saveDataFileSettingsToConfig();
-                });
-    }
-
-    // Connect sequence check box
-    if (auto checkBox = ui->sequenceCheckBox) {
-        connect(checkBox, &QCheckBox::stateChanged,
-                this, [this](int) {
-                    if (!isRefreshing_) saveDataFileSettingsToConfig();
-                });
-    }
-
-    // Connect existence check box
-    if (auto checkBox = ui->existenceCheckBox) {
-        connect(checkBox, &QCheckBox::stateChanged,
-                this, [this](int) {
-                    if (!isRefreshing_) saveDataFileSettingsToConfig();
-                });
-    }
-
-    // Connect sequence direction combo box
-    if (auto comboBox = ui->sequenceDirectionComboBox) {
-        connect(comboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
-                this, [this](int) {
-                    if (!isRefreshing_) saveDataFileSettingsToConfig();
-                });
-    }
-
-    getLogger()->debug("[setupDataFileTabConnections] Data file tab connections established");
-}
-
 
 // Populate the IO tab with settings from config
 void SettingsWindow::fillIOTabFields() {
@@ -937,7 +879,6 @@ void SettingsWindow::fillIOTabFields() {
 }
 
 // Collect and send current output states to Logic
-// Collect and send current output states to Logic
 void SettingsWindow::sendCurrentOutputStates() {
     // Create a map to hold the output states
     std::unordered_map<std::string, IOChannel> outputs;
@@ -977,7 +918,6 @@ void SettingsWindow::sendCurrentOutputStates() {
     }
 }
 
-// Handle individual output checkbox state changes
 // Handle individual output checkbox state changes
 void SettingsWindow::handleOutputCheckboxStateChanged(const QString& outputName, int state) {
     getLogger()->debug("Output override for {}: {}", outputName.toStdString(), (state == Qt::Checked ? "ON" : "OFF"));
@@ -1058,7 +998,7 @@ void SettingsWindow::fillGlueTabFields()
 {
     isRefreshing_ = true;
     
-    // Block signals to avoid triggering saves during reload
+    // Block signals during update
     ui->glueControllerSelectorComboBox->blockSignals(true);
     ui->gluePlanSelectorComboBox->blockSignals(true);
     ui->glueRowsTable->blockSignals(true);
@@ -1369,7 +1309,7 @@ void SettingsWindow::onGluePlanSelectorChanged(int index)
         return;
     }
     
-    // If not refreshing, save the active plan and reload the glue tab
+    // If not refreshing, save the active plan and reload
     if (!isRefreshing_) {
         // Get the selected plan ID
         if (index >= 0 && index < ui->gluePlanSelectorComboBox->count()) {
@@ -1536,8 +1476,6 @@ void SettingsWindow::onGlueControllerNameChanged()
         saveCurrentGlueControllerSettings();
     }
 }
-
-
 
 // Save the active glue controller ID to config
 void SettingsWindow::saveActiveGlueController()
@@ -1836,10 +1774,11 @@ void SettingsWindow::on_addGlueControllerButton_clicked()
             defaultPlan["guns"].push_back(gun);
         }
 
-        // Add the plan to the controller
+        // Add the plan to the controller and set it as active
         newController["plans"][newPlanId] = defaultPlan;
-
-        // select activeController
+        newController["activePlan"] = newPlanId;
+        
+        // Set as active controller
         glueSettings["activeController"] = newControllerId;
         
         // Add new controller to settings
@@ -2221,7 +2160,8 @@ void SettingsWindow::on_glueCalibrateButton_clicked()
         std::string calibrateMessage = ArduinoProtocol::createCalibrateMessage(pageLength);
         if (!calibrateMessage.empty()) {
             ArduinoProtocol::sendMessage(eventQueue_, communicationPort, calibrateMessage);
-            getLogger()->info("[on_glueCalibrateButton_clicked] Sent calibration command to '{}': {}", communicationPort, calibrateMessage);
+            getLogger()->info("[on_glueCalibrateButton_clicked] Sent calibration command to '{}' via '{}': {}", 
+                             communicationPort, calibrateMessage);
         } else {
             getLogger()->error("[on_glueCalibrateButton_clicked] Failed to create calibration message");
             return;
@@ -2288,6 +2228,7 @@ void SettingsWindow::sendConfigToController(const std::string& controllerName) {
     
     try {
         nlohmann::json glueSettings = config_->getGlueSettings();
+        
         if (!glueSettings.contains("controllers") || 
             !glueSettings["controllers"].contains(controllerName)) {
             getLogger()->warn("[sendConfigToController] Controller '{}' not found", controllerName);
@@ -2327,6 +2268,7 @@ void SettingsWindow::sendPlanToController(const std::string& controllerName, con
     
     try {
         nlohmann::json glueSettings = config_->getGlueSettings();
+        
         if (!glueSettings.contains("controllers") || 
             !glueSettings["controllers"].contains(controllerName) ||
             !glueSettings["controllers"][controllerName].contains("plans") ||
@@ -2383,6 +2325,7 @@ void SettingsWindow::sendRunStopToEnabledControllers(bool run) {
     
     try {
         nlohmann::json glueSettings = config_->getGlueSettings();
+        
         if (!glueSettings.contains("controllers")) {
             return;
         }
@@ -2854,7 +2797,7 @@ void SettingsWindow::setupCommunicationTabConnections() {
             }
             
             // Find RS232 group box
-            QGroupBox* rs232Group = commPage->findChild<QGroupBox*>(QString(), Qt::FindDirectChildrenOnly);
+            QGroupBox* rs232Group = commPage->findChild<QGroupBox*>("rs232Group");
             if (rs232Group) {
                 // Connect all child widgets of RS232 group
                 QList<QWidget*> rs232Widgets = rs232Group->findChildren<QWidget*>(
@@ -2875,20 +2818,6 @@ void SettingsWindow::setupCommunicationTabConnections() {
             this, &SettingsWindow::onCommunicationActiveCheckBoxChanged);
 }
 
-// Mark a widget as changed (legacy, now a no-op)
-void SettingsWindow::markAsChanged(QWidget* widget) {
-    // This method is kept for backward compatibility but no longer changes the widget appearance
-    // since we're saving changes immediately
-    Q_UNUSED(widget);
-}
-
-// Reset all changed field markers (legacy, now a no-op)
-void SettingsWindow::resetChangedFields() {
-    // This method is kept for backward compatibility but no longer does anything
-    // since we're saving changes immediately and not marking fields as changed
-}
-
-// connectChangeEvents() has been removed as part of the migration to explicit per-tab save handlers
 
 void SettingsWindow::on_communicationSendPushButton_clicked()
 {
@@ -2965,12 +2894,6 @@ void SettingsWindow::updateCommunicationTypeVisibility(int index) {
 void SettingsWindow::onCommunicationActiveCheckBoxChanged(int state) {
     // Enable/disable the communication settings based on the active state
     bool isActive = (state == Qt::Checked);
-    
-    // Mark the checkbox as changed
-    QCheckBox* activeCheckBox = qobject_cast<QCheckBox*>(sender());
-    if (activeCheckBox) {
-        markAsChanged(activeCheckBox);
-    }
     
     // Save the current communication settings to preserve the active state change
     // This will update the config with the new active state

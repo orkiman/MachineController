@@ -1591,12 +1591,52 @@ void SettingsWindow::saveCurrentGlueControllerSettings()
     }
 }
 
-// Save current glue plan settings and reload tab
+// Save current glue plan settings including name and sensor offset
 void SettingsWindow::saveCurrentGluePlanSettings()
 {
-    // This function is kept for backward compatibility but now delegates to saveCurrentGunSettings
-    // which handles saving the rows under the current gun
-    saveCurrentGunSettings();
+    if (!config_ || currentGlueControllerName_.empty() || currentGluePlanName_.empty()) {
+        return;
+    }
+    
+    try {
+        Config* mutableConfig = const_cast<Config*>(config_);
+        nlohmann::json glueSettings = mutableConfig->getGlueSettings();
+        
+        // Get the plan name from the UI
+        QString planName = ui->gluePlanNameLineEdit->text().trimmed();
+        
+        // Get the sensor offset from the UI
+        int sensorOffset = ui->gluePlanSensorOffsetSpinBox->value();
+        
+        // Ensure the structure exists
+        if (glueSettings.contains("controllers") && 
+            glueSettings["controllers"].contains(currentGlueControllerName_) &&
+            glueSettings["controllers"][currentGlueControllerName_].contains("plans") &&
+            glueSettings["controllers"][currentGlueControllerName_]["plans"].contains(currentGluePlanName_)) {
+            
+            // Update the plan name and sensor offset
+            auto& plan = glueSettings["controllers"][currentGlueControllerName_]["plans"][currentGluePlanName_];
+            plan["name"] = planName.toStdString();
+            plan["sensorOffset"] = sensorOffset;
+            
+            // Save the updated settings using the correct method
+            mutableConfig->updateGlueSettings(glueSettings);
+            
+            // Also save gun settings (rows, etc.)
+            saveCurrentGunSettings();
+            
+            // Save to file
+            if (!mutableConfig->saveToFile()) {
+                spdlog::warn("Failed to save glue settings to file");
+            }
+            
+            // Log the update
+            spdlog::info("Updated glue plan settings for controller '{}', plan '{}'", 
+                        currentGlueControllerName_, currentGluePlanName_);
+        }
+    } catch (const std::exception& e) {
+        spdlog::error("Error saving glue plan settings: {}", e.what());
+    }
 }
 
 // Save current glue plan settings without reloading tab
@@ -1759,7 +1799,7 @@ void SettingsWindow::on_addGlueControllerButton_clicked()
         // Add a default plan
         std::string newPlanId = "plan_1";
         nlohmann::json defaultPlan = {
-            {"name", "Default Plan"},
+            {"name", newPlanId},
             {"sensorOffset", 10},
             {"guns", nlohmann::json::array()}
         };
@@ -2422,20 +2462,72 @@ void SettingsWindow::on_gluePlanNameLineEdit_textChanged(const QString& text)
         return;
     }
     
-    // Update the plan name in the combo box
-    int currentIndex = ui->gluePlanSelectorComboBox->currentIndex();
-    if (currentIndex >= 0) {
-        // Format as "[Plan ID]: [Name]" to preserve the ID part
-        QString planId = QString::fromStdString(currentGluePlanName_);
-        QString displayText = planId;
-        if (!text.isEmpty()) {
-            displayText += ": " + text;
-        }
-        ui->gluePlanSelectorComboBox->setItemText(currentIndex, displayText);
+    // Get the current plan ID and new name
+    std::string currentPlanId = currentGluePlanName_;
+    std::string newName = text.trimmed().toStdString();
+    
+    // Don't do anything if the name didn't actually change
+    if (newName.empty() || newName == currentGluePlanName_) {
+        return;
     }
     
-    // Save changes
-    saveCurrentGluePlanSettings();
+    try {
+        Config* mutableConfig = const_cast<Config*>(config_);
+        nlohmann::json glueSettings = mutableConfig->getGlueSettings();
+        
+        // Check if the current controller and plan exist
+        if (glueSettings.contains("controllers") && 
+            glueSettings["controllers"].contains(currentGlueControllerName_) &&
+            glueSettings["controllers"][currentGlueControllerName_].contains("plans") &&
+            glueSettings["controllers"][currentGlueControllerName_]["plans"].contains(currentPlanId)) {
+            
+            auto& controller = glueSettings["controllers"][currentGlueControllerName_];
+            auto& plans = controller["plans"];
+            
+            // Check if this is the active plan
+            bool isActivePlan = controller.contains("activePlan") && 
+                              controller["activePlan"] == currentPlanId;
+            
+            // Update the plan name in the settings
+            plans[currentPlanId]["name"] = newName;
+            
+            // If this is the active plan, ensure the activePlan reference is set
+            if (isActivePlan) {
+                controller["activePlan"] = currentPlanId;
+                spdlog::debug("Updated active plan reference for controller '{}' to plan '{}'", 
+                            currentGlueControllerName_, currentPlanId);
+            }
+            
+            // Save the updated settings
+            mutableConfig->updateGlueSettings(glueSettings);
+            
+            // Update the combo box display
+            int currentIndex = ui->gluePlanSelectorComboBox->currentIndex();
+            if (currentIndex >= 0) {
+                // Format as "[Plan ID]: [Name]" to preserve the ID part
+                QString displayText = QString::fromStdString(currentPlanId);
+                if (!text.trimmed().isEmpty()) {
+                    displayText += ": " + text.trimmed();
+                }
+                ui->gluePlanSelectorComboBox->setItemText(currentIndex, displayText);
+            }
+            
+            // Save to file
+            if (!mutableConfig->saveToFile()) {
+                spdlog::warn("Failed to save plan name changes to file");
+            } else {
+                spdlog::info("Updated plan name for controller '{}', plan '{}' to '{}'", 
+                           currentGlueControllerName_, currentPlanId, newName);
+                
+                // If this is the active plan, explicitly save the active plan reference
+                if (isActivePlan) {
+                    saveActivePlanForController();
+                }
+            }
+        }
+    } catch (const std::exception& e) {
+        spdlog::error("Error updating plan name: {}", e.what());
+    }
 }
 
 // Handle sensor offset value change
@@ -2814,8 +2906,7 @@ void SettingsWindow::setupCommunicationTabConnections() {
     }
     
     // Connect the active checkbox separately as it has special handling
-    connect(ui->communicationActiveCheckBox, &QCheckBox::stateChanged,
-            this, &SettingsWindow::onCommunicationActiveCheckBoxChanged);
+    connect(ui->communicationActiveCheckBox, &QCheckBox::checkStateChanged, this, &SettingsWindow::onCommunicationActiveCheckBoxChanged);
 }
 
 

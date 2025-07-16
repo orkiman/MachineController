@@ -65,7 +65,7 @@
     "activeController": "controller_1",
     "controllers": {
       "controller_1": {
-        "activePlan": "plan_1",
+        "activePlan": "plan_2",
         "communication": "communication1",
         "enabled": true,
         "encoder": 1.0,
@@ -95,7 +95,39 @@
                 "rows": []
               }
             ],
-            "name": "Default Plan",
+            "name": "c1p1",
+            "sensorOffset": 10
+          },
+          "plan_2": {
+            "guns": [
+              {
+                "enabled": true,
+                "gunId": 1,
+                "rows": [
+                  {
+                    "from": 0,
+                    "space": 10.0,
+                    "to": 100
+                  }
+                ]
+              },
+              {
+                "enabled": false,
+                "gunId": 2,
+                "rows": []
+              },
+              {
+                "enabled": false,
+                "gunId": 3,
+                "rows": []
+              },
+              {
+                "enabled": false,
+                "gunId": 4,
+                "rows": []
+              }
+            ],
+            "name": "c1p2",
             "sensorOffset": 10
           }
         },

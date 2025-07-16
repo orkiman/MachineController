@@ -1416,20 +1416,37 @@ void SettingsWindow::onGluePlanSelectorChanged(int index)
             // Clear the rows table
             ui->glueRowsTable->setRowCount(0);
             
-            // Check if rows exist for this plan
-            if (plan.contains("rows") && plan["rows"].is_array()) {
-                // Add rows to table
-                for (const auto& row : plan["rows"]) {
-                    if (row.is_object()) {
-                        int from = row.value("from", 0);
-                        int to = row.value("to", 0);
-                        double space = row.value("space", 0.0);
-                        
-                        // Add row to table
-                        addGlueRowToTable(from, to, space);
-                    }
+            // Initialize the guns array if it doesn't exist
+            if (!plan.contains("guns") || !plan["guns"].is_array()) {
+                // Create default guns array if it doesn't exist
+                nlohmann::json defaultGuns = nlohmann::json::array();
+                for (int i = 0; i < 4; ++i) {
+                    nlohmann::json gun;
+                    gun["gunId"] = i + 1;
+                    gun["enabled"] = (i == 0); // Enable first gun by default
+                    gun["rows"] = nlohmann::json::array();
+                    defaultGuns.push_back(gun);
                 }
+                
+                // Update the plan with default guns
+                const_cast<nlohmann::json&>(plan) = plan;
+                const_cast<nlohmann::json&>(plan)["guns"] = defaultGuns;
+                
+                // Save the updated settings
+                Config* mutableConfig = const_cast<Config*>(config_);
+                nlohmann::json glueSettings = config_->getGlueSettings();
+                glueSettings["controllers"][currentGlueControllerName_]["plans"][currentGluePlanName_] = plan;
+                mutableConfig->updateGlueSettings(glueSettings);
+                mutableConfig->saveToFile();
             }
+            
+            // Load the first gun's data by default
+            loadCurrentGunData(0);
+            
+            // Update the gun selector
+            ui->gunSelectorComboBox->blockSignals(true);
+            ui->gunSelectorComboBox->setCurrentIndex(0);
+            ui->gunSelectorComboBox->blockSignals(false);
             
             // Load sensor offset
             int sensorOffset = plan.value("sensorOffset", 10); // Default to 10 if not found
@@ -1639,73 +1656,9 @@ void SettingsWindow::saveCurrentGlueControllerSettings()
 // Save current glue plan settings and reload tab
 void SettingsWindow::saveCurrentGluePlanSettings()
 {
-    if (isRefreshing_ || !config_ || currentGlueControllerName_.empty() || currentGluePlanName_.empty()) {
-        return;
-    }
-    
-    try {
-        nlohmann::json glueSettings = config_->getGlueSettings();
-        if (!glueSettings.contains("controllers") || 
-            !glueSettings["controllers"].contains(currentGlueControllerName_) ||
-            !glueSettings["controllers"][currentGlueControllerName_].contains("plans")) {
-            return;
-        }
-        
-        nlohmann::json& plan = glueSettings["controllers"][currentGlueControllerName_]["plans"][currentGluePlanName_];
-        plan["name"] = ui->gluePlanNameLineEdit->text().toStdString();
-        
-        // Save rows from table
-        nlohmann::json rows = nlohmann::json::array();
-        for (int i = 0; i < ui->glueRowsTable->rowCount(); ++i) {
-            nlohmann::json row;
-            
-            // Get 'from' value
-            QTableWidgetItem* fromItem = ui->glueRowsTable->item(i, 0);
-            if (fromItem) {
-                row["from"] = fromItem->text().toInt();
-            } else {
-                row["from"] = 0;
-            }
-            
-            // Get 'to' value
-            QTableWidgetItem* toItem = ui->glueRowsTable->item(i, 1);
-            if (toItem) {
-                row["to"] = toItem->text().toInt();
-            } else {
-                row["to"] = 0;
-            }
-            
-            // Get 'space' value
-            QTableWidgetItem* spaceItem = ui->glueRowsTable->item(i, 2);
-            if (spaceItem) {
-                row["space"] = spaceItem->text().toDouble();
-            } else {
-                row["space"] = 0.0;
-            }
-            
-            rows.push_back(row);
-        }
-        plan["rows"] = rows;
-        
-        // Save sensor offset
-        plan["sensorOffset"] = ui->gluePlanSensorOffsetSpinBox->value();
-        
-        Config* mutableConfig = const_cast<Config*>(config_);
-        mutableConfig->updateGlueSettings(glueSettings);
-        
-        // Persist changes to file
-        if (!mutableConfig->saveToFile()) {
-            getLogger()->warn("[saveCurrentGluePlanSettings] Failed to save settings to file");
-        }
-        
-        fillGlueTabFields();
-        
-        // Send updated controller setup to Arduino
-        sendControllerSetupToActiveController();
-        
-    } catch (const std::exception& e) {
-        getLogger()->warn("[saveCurrentGluePlanSettings] Exception: {}", e.what());
-    }
+    // This function is kept for backward compatibility but now delegates to saveCurrentGunSettings
+    // which handles saving the rows under the current gun
+    saveCurrentGunSettings();
 }
 
 // Save current glue plan settings without reloading tab
@@ -1726,6 +1679,29 @@ void SettingsWindow::saveCurrentPlanWithoutReload()
         nlohmann::json& plan = glueSettings["controllers"][currentGlueControllerName_]["plans"][currentGluePlanName_];
         plan["name"] = ui->gluePlanNameLineEdit->text().toStdString();
         
+        // Get the current gun index from the selector
+        int gunIndex = ui->gunSelectorComboBox->currentIndex();
+        if (gunIndex < 0) {
+            return; // No gun selected
+        }
+        
+        // Get or create guns array
+        if (!plan.contains("guns") || !plan["guns"].is_array()) {
+            plan["guns"] = nlohmann::json::array();
+        }
+        
+        // Ensure we have enough guns in the array
+        while (plan["guns"].size() <= static_cast<size_t>(gunIndex)) {
+            plan["guns"].push_back(nlohmann::json::object());
+        }
+        
+        // Get the current gun
+        nlohmann::json& gun = plan["guns"][gunIndex];
+        
+        // Save gun enabled state
+        gun["gunId"] = gunIndex + 1; // 1-based index for gun ID
+        gun["enabled"] = ui->gunEnabledCheckBox->isChecked();
+        
         // Save rows from table
         nlohmann::json rows = nlohmann::json::array();
         for (int i = 0; i < ui->glueRowsTable->rowCount(); ++i) {
@@ -1757,8 +1733,11 @@ void SettingsWindow::saveCurrentPlanWithoutReload()
             
             rows.push_back(row);
         }
-        plan["rows"] = rows;
         
+        // Save rows under the current gun
+        gun["rows"] = rows;
+        
+        // Update the plan in the settings
         Config* mutableConfig = const_cast<Config*>(config_);
         mutableConfig->updateGlueSettings(glueSettings);
         
@@ -1993,18 +1972,35 @@ void SettingsWindow::on_addGluePlanButton_clicked()
             newPlanId = "plan_" + std::to_string(std::rand());
         }
         
-        // Create new plan with default values
-        controller["plans"][newPlanId] = {
+        // Create new plan with default values and guns array
+        nlohmann::json newPlan = {
             {"name", "New Plan"},
-            {"rows", nlohmann::json::array()}
+            {"sensorOffset", 10},  // Default sensor offset
+            {"guns", nlohmann::json::array()}
         };
         
-        // Add default row
-        controller["plans"][newPlanId]["rows"].push_back({
-            {"from", 0},
-            {"to", 100},
-            {"space", 10.0}
-        });
+        // Add 4 default guns with empty rows
+        for (int i = 0; i < 4; ++i) {
+            nlohmann::json gun = {
+                {"gunId", i + 1},
+                {"enabled", (i == 0)},  // Only enable first gun by default
+                {"rows", nlohmann::json::array()}
+            };
+            
+            // Add default row to first gun
+            if (i == 0) {
+                gun["rows"].push_back({
+                    {"from", 0},
+                    {"to", 100},
+                    {"space", 10.0}
+                });
+            }
+            
+            newPlan["guns"].push_back(gun);
+        }
+        
+        // Add the new plan to the controller
+        controller["plans"][newPlanId] = newPlan;
         
         // Update glue settings in config
         Config* mutableConfig = const_cast<Config*>(config_);

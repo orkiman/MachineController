@@ -76,12 +76,29 @@
               {
                 "enabled": false,
                 "gunId": 1,
-                "rows": []
+                "rows": [
+                  {
+                    "from": 0,
+                    "space": 10.0,
+                    "to": 100
+                  },
+                  {
+                    "from": 0,
+                    "space": 10.0,
+                    "to": 100
+                  }
+                ]
               },
               {
                 "enabled": false,
                 "gunId": 2,
-                "rows": []
+                "rows": [
+                  {
+                    "from": 0,
+                    "space": 10.0,
+                    "to": 102
+                  }
+                ]
               },
               {
                 "enabled": false,

@@ -331,26 +331,34 @@ void Config::ensureDefaultGlueSettings()
         if (configJson_["glue"]["controllers"].empty()) {
             // Create default controller1
             nlohmann::json controller1 = nlohmann::json::object();
-            controller1["name"] = "Controller 1";
+            controller1["name"] = "New Controller";
             controller1["communication"] = "communication1";
             controller1["type"] = "dots";
             controller1["encoder"] = 1.0;
+            controller1["pageLength"] = 100;
+            controller1["enabled"] = true;
             controller1["plans"] = nlohmann::json::object();
+            configJson_["glue"]["activeController"] = "controller_1";
             
             // Create default plan for controller1
             nlohmann::json plan1 = nlohmann::json::object();
-            plan1["name"] = "Plan 1";
-            plan1["rows"] = nlohmann::json::array();
+            plan1["name"] = "Default Plan";
+            plan1["sensorOffset"] = 10;
+            plan1["guns"] = nlohmann::json::array();
             
-            // Create a default row
-            nlohmann::json row = nlohmann::json::object();
-            row["from"] = 0;
-            row["to"] = 100;
-            row["space"] = 10;
-            plan1["rows"].push_back(row);
+            // Create 4 guns with empty rows
+            for (int i = 1; i <= 4; ++i) {
+                nlohmann::json gun = nlohmann::json::object();
+                gun["gunId"] = i;
+                gun["enabled"] = false;
+                gun["rows"] = nlohmann::json::array();
+                
+                // Add the gun to the plan
+                plan1["guns"].push_back(gun);
+            }
             
             // Add plan to controller
-            controller1["plans"]["plan1"] = plan1;
+            controller1["plans"]["plan_1"] = plan1;
             
             // Add controller to glue settings
             configJson_["glue"]["controllers"]["controller1"] = controller1;

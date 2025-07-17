@@ -2093,8 +2093,6 @@ void SettingsWindow::on_glueControllerNameLineEdit_textChanged(const QString& te
     // Save changes
     saveCurrentGlueControllerSettings();
     
-    // Send updated controller setup to Arduino
-    sendControllerSetupToActiveController();
 }
 
 // Handle communication combo box change
@@ -2107,8 +2105,6 @@ void SettingsWindow::on_glueCommunicationComboBox_currentIndexChanged(int index)
     // Save changes
     saveCurrentGlueControllerSettings();
     
-    // Send updated controller setup to Arduino
-    sendControllerSetupToActiveController();
 }
 
 // Handle glue type combo box change
@@ -2124,8 +2120,6 @@ void SettingsWindow::on_glueTypeComboBox_currentIndexChanged(int index)
     // Save changes
     saveCurrentGlueControllerSettings();
     
-    // Send updated controller setup to Arduino
-    sendControllerSetupToActiveController();
 }
 
 // Handle encoder value change
@@ -2138,8 +2132,6 @@ void SettingsWindow::on_glueEncoderSpinBox_valueChanged(double value)
     // Save changes
     saveCurrentGlueControllerSettings();
     
-    // Send updated controller setup to Arduino
-    sendControllerSetupToActiveController();
 }
 
 // Handle page length change
@@ -2166,9 +2158,6 @@ void SettingsWindow::on_gluePageLengthSpinBox_valueChanged(int value)
         if (!mutableConfig->saveToFile()) {
             getLogger()->warn("[on_gluePageLengthSpinBox_valueChanged] Failed to save settings to file");
         }
-        
-        // Send updated controller setup to Arduino
-        sendControllerSetupToActiveController();
         
     } catch (const std::exception& e) {
         getLogger()->warn("[on_gluePageLengthSpinBox_valueChanged] Exception: {}", e.what());
@@ -2247,9 +2236,7 @@ void SettingsWindow::on_glueControllerEnabledCheckBox_stateChanged(int state)
         
         getLogger()->info("[on_glueControllerEnabledCheckBox_stateChanged] Controller '{}' {} ", 
                          currentGlueControllerName_, enabled ? "enabled" : "disabled");
-        
-        // Send updated controller setup to Arduino
-        sendControllerSetupToActiveController();
+            
         
     } catch (const std::exception& e) {
         getLogger()->warn("[on_glueControllerEnabledCheckBox_stateChanged] Exception: {}", e.what());
@@ -3344,8 +3331,6 @@ void SettingsWindow::on_gunEnabledCheckBox_stateChanged(int state)
     // Save the enabled state for the currently selected gun
     saveCurrentGunSettings();
     
-    // Send updated controller setup to Arduino
-    sendControllerSetupToActiveController();
 }
 
 void SettingsWindow::on_glueRowsTable_itemChanged(QTableWidgetItem* item)

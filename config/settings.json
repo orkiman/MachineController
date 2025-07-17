@@ -68,27 +68,33 @@
         "activePlan": "plan_1",
         "communication": "communication2",
         "enabled": true,
-        "encoder": 1.01,
+        "encoder": 1.02,
         "name": "New Controller",
-        "pageLength": 100,
+        "pageLength": 102,
         "plans": {
           "plan_1": {
             "guns": [
               {
-                "enabled": false,
+                "enabled": true,
                 "gunId": 1,
                 "rows": [
                   {
                     "from": 0,
                     "space": 10.0,
-                    "to": 100
+                    "to": 103
                   }
                 ]
               },
               {
                 "enabled": false,
                 "gunId": 2,
-                "rows": []
+                "rows": [
+                  {
+                    "from": 0,
+                    "space": 10.0,
+                    "to": 103
+                  }
+                ]
               },
               {
                 "enabled": false,

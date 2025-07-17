@@ -12,3 +12,9 @@ think ouw to handle variable communication data in mainwindow
 
 
 file checks
+
+
+new
+
+saveCurrentGluePlanSettings
+saveCurrentGunSettings

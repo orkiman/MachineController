@@ -65,10 +65,10 @@
     "activeController": "controller_1",
     "controllers": {
       "controller_1": {
-        "activePlan": "plan_2",
-        "communication": "communication1",
+        "activePlan": "plan_1",
+        "communication": "communication2",
         "enabled": true,
-        "encoder": 1.0,
+        "encoder": 1.01,
         "name": "New Controller",
         "pageLength": 100,
         "plans": {
@@ -77,7 +77,13 @@
               {
                 "enabled": false,
                 "gunId": 1,
-                "rows": []
+                "rows": [
+                  {
+                    "from": 0,
+                    "space": 10.0,
+                    "to": 100
+                  }
+                ]
               },
               {
                 "enabled": false,
@@ -114,7 +120,13 @@
               {
                 "enabled": false,
                 "gunId": 2,
-                "rows": []
+                "rows": [
+                  {
+                    "from": 0,
+                    "space": 10.0,
+                    "to": 100
+                  }
+                ]
               },
               {
                 "enabled": false,

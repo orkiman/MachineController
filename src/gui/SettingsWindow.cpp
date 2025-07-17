@@ -1583,8 +1583,8 @@ void SettingsWindow::saveCurrentGlueControllerSettings()
         // Reload the tab to reflect changes
         fillGlueTabFields();
         
-        // Send updated config to Arduino
-        sendConfigToController(currentGlueControllerName_);
+        // Send updated controller setup to Arduino
+        sendControllerSetupToActiveController();
         
     } catch (const std::exception& e) {
         getLogger()->warn("[saveCurrentGlueControllerSettings] Exception: {}", e.what());
@@ -2260,102 +2260,7 @@ void SettingsWindow::on_glueControllerEnabledCheckBox_stateChanged(int state)
 //  Arduino Protocol Helper Methods
 // ============================================================================
 
-// Send config message to specified controller
-void SettingsWindow::sendConfigToController(const std::string& controllerName) {
-    if (!config_ || controllerName.empty()) {
-        return;
-    }
-    
-    try {
-        nlohmann::json glueSettings = config_->getGlueSettings();
-        
-        if (!glueSettings.contains("controllers") || 
-            !glueSettings["controllers"].contains(controllerName)) {
-            getLogger()->warn("[sendConfigToController] Controller '{}' not found", controllerName);
-            return;
-        }
-        
-        auto controller = glueSettings["controllers"][controllerName];
-        
-        // Get controller settings
-        double encoderResolution = controller.value("encoder", 1.0);
-        int sensorOffset = controller.value("sensorOffset", 10);
-        std::string communicationPort = controller.value("communication", "");
-        
-        if (communicationPort.empty()) {
-            getLogger()->warn("[sendConfigToController] No communication port for controller '{}'", controllerName);
-            return;
-        }
-        
-        // Create and send config message
-        std::string configMessage = ArduinoProtocol::createConfigMessage(encoderResolution, sensorOffset);
-        if (!configMessage.empty()) {
-            ArduinoProtocol::sendMessage(eventQueue_, communicationPort, configMessage);
-            getLogger()->info("[sendConfigToController] Sent config to '{}' via '{}': {}", 
-                             controllerName, communicationPort, configMessage);
-        }
-        
-    } catch (const std::exception& e) {
-        getLogger()->error("[sendConfigToController] Exception: {}", e.what());
-    }
-}
 
-// Send plan message to specified controller
-void SettingsWindow::sendPlanToController(const std::string& controllerName, const std::string& planName) {
-    if (!config_ || controllerName.empty() || planName.empty()) {
-        return;
-    }
-    
-    try {
-        nlohmann::json glueSettings = config_->getGlueSettings();
-        
-        if (!glueSettings.contains("controllers") || 
-            !glueSettings["controllers"].contains(controllerName) ||
-            !glueSettings["controllers"][controllerName].contains("plans") ||
-            !glueSettings["controllers"][controllerName]["plans"].contains(planName)) {
-            getLogger()->warn("[sendPlanToController] Plan '{}' not found for controller '{}'", planName, controllerName);
-            return;
-        }
-        
-        auto controller = glueSettings["controllers"][controllerName];
-        auto plan = controller["plans"][planName];
-        std::string communicationPort = controller.value("communication", "");
-        
-        if (communicationPort.empty()) {
-            getLogger()->warn("[sendPlanToController] No communication port for controller '{}'", controllerName);
-            return;
-        }
-        
-        // Extract guns and their rows from plan
-        std::vector<std::vector<ArduinoProtocol::GlueRow>> guns;
-        if (plan.contains("guns") && plan["guns"].is_array()) {
-            for (const auto& gun : plan["guns"]) {
-                std::vector<ArduinoProtocol::GlueRow> gunRows;
-                if (gun.contains("rows") && gun["rows"].is_array()) {
-                    for (const auto& row : gun["rows"]) {
-                        ArduinoProtocol::GlueRow glueRow;
-                        glueRow.from = row.value("from", 0);
-                        glueRow.to = row.value("to", 100);
-                        glueRow.space = row.value("space", 5.0);
-                        gunRows.push_back(glueRow);
-                    }
-                }
-                guns.push_back(gunRows);
-            }
-        }
-        
-        // Create and send plan message
-        std::string planMessage = ArduinoProtocol::createPlanMessage(guns);
-        if (!planMessage.empty()) {
-            ArduinoProtocol::sendMessage(eventQueue_, communicationPort, planMessage);
-            getLogger()->info("[sendPlanToController] Sent plan '{}' to '{}' via '{}': {}", 
-                             planName, controllerName, communicationPort, planMessage);
-        }
-        
-    } catch (const std::exception& e) {
-        getLogger()->error("[sendPlanToController] Exception: {}", e.what());
-    }
-}
 
 // Send run/stop command to all enabled controllers
 void SettingsWindow::sendRunStopToEnabledControllers(bool run) {

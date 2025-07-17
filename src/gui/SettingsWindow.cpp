@@ -1591,53 +1591,7 @@ void SettingsWindow::saveCurrentGlueControllerSettings()
     }
 }
 
-// Save current glue plan settings including name and sensor offset
-void SettingsWindow::saveCurrentGluePlanSettings()
-{
-    if (!config_ || currentGlueControllerName_.empty() || currentGluePlanName_.empty()) {
-        return;
-    }
-    
-    try {
-        Config* mutableConfig = const_cast<Config*>(config_);
-        nlohmann::json glueSettings = mutableConfig->getGlueSettings();
-        
-        // Get the plan name from the UI
-        QString planName = ui->gluePlanNameLineEdit->text().trimmed();
-        
-        // Get the sensor offset from the UI
-        int sensorOffset = ui->gluePlanSensorOffsetSpinBox->value();
-        
-        // Ensure the structure exists
-        if (glueSettings.contains("controllers") && 
-            glueSettings["controllers"].contains(currentGlueControllerName_) &&
-            glueSettings["controllers"][currentGlueControllerName_].contains("plans") &&
-            glueSettings["controllers"][currentGlueControllerName_]["plans"].contains(currentGluePlanName_)) {
-            
-            // Update the plan name and sensor offset
-            auto& plan = glueSettings["controllers"][currentGlueControllerName_]["plans"][currentGluePlanName_];
-            plan["name"] = planName.toStdString();
-            plan["sensorOffset"] = sensorOffset;
-            
-            // Save the updated settings using the correct method
-            mutableConfig->updateGlueSettings(glueSettings);
-            
-            // Also save gun settings (rows, etc.)
-            saveCurrentGunSettings();
-            
-            // Save to file
-            if (!mutableConfig->saveToFile()) {
-                spdlog::warn("Failed to save glue settings to file");
-            }
-            
-            // Log the update
-            spdlog::info("Updated glue plan settings for controller '{}', plan '{}'", 
-                        currentGlueControllerName_, currentGluePlanName_);
-        }
-    } catch (const std::exception& e) {
-        spdlog::error("Error saving glue plan settings: {}", e.what());
-    }
-}
+// saveCurrentGluePlanSettings has been removed - functionality moved to individual handlers
 
 // Save current glue plan settings without reloading tab
 void SettingsWindow::saveCurrentPlanWithoutReload()
@@ -1734,26 +1688,38 @@ void SettingsWindow::saveCurrentPlanWithoutReload()
 // Add a row to the glue plan table
 void SettingsWindow::addGlueRowToTable(int from, int to, double space)
 {
-    // Get current row count
-    int row = ui->glueRowsTable->rowCount();
+    // Block signals to prevent multiple change events
+    bool wasBlocked = ui->glueRowsTable->blockSignals(true);
     
-    // Insert a new row
-    ui->glueRowsTable->insertRow(row);
-    
-    // Create and set table items
-    QTableWidgetItem* fromItem = new QTableWidgetItem(QString::number(from));
-    QTableWidgetItem* toItem = new QTableWidgetItem(QString::number(to));
-    QTableWidgetItem* spaceItem = new QTableWidgetItem(QString::number(space));
-    
-    // Add items to the table
-    ui->glueRowsTable->setItem(row, 0, fromItem);
-    ui->glueRowsTable->setItem(row, 1, toItem);
-    ui->glueRowsTable->setItem(row, 2, spaceItem);
-    
-    // Hide space column if type is line
-    if (ui->glueTypeComboBox->currentText().toLower() != "dots") {
-        ui->glueRowsTable->setColumnHidden(2, true);
+    try {
+        // Get current row count
+        int row = ui->glueRowsTable->rowCount();
+        
+        // Insert a new row
+        ui->glueRowsTable->insertRow(row);
+        
+        // Create and set table items
+        QTableWidgetItem* fromItem = new QTableWidgetItem(QString::number(from));
+        QTableWidgetItem* toItem = new QTableWidgetItem(QString::number(to));
+        QTableWidgetItem* spaceItem = new QTableWidgetItem(QString::number(space));
+        
+        // Add items to the table
+        ui->glueRowsTable->setItem(row, 0, fromItem);
+        ui->glueRowsTable->setItem(row, 1, toItem);
+        ui->glueRowsTable->setItem(row, 2, spaceItem);
+        
+        // Hide space column if type is line
+        if (ui->glueTypeComboBox->currentText().toLower() != "dots") {
+            ui->glueRowsTable->setColumnHidden(2, true);
+        }
+    } catch (...) {
+        // Make sure to restore signal blocking state even if an exception occurs
+        ui->glueRowsTable->blockSignals(wasBlocked);
+        throw;
     }
+    
+    // Restore signal blocking state
+    ui->glueRowsTable->blockSignals(wasBlocked);
 }
 
 // Handle adding a new glue controller
@@ -1922,9 +1888,11 @@ void SettingsWindow::on_addGluePlanButton_clicked()
         return;
     }
     
-    // Save current plan settings
+    // Save current plan settings if needed
     if (!currentGluePlanName_.empty()) {
-        saveCurrentGluePlanSettings();
+        // Plan name and sensor offset are now saved directly in their handlers
+        // Just ensure gun settings are saved
+        saveCurrentGunSettings();
     }
     
     try {
@@ -2045,11 +2013,23 @@ void SettingsWindow::on_addGlueRowButton_clicked()
         return;
     }
     
-    // Add a new row with default values
-    addGlueRowToTable(0, 100, 10.0);
+    // Block signals to prevent multiple change events
+    bool wasBlocked = ui->glueRowsTable->blockSignals(true);
     
-    // Save changes for the current gun
-    saveCurrentGunSettings();
+    try {
+        // Add a new row with default values
+        addGlueRowToTable(0, 100, 10.0);
+        
+        // Save changes for the current gun
+        saveCurrentGunSettings();
+    } catch (...) {
+        // Make sure to restore signal blocking state even if an exception occurs
+        ui->glueRowsTable->blockSignals(wasBlocked);
+        throw;
+    }
+    
+    // Restore signal blocking state
+    ui->glueRowsTable->blockSignals(wasBlocked);
 }
 
 // Handle removing a row from the glue plan
@@ -2415,6 +2395,9 @@ void SettingsWindow::on_gluePlanNameLineEdit_textChanged(const QString& text)
                 if (isActivePlan) {
                     saveActivePlanForController();
                 }
+                
+                // Send updated controller setup to Arduino
+                sendControllerSetupToActiveController();
             }
         }
     } catch (const std::exception& e) {
@@ -2447,6 +2430,9 @@ void SettingsWindow::on_gluePlanSensorOffsetSpinBox_valueChanged(int value)
         // Persist changes to file
         if (!mutableConfig->saveToFile()) {
             getLogger()->warn("[on_gluePlanSensorOffsetSpinBox_valueChanged] Failed to save settings to file");
+        } else {
+            // Send updated controller setup to Arduino
+            sendControllerSetupToActiveController();
         }
         
     } catch (const std::exception& e) {
@@ -2461,8 +2447,8 @@ void SettingsWindow::onGlueRowCellChanged(int row, int column)
         return;
     }
     
-    // Save changes
-    saveCurrentGluePlanSettings();
+    // Save gun settings (including rows)
+    saveCurrentGunSettings();
 }
 
 // Fill all tabs with default values (used when config is missing or invalid)
@@ -3333,24 +3319,18 @@ void SettingsWindow::on_gunEnabledCheckBox_stateChanged(int state)
     
 }
 
-void SettingsWindow::on_glueRowsTable_itemChanged(QTableWidgetItem* item)
-{
-    if (isRefreshing_ || !config_ || !item) {
-        return;
-    }
-    
-    // Save gun settings when table items are changed
-    saveCurrentGunSettings();
-}
-
-
 
 // Helper function to load gun data for the selected gun
 void SettingsWindow::loadCurrentGunData(int gunIndex)
 {
-    if (!config_ || currentGlueControllerName_.empty() || currentGluePlanName_.empty()) {
+    if (!config_ || currentGlueControllerName_.empty() || currentGlueControllerName_ == "Select Controller" || 
+        currentGluePlanName_.empty() || currentGluePlanName_ == "Select Plan") {
         return;
     }
+    
+    // Block signals to prevent multiple change events during gun loading
+    bool wasBlocked = ui->glueRowsTable->blockSignals(true);
+    bool wasCheckboxBlocked = false;
     
     try {
         nlohmann::json glueSettings = config_->getGlueSettings();
@@ -3358,10 +3338,15 @@ void SettingsWindow::loadCurrentGunData(int gunIndex)
             !glueSettings["controllers"].contains(currentGlueControllerName_) ||
             !glueSettings["controllers"][currentGlueControllerName_].contains("plans") ||
             !glueSettings["controllers"][currentGlueControllerName_]["plans"].contains(currentGluePlanName_)) {
+            // Restore signal blocking state before returning
+            ui->glueRowsTable->blockSignals(wasBlocked);
             return;
         }
         
         auto plan = glueSettings["controllers"][currentGlueControllerName_]["plans"][currentGluePlanName_];
+        
+        // Block checkbox signals while updating
+        wasCheckboxBlocked = ui->gunEnabledCheckBox->blockSignals(true);
         
         // Load gun data if it exists
         if (plan.contains("guns") && plan["guns"].is_array() && gunIndex < plan["guns"].size()) {
@@ -3379,36 +3364,85 @@ void SettingsWindow::loadCurrentGunData(int gunIndex)
             ui->glueRowsTable->setRowCount(0);
         }
         
+        
     } catch (const std::exception& e) {
         getLogger()->error("[loadCurrentGunData] Exception: {}", e.what());
+    } catch (...) {
+        getLogger()->error("[loadCurrentGunData] Unknown exception");
+    }
+    
+    // Always restore signal blocking states in the right order
+    ui->gunEnabledCheckBox->blockSignals(wasCheckboxBlocked);
+    ui->glueRowsTable->blockSignals(wasBlocked);
+    
+    // Debug log to verify signals are properly restored
+    if (ui->glueRowsTable->signalsBlocked()) {
+        getLogger()->warn("[loadCurrentGunData] WARNING: Table signals are still blocked after gun load!");
     }
 }
 
 // Helper function to load gun rows into the table
 void SettingsWindow::loadGunRowsIntoTable(const nlohmann::json& gun)
 {
-    if (!gun.contains("rows") || !gun["rows"].is_array()) {
-        ui->glueRowsTable->setRowCount(0);
+    if (!ui->glueRowsTable) {
+        getLogger()->error("[loadGunRowsIntoTable] glueRowsTable is null!");
         return;
     }
     
-    auto rows = gun["rows"];
-    ui->glueRowsTable->setRowCount(rows.size());
+    // Store current signal blocking state
+    bool wasBlocked = ui->glueRowsTable->signalsBlocked();
     
-    for (size_t i = 0; i < rows.size(); ++i) {
-        auto row = rows[i];
+    try {
+        // Block signals only if they're not already blocked
+        if (!wasBlocked) {
+            ui->glueRowsTable->blockSignals(true);
+        }
         
-        // From column
-        QTableWidgetItem* fromItem = new QTableWidgetItem(QString::number(row.value("from", 0)));
-        ui->glueRowsTable->setItem(i, 0, fromItem);
+        // Clear existing rows
+        ui->glueRowsTable->setRowCount(0);
         
-        // To column
-        QTableWidgetItem* toItem = new QTableWidgetItem(QString::number(row.value("to", 100)));
-        ui->glueRowsTable->setItem(i, 1, toItem);
+        if (!gun.contains("rows") || !gun["rows"].is_array()) {
+            // Only restore if we changed it
+            if (!wasBlocked) {
+                ui->glueRowsTable->blockSignals(wasBlocked);
+            }
+            return;
+        }
         
-        // Space column
-        QTableWidgetItem* spaceItem = new QTableWidgetItem(QString::number(row.value("space", 5.0)));
-        ui->glueRowsTable->setItem(i, 2, spaceItem);
+        auto rows = gun["rows"];
+        
+        // Load rows with signals blocked
+        for (size_t i = 0; i < rows.size(); ++i) {
+            auto row = rows[i];
+            
+            // Add a new row
+            int rowPos = ui->glueRowsTable->rowCount();
+            ui->glueRowsTable->insertRow(rowPos);
+            
+            // From column
+            QTableWidgetItem* fromItem = new QTableWidgetItem(QString::number(row.value("from", 0)));
+            ui->glueRowsTable->setItem(rowPos, 0, fromItem);
+            
+            // To column
+            QTableWidgetItem* toItem = new QTableWidgetItem(QString::number(row.value("to", 100)));
+            ui->glueRowsTable->setItem(rowPos, 1, toItem);
+            
+            // Space column
+            QTableWidgetItem* spaceItem = new QTableWidgetItem(QString::number(row.value("space", 5.0)));
+            ui->glueRowsTable->setItem(rowPos, 2, spaceItem);
+        }
+    } catch (const std::exception& e) {
+        getLogger()->error("[loadGunRowsIntoTable] Exception: {}", e.what());
+    } catch (...) {
+        getLogger()->error("[loadGunRowsIntoTable] Unknown exception");
+    }
+    
+    // Always restore the original signal blocking state
+    ui->glueRowsTable->blockSignals(wasBlocked);
+    
+    // Debug log to verify signals are properly restored
+    if (ui->glueRowsTable->signalsBlocked() != wasBlocked) {
+        getLogger()->warn("[loadGunRowsIntoTable] WARNING: Signal blocking state mismatch after loading rows!");
     }
 }
 

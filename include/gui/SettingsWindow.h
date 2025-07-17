@@ -55,7 +55,6 @@ public:
     // Gun selector slots
     void on_gunSelectorComboBox_currentIndexChanged(int index);
     void on_gunEnabledCheckBox_stateChanged(int state);
-    void on_glueRowsTable_itemChanged(QTableWidgetItem* item);
     
     // Row button slots
     void on_addGlueRowButton_clicked();
@@ -152,7 +151,6 @@ private:
     void saveActiveGlueController();
     void saveActivePlanForController();
     void onGlueControllerNameChanged();
-    void saveCurrentGluePlanSettings();
     void saveCurrentPlanWithoutReload();
     void updateGlueTypeVisibility(int index = 0);
     void populateGlueCommunicationComboBox();

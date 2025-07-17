@@ -18,3 +18,7 @@ new
 
 saveCurrentGluePlanSettings
 saveCurrentGunSettings
+
+
+
+send controller setup to arduino on startup

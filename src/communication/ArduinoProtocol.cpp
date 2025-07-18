@@ -44,11 +44,13 @@ std::string ArduinoProtocol::createPlanMessage(const std::vector<std::vector<Glu
 std::string ArduinoProtocol::createControllerSetupMessage(const std::string& controllerType,
                                                         double encoderResolution,
                                                         int sensorOffset,
+                                                        bool controllerEnabled,
                                                         const std::vector<std::pair<bool, std::vector<GlueRow>>>& guns) {
     try {
         nlohmann::json setupMsg;
         setupMsg["type"] = "controller_setup";
         setupMsg["controllerType"] = controllerType;
+        setupMsg["enabled"] = controllerEnabled;
         setupMsg["encoder"] = encoderResolution;
         setupMsg["sensorOffset"] = sensorOffset;
         setupMsg["guns"] = nlohmann::json::array();

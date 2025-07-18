@@ -151,6 +151,9 @@ SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQ
         }
     }
 
+    // Send initial controller setup to ensure hardware is in sync with UI
+    QMetaObject::invokeMethod(this, &SettingsWindow::sendControllerSetupToActiveController, Qt::QueuedConnection);
+    
     isRefreshing_ = false;
 }
 // ----------------------------------------------------------------------------
@@ -1309,13 +1312,21 @@ void SettingsWindow::onGluePlanSelectorChanged(int index)
         return;
     }
     
-    // If not refreshing, save the active plan and reload
+    // If not refreshing, save the active plan, reload, and update controller
     if (!isRefreshing_) {
         // Get the selected plan ID
         if (index >= 0 && index < ui->gluePlanSelectorComboBox->count()) {
-            currentGluePlanName_ = ui->gluePlanSelectorComboBox->itemData(index).toString().toStdString();
-            saveActivePlanForController();
-            fillGlueTabFields();
+            std::string newPlanId = ui->gluePlanSelectorComboBox->itemData(index).toString().toStdString();
+            
+            // Only proceed if the plan actually changed
+            if (newPlanId != currentGluePlanName_) {
+                currentGluePlanName_ = newPlanId;
+                saveActivePlanForController();
+                fillGlueTabFields();
+                
+                // Send the new plan to the controller
+                sendControllerSetupToActiveController();
+            }
         }
         return;
     }
@@ -1888,12 +1899,8 @@ void SettingsWindow::on_addGluePlanButton_clicked()
         return;
     }
     
-    // Save current plan settings if needed
-    if (!currentGluePlanName_.empty()) {
-        // Plan name and sensor offset are now saved directly in their handlers
-        // Just ensure gun settings are saved
-        saveCurrentGunSettings();
-    }
+    // Don't save current gun settings here as it causes the old plan to be sent
+    // We'll handle saving the current gun settings after adding the new plan
     
     try {
         // Get current glue settings
@@ -1949,20 +1956,30 @@ void SettingsWindow::on_addGluePlanButton_clicked()
         // Add the new plan to the controller
         controller["plans"][newPlanId] = newPlan;
         
+        // Set the new plan as active
+        controller["activePlan"] = newPlanId;
+        currentGluePlanName_ = newPlanId;
+        
         // Update glue settings in config
         Config* mutableConfig = const_cast<Config*>(config_);
         mutableConfig->updateGlueSettings(glueSettings);
         
+        // Save the active plan to config
+        saveActivePlanForController();
+        
         // Refresh the glue tab
         fillGlueTabFields();
         
-        // Select the new plan
+        // Select the new plan in the UI
         for (int i = 0; i < ui->gluePlanSelectorComboBox->count(); ++i) {
             if (ui->gluePlanSelectorComboBox->itemData(i).toString() == QString::fromStdString(newPlanId)) {
                 ui->gluePlanSelectorComboBox->setCurrentIndex(i);
                 break;
             }
         }
+        
+        // Send updated controller setup to Arduino
+        sendControllerSetupToActiveController();
         
     } catch (const std::exception& e) {
         getLogger()->warn("[on_addGluePlanButton_clicked] Exception: {}", e.what());
@@ -1988,18 +2005,57 @@ void SettingsWindow::on_removeGluePlanButton_clicked()
             return;
         }
         
+                // Check if the plan being removed is the active plan
+        bool wasActivePlan = false;
+        if (glueSettings["controllers"][currentGlueControllerName_].contains("activePlan") &&
+            glueSettings["controllers"][currentGlueControllerName_]["activePlan"] == currentGluePlanName_) {
+            wasActivePlan = true;
+        }
+        
         // Remove the plan
         glueSettings["controllers"][currentGlueControllerName_]["plans"].erase(currentGluePlanName_);
+        
+        // If the removed plan was active, update the active plan
+        if (wasActivePlan) {
+            // Find another plan to make active (first one available)
+            std::string newActivePlan = "";
+            if (!glueSettings["controllers"][currentGlueControllerName_]["plans"].empty()) {
+                newActivePlan = glueSettings["controllers"][currentGlueControllerName_]["plans"].begin().key();
+            }
+            
+            // Update the active plan in settings
+            glueSettings["controllers"][currentGlueControllerName_]["activePlan"] = newActivePlan;
+            
+            // Update currentGluePlanName_ if we found a new active plan
+            if (!newActivePlan.empty()) {
+                currentGluePlanName_ = newActivePlan;
+            } else {
+                currentGluePlanName_ = "";
+            }
+        }
         
         // Update glue settings in config
         Config* mutableConfig = const_cast<Config*>(config_);
         mutableConfig->updateGlueSettings(glueSettings);
         
-        // Clear current plan name
-        currentGluePlanName_ = "";
+        // Persist changes to file
+        if (!mutableConfig->saveToFile()) {
+            getLogger()->warn("[on_removeGluePlanButton_clicked] Failed to save settings to file");
+        }
         
-        // Refresh the glue tab
+        // Clear current plan name if we didn't set a new active plan
+        if (!wasActivePlan || currentGluePlanName_.empty()) {
+            currentGluePlanName_ = "";
+        }
+        
+        // Refresh the glue tab (this will update the UI including the plan selector)
         fillGlueTabFields();
+        
+        // Save the active plan to config
+        saveActivePlanForController();
+        
+        // Send updated controller setup to Arduino
+        sendControllerSetupToActiveController();
         
     } catch (const std::exception& e) {
         getLogger()->warn("[on_removeGluePlanButton_clicked] Exception: {}", e.what());
@@ -2216,8 +2272,12 @@ void SettingsWindow::on_glueControllerEnabledCheckBox_stateChanged(int state)
         
         getLogger()->info("[on_glueControllerEnabledCheckBox_stateChanged] Controller '{}' {} ", 
                          currentGlueControllerName_, enabled ? "enabled" : "disabled");
-            
         
+        // Send updated controller setup to reflect the new enabled state
+        QMetaObject::invokeMethod(this, [this]() {
+            sendControllerSetupToActiveController();
+        }, Qt::QueuedConnection);
+            
     } catch (const std::exception& e) {
         getLogger()->warn("[on_glueControllerEnabledCheckBox_stateChanged] Exception: {}", e.what());
     }
@@ -3552,11 +3612,8 @@ void SettingsWindow::sendControllerSetupToActiveController()
         
         auto controller = glueSettings["controllers"][activeControllerName];
         
-        // Check if controller is enabled
-        if (!controller.value("enabled", false)) {
-            getLogger()->info("[sendControllerSetupToActiveController] Controller '{}' is disabled, skipping setup", activeControllerName);
-            return;
-        }
+        // Get controller enabled state
+        bool controllerEnabled = controller.value("enabled", true);
         
         // Get communication port
         std::string communicationPort = controller.value("communication", "");
@@ -3616,7 +3673,7 @@ void SettingsWindow::sendControllerSetupToActiveController()
         
         // Create and send comprehensive controller setup message
         std::string setupMessage = ArduinoProtocol::createControllerSetupMessage(
-            controllerType, encoderResolution, sensorOffset, guns);
+            controllerType, encoderResolution, sensorOffset, controllerEnabled, guns);
             
         if (!setupMessage.empty()) {
             ArduinoProtocol::sendMessage(eventQueue_, communicationPort, setupMessage);

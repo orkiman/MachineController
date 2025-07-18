@@ -51,6 +51,7 @@ public:
     static std::string createControllerSetupMessage(const std::string& controllerType,
                                                    double encoderResolution,
                                                    int sensorOffset,
+                                                   bool controllerEnabled,
                                                    const std::vector<std::pair<bool, std::vector<GlueRow>>>& guns);
     
     /**

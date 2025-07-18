@@ -65,56 +65,13 @@
     "activeController": "controller_1",
     "controllers": {
       "controller_1": {
-        "activePlan": "plan_1",
+        "activePlan": "plan_3",
         "communication": "communication2",
         "enabled": true,
         "encoder": 1.02,
         "name": "New Controller",
-        "pageLength": 102,
+        "pageLength": 103,
         "plans": {
-          "plan_1": {
-            "guns": [
-              {
-                "enabled": true,
-                "gunId": 1,
-                "rows": [
-                  {
-                    "from": 0,
-                    "space": 10.0,
-                    "to": 104
-                  },
-                  {
-                    "from": 0,
-                    "space": 10.0,
-                    "to": 104
-                  }
-                ]
-              },
-              {
-                "enabled": false,
-                "gunId": 2,
-                "rows": [
-                  {
-                    "from": 0,
-                    "space": 10.0,
-                    "to": 106
-                  }
-                ]
-              },
-              {
-                "enabled": false,
-                "gunId": 3,
-                "rows": []
-              },
-              {
-                "enabled": false,
-                "gunId": 4,
-                "rows": []
-              }
-            ],
-            "name": "c1p1",
-            "sensorOffset": 10
-          },
           "plan_2": {
             "guns": [
               {
@@ -131,13 +88,7 @@
               {
                 "enabled": false,
                 "gunId": 2,
-                "rows": [
-                  {
-                    "from": 0,
-                    "space": 10.0,
-                    "to": 100
-                  }
-                ]
+                "rows": []
               },
               {
                 "enabled": false,
@@ -150,7 +101,76 @@
                 "rows": []
               }
             ],
-            "name": "c1p2",
+            "name": "New Plan",
+            "sensorOffset": 10
+          },
+          "plan_3": {
+            "guns": [
+              {
+                "enabled": true,
+                "gunId": 1,
+                "rows": [
+                  {
+                    "from": 0,
+                    "space": 10.0,
+                    "to": 337
+                  },
+                  {
+                    "from": 0,
+                    "space": 10.0,
+                    "to": 100
+                  }
+                ]
+              },
+              {
+                "enabled": false,
+                "gunId": 2,
+                "rows": []
+              },
+              {
+                "enabled": false,
+                "gunId": 3,
+                "rows": []
+              },
+              {
+                "enabled": false,
+                "gunId": 4,
+                "rows": []
+              }
+            ],
+            "name": "New Plan",
+            "sensorOffset": 10
+          },
+          "plan_41": {
+            "guns": [
+              {
+                "enabled": true,
+                "gunId": 1,
+                "rows": [
+                  {
+                    "from": 0,
+                    "space": 10.0,
+                    "to": 100
+                  }
+                ]
+              },
+              {
+                "enabled": false,
+                "gunId": 2,
+                "rows": []
+              },
+              {
+                "enabled": false,
+                "gunId": 3,
+                "rows": []
+              },
+              {
+                "enabled": false,
+                "gunId": 4,
+                "rows": []
+              }
+            ],
+            "name": "New Plan",
             "sensorOffset": 10
           }
         },

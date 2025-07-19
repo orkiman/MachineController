@@ -92,30 +92,6 @@ std::string ArduinoProtocol::createCalibrateMessage(int pageLength) {
     }
 }
 
-std::string ArduinoProtocol::createRunMessage() {
-    try {
-        nlohmann::json runMsg;
-        runMsg["type"] = "run";
-        
-        return runMsg.dump();
-    } catch (const std::exception& e) {
-        getLogger()->error("[ArduinoProtocol::createRunMessage] Exception: {}", e.what());
-        return "";
-    }
-}
-
-std::string ArduinoProtocol::createStopMessage() {
-    try {
-        nlohmann::json stopMsg;
-        stopMsg["type"] = "stop";
-        
-        return stopMsg.dump();
-    } catch (const std::exception& e) {
-        getLogger()->error("[ArduinoProtocol::createStopMessage] Exception: {}", e.what());
-        return "";
-    }
-}
-
 std::string ArduinoProtocol::createHeartbeatMessage() {
     try {
         nlohmann::json heartbeatMsg;

@@ -2289,48 +2289,6 @@ void SettingsWindow::on_glueControllerEnabledCheckBox_stateChanged(int state)
 
 
 
-// Send run/stop command to all enabled controllers
-void SettingsWindow::sendRunStopToEnabledControllers(bool run) {
-    if (!config_) {
-        return;
-    }
-    
-    try {
-        nlohmann::json glueSettings = config_->getGlueSettings();
-        
-        if (!glueSettings.contains("controllers")) {
-            return;
-        }
-        
-        std::string command = run ? "run" : "stop";
-        
-        for (const auto& [controllerName, controller] : glueSettings["controllers"].items()) {
-            // Check if controller is enabled
-            bool enabled = controller.value("enabled", false);
-            if (!enabled) {
-                continue;
-            }
-            
-            std::string communicationPort = controller.value("communication", "");
-            if (communicationPort.empty()) {
-                getLogger()->warn("[sendRunStopToEnabledControllers] No communication port for controller '{}'", controllerName);
-                continue;
-            }
-            
-            // Create and send run/stop message
-            std::string message = run ? ArduinoProtocol::createRunMessage() : ArduinoProtocol::createStopMessage();
-            if (!message.empty()) {
-                ArduinoProtocol::sendMessage(eventQueue_, communicationPort, message);
-                getLogger()->info("[sendRunStopToEnabledControllers] Sent '{}' to '{}' via '{}': {}", 
-                                 command, controllerName, communicationPort, message);
-            }
-        }
-        
-    } catch (const std::exception& e) {
-        getLogger()->error("[sendRunStopToEnabledControllers] Exception: {}", e.what());
-    }
-}
-
 // Handle encoder calibration response from Arduino
 void SettingsWindow::onGlueEncoderCalibrationResponse(int pulsesPerPage, const std::string& controllerName)
 {

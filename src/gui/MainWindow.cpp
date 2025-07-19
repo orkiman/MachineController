@@ -64,14 +64,6 @@ MainWindow::~MainWindow() {
     delete settingsWindow_;
 }
 
-void MainWindow::on_runButton_clicked() {
-    getLogger()->debug("Run button clicked");
-}
-
-void MainWindow::on_stopButton_clicked() {
-    getLogger()->debug("Stop button clicked");
-}
-
 void MainWindow::on_settingsButton_clicked() {
     // Show the settings window when the settings button is clicked
     if (settingsWindow_) {

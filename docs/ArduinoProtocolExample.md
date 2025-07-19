@@ -108,28 +108,34 @@ Expected response from Arduino after calibration is complete.
 }
 ```
 
-### 5. Run Command
-Sent to start glue application on enabled controllers.
+### 5. Controller Setup Message
+Sent when controller settings are changed or when the enabled state changes.
 
 **Format:**
 ```json
 {
-  "type": "run"
+  "type": "controller_setup",
+  "controllerType": "dots",
+  "enabled": true,
+  "encoder": 2.5,
+  "sensorOffset": 15,
+  "guns": [
+    {
+      "enabled": true,
+      "rows": [
+        {
+          "from": 10,
+          "to": 50,
+          "space": 5.0
+        }
+      ]
+    }
+  ]
 }
 ```
 
-### 6. Stop Command
-Sent to stop glue application on enabled controllers.
-
-**Format:**
-```json
-{
-  "type": "stop"
-}
-```
-
-### 7. Heartbeat
-Periodic message to check communication status.
+### 6. Heartbeat Message
+Periodically sent to verify the connection is alive.
 
 **Format:**
 ```json

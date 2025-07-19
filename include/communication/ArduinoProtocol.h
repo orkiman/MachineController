@@ -62,18 +62,6 @@ public:
     static std::string createCalibrateMessage(int pageLength);
     
     /**
-     * @brief Create run command message
-     * @return JSON string for run command
-     */
-    static std::string createRunMessage();
-    
-    /**
-     * @brief Create stop command message
-     * @return JSON string for stop command
-     */
-    static std::string createStopMessage();
-    
-    /**
      * @brief Create heartbeat message
      * @return JSON string for heartbeat
      */

@@ -40,8 +40,6 @@ private slots:
     // Method to signal that the window is fully initialized and ready
     void emitWindowReady();
     
-    void on_runButton_clicked();
-    void on_stopButton_clicked();
     void on_settingsButton_clicked();
     void on_clearMessageAreaButton_clicked();
     void on_testButton_clicked();

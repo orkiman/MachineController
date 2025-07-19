@@ -68,9 +68,9 @@
         "activePlan": "plan_3",
         "communication": "communication2",
         "enabled": true,
-        "encoder": 1.02,
+        "encoder": 1.04,
         "name": "New Controller",
-        "pageLength": 103,
+        "pageLength": 106,
         "plans": {
           "plan_2": {
             "guns": [
@@ -139,7 +139,7 @@
               }
             ],
             "name": "New Plan",
-            "sensorOffset": 10
+            "sensorOffset": 12
           },
           "plan_41": {
             "guns": [

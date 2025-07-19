@@ -3,26 +3,34 @@ ARDUINO PROTOCOL - QUICK START
 
 MINIMAL COMMUNICATION EXAMPLE (Both Directions)
 
-1. SETUP MESSAGE (PC → Arduino)
-   {"type": "config", "encoder": 1.5, "sensorOffset": 10}
+1. CONTROLLER SETUP (PC → Arduino)
+   {
+     "type": "controller_setup",
+     "controllerType": "dots",
+     "enabled": true,
+     "encoder": 1.5,
+     "sensorOffset": 10,
+     "guns": [
+       {
+         "enabled": true,
+         "rows": [{"from": 10, "to": 50, "space": 5.0}]
+       }
+     ]
+   }
 
-2. PLAN MESSAGE (PC → Arduino)  
-   {"type": "plan", "rows": [{"from": 10, "to": 50, "space": 5.0}]}
-
-3. CALIBRATE REQUEST (PC → Arduino)
+2. CALIBRATE REQUEST (PC → Arduino)
    {"type": "calibrate", "pageLength": 100}
 
-4. CALIBRATE RESPONSE (Arduino → PC)
+3. CALIBRATE RESPONSE (Arduino → PC)
    {"type": "calibration_result", "pulsesPerPage": 12345}
 
-5. RUN COMMAND (PC → Arduino)
-   {"type": "run"}
-
-6. STOP COMMAND (PC → Arduino)
-   {"type": "stop"}
-
-7. HEARTBEAT (PC → Arduino)
+4. HEARTBEAT (PC → Arduino)
    {"type": "heartbeat"}
+
+NOTES:
+- The controller setup message is sent whenever settings change or when the enabled state changes
+- The 'enabled' field controls whether the controller should be active
+- The 'guns' array contains the glue application plan with enabled/disabled state for each gun
 
 ARDUINO CODE SNIPPET:
 ====================

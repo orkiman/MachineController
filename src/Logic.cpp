@@ -593,110 +593,71 @@ void Logic::oneLogicCycle() {
       if (!messageList.empty()) {
         getLogger()->debug("[{}] Processing {} messages from {}", FUNCTION_NAME, messageList.size(), portName);
         
-        // Machine-specific logic for each port
-        // This is where you would implement custom handling for different ports
+        // Process each message in the list
         for (const auto& message : messageList) {
-          // Example of port-specific processing:
-          // if (portName == "COM1") {
-          //   // Handle barcode data
-          //   processBarcode(message);
-          // } else if (portName == "COM2") {
-          //   // Handle sensor data
-          //   processSensorData(message);
-          // } else {
-          //   // Default handling for other ports
-          //   processGenericMessage(portName, message);
-          // }
+          // Try to parse as JSON to check message type
+          try {
+            auto json = nlohmann::json::parse(message);
+            
+            // Check if this is a calibration response
+            if (json.contains("type") && json["type"] == "calibration_result") {
+              if (json.contains("pulsesPerPage")) {
+                int pulsesPerPage = json["pulsesPerPage"];
+                getLogger()->info("[{}] Received calibration response from {}: {} pulses per page", 
+                                FUNCTION_NAME, portName, pulsesPerPage);
+                
+                // Emit signal with calibration result
+                // The controller name is the same as the port name for now
+                emit calibrationResponse(pulsesPerPage, portName);
+                continue; // Skip default logging for calibration responses
+              }
+            }
+            
+            // Add other message type handlers here as needed
+            
+          } catch (const std::exception& e) {
+            // Not a JSON message or invalid JSON, log as debug
+            getLogger()->debug("[{}] Non-JSON message from {}: {}", FUNCTION_NAME, portName, message);
+          }
           
-          // For now, just log the message
+          // Default logging for unhandled messages
           getLogger()->debug("[{}] Message from {}: {}", FUNCTION_NAME, portName, message);
         }
-        // After processing, for each active communication port, check the message at the configured offset
-        // and print it or print "no message yet"
         
-        // Find offset for this port
-        int offset = 0;
-        auto commSettings = config_.getCommunicationSettings();
-        if (commSettings.contains(portName) && commSettings[portName].contains("offset")) {
-          offset = commSettings[portName]["offset"].get<int>();
-        }
-        // Check if message exists at offset
-        if (messageList.size() > static_cast<size_t>(offset) && !messageList[offset].empty()) {
-          const std::string& msg = messageList[offset];
-          getLogger()->info("[{}] Port '{}' message at offset {}: '{}' (len={})", FUNCTION_NAME, portName, offset, msg, msg.length());
-        } else {
-          getLogger()->info("[{}] Port '{}' message at offset {}: no message yet", FUNCTION_NAME, portName, offset);
-        }
-
         // Clear the list after processing
         messageList.clear();
-      }else{  
-        getLogger()->debug("[{}] no messages in{}", FUNCTION_NAME, portName);
+      } else {  
+        getLogger()->debug("[{}] No messages in {}", FUNCTION_NAME, portName);
       }
     }
-
     
     // Reset the flag after processing all communication data
     commUpdated_ = false;
   }
   
-  // reset timers edge
+  // Reset timers' edge detection
   for (auto& [name, timer] : timers_) {
     timer.setEventType(IOEventType::None);
   }
   
-  return;
-
-
-
-
-  // i didnt deal with this bottom yet
-  // Log the start of a logic cycle
-  getLogger()->debug("[{}] Starting logic cycle", FUNCTION_NAME);
-
   // Process input changes if inputs were updated
   if (inputsUpdated_) {
     getLogger()->debug("[{}] Processing input changes", FUNCTION_NAME);
 
     // Example of machine-specific logic based on input states
-    // Check for specific input conditions
     if (inputChannels_.count("i8") > 0 && inputChannels_.count("i9") > 0) {
       if (inputChannels_["i8"].eventType == IOEventType::Rising &&
           inputChannels_["i9"].state == 0) {
-        std::cout << "start process started" << std::endl;
-        // Add machine-specific actions here
+        getLogger()->debug("[{}] Start process triggered", FUNCTION_NAME);
       }
     }
 
     inputsUpdated_ = false; // Reset the flag
   }
 
-  // Process communication data if it was updated
-  if (commUpdated_) {
-    getLogger()->debug("[{}] Processing communication updates", FUNCTION_NAME);
-
-    // Example: Process messages from different ports
-    for (const auto &[port, messageList] : communicationDataLists_) {
-      // Add machine-specific communication handling here
-      // Example: Parse commands, update registers, etc.
-      getLogger()->debug("[{}] Processing {} messages from {}", FUNCTION_NAME, messageList.size(), port);
-      
-      // Process each message in the list
-      for (const auto& message : messageList) {
-        getLogger()->debug("[{}] Message from {}: {}", FUNCTION_NAME, port, message);
-        // Add your machine-specific message handling here
-      }
-    }
-
-    commUpdated_ = false; // Reset the flag
-  }
-
   // Process timer events if any timer was updated
   if (timerUpdated_) {
     getLogger()->debug("[{}] Processing timer updates", FUNCTION_NAME);
-
-    // Add machine-specific timer handling here
-
     timerUpdated_ = false; // Reset the flag
   }
 

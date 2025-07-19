@@ -68,9 +68,9 @@
         "activePlan": "plan_3",
         "communication": "communication2",
         "enabled": true,
-        "encoder": 1.04,
+        "encoder": 2.51,
         "name": "New Controller",
-        "pageLength": 106,
+        "pageLength": 100,
         "plans": {
           "plan_2": {
             "guns": [

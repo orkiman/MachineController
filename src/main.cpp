@@ -87,6 +87,10 @@ int main(int argc, char* argv[]) {
     QObject::connect(mainWindow.getSettingsWindow(), SIGNAL(outputStateChanged(const std::unordered_map<std::string, IOChannel>&)), 
                      &logic, SLOT(handleOutputStateChanged(const std::unordered_map<std::string, IOChannel>&)));
                      
+    // Connect Logic's calibration response signal to SettingsWindow's handler
+    QObject::connect(&logic, SIGNAL(calibrationResponse(int, const std::string&)),
+                     mainWindow.getSettingsWindow(), SLOT(onGlueEncoderCalibrationResponse(int, const std::string&)));
+                     
     // 3. Start Logic in a separate thread
     std::thread logicThread([&logic]() {
         logic.run();

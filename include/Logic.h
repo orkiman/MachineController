@@ -27,6 +27,7 @@ signals:
     void updateGui(const QString &msg);
     void guiMessage(const QString &msg, const QString &identifier);
     void inputStatesChanged(const std::unordered_map<std::string, IOChannel>& inputs);
+    void calibrationResponse(int pulsesPerPage, const std::string& controllerName);
     
 public slots:
     // Initialize components that require GUI to be ready

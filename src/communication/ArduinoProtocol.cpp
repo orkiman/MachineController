@@ -45,7 +45,11 @@ std::string ArduinoProtocol::createControllerSetupMessage(const std::string& con
                                                         double encoderResolution,
                                                         int sensorOffset,
                                                         bool controllerEnabled,
-                                                        const std::vector<std::pair<bool, std::vector<GlueRow>>>& guns) {
+                                                        const std::vector<std::pair<bool, std::vector<GlueRow>>>& guns,
+                                                        double startCurrent,
+                                                        double startDuration,
+                                                        double holdCurrent,
+                                                        const std::string& dotSize) {
     try {
         nlohmann::json setupMsg;
         setupMsg["type"] = "controller_setup";
@@ -53,6 +57,13 @@ std::string ArduinoProtocol::createControllerSetupMessage(const std::string& con
         setupMsg["enabled"] = controllerEnabled;
         setupMsg["encoder"] = encoderResolution;
         setupMsg["sensorOffset"] = sensorOffset;
+        
+        // Add new glue controller fields
+        setupMsg["startCurrent"] = startCurrent;
+        setupMsg["startDuration"] = startDuration;
+        setupMsg["holdCurrent"] = holdCurrent;
+        setupMsg["dotSize"] = dotSize;
+        
         setupMsg["guns"] = nlohmann::json::array();
         
         for (size_t i = 0; i < guns.size(); ++i) {

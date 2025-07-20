@@ -121,6 +121,12 @@ private slots:
     void on_gluePlanNameLineEdit_textChanged(const QString& text);
     void on_gluePlanSensorOffsetSpinBox_valueChanged(int value);
     void onGlueRowCellChanged(int row, int column);
+    
+    // New glue controller field slots
+    void on_glueStartCurrentSpinBox_valueChanged(double value);
+    void on_glueStartDurationSpinBox_valueChanged(double value);
+    void on_glueHoldCurrentSpinBox_valueChanged(double value);
+    void on_glueDotSizeComboBox_currentIndexChanged(int index);
 
 private:
     // Current selected communication channel name

@@ -107,8 +107,9 @@ SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQ
     // Connect glue controller selector to our specific handler (not using auto-connect naming)
     connect(ui->glueControllerSelectorComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SettingsWindow::onGlueControllerSelectorChanged);
     connect(ui->gluePlanSelectorComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SettingsWindow::onGluePlanSelectorChanged);
-    // Note: All other glue tab elements use Qt's auto-connect feature via on_<objectName>_<signalName>() naming convention
-    // This includes: buttons, line edits, combo boxes, and spin boxes - no manual connections needed
+    
+    // Note: All glue tab elements use Qt's auto-connect feature via on_<objectName>_<signalName>() naming convention
+    // This includes: buttons, line edits, and other combo boxes - no manual connections needed
 
     // Fill all tab fields with current config values
     fillCommunicationTabFields();
@@ -1242,6 +1243,38 @@ void SettingsWindow::onGlueControllerSelectorChanged(int index)
             }
             ui->glueControllerEnabledCheckBox->setChecked(enabled);
             
+            // Set start current (A)
+            double startCurrent = 1.0; // Default value (1.0A)
+            if (controller.contains("startCurrent") && controller["startCurrent"].is_number()) {
+                startCurrent = controller["startCurrent"].get<double>();
+            }
+            ui->glueStartCurrentSpinBox->setValue(startCurrent);
+            
+            // Set start duration (ms)
+            double startDuration = 0.5; // Default value (0.5ms)
+            if (controller.contains("startDuration") && controller["startDuration"].is_number()) {
+                startDuration = controller["startDuration"].get<double>();
+            }
+            ui->glueStartDurationSpinBox->setValue(startDuration);
+            
+            // Set hold current (A)
+            double holdCurrent = 0.5; // Default value (0.5A)
+            if (controller.contains("holdCurrent") && controller["holdCurrent"].is_number()) {
+                holdCurrent = controller["holdCurrent"].get<double>();
+            }
+            ui->glueHoldCurrentSpinBox->setValue(holdCurrent);
+            
+            // Set dot size (small/medium/large)
+            std::string dotSize = "medium"; // Default value
+            if (controller.contains("dotSize") && controller["dotSize"].is_string()) {
+                dotSize = controller["dotSize"].get<std::string>();
+            }
+            QString qDotSize = QString::fromStdString(dotSize);
+            int dotSizeIndex = ui->glueDotSizeComboBox->findText(qDotSize, Qt::MatchFixedString);
+            if (dotSizeIndex >= 0) {
+                ui->glueDotSizeComboBox->setCurrentIndex(dotSizeIndex);
+            }
+            
             // Clear and populate plan selector
             ui->gluePlanSelectorComboBox->clear();
             
@@ -1303,6 +1336,13 @@ void SettingsWindow::onGlueControllerSelectorChanged(int index)
     ui->gluePlanSelectorComboBox->blockSignals(false);
     ui->glueRowsTable->blockSignals(false);
     isRefreshing_ = false;
+    
+    // Send the controller setup to the Arduino
+    if (!currentGlueControllerName_.empty()) {
+        QMetaObject::invokeMethod(this, [this]() {
+            sendControllerSetupToActiveController();
+        }, Qt::QueuedConnection);
+    }
 }
 
 // Handle glue plan selection change
@@ -1770,6 +1810,10 @@ void SettingsWindow::on_addGlueControllerButton_clicked()
             {"encoder", 1.0},
             {"enabled", true},
             {"pageLength", 100},
+            {"startCurrent", 1.0},  // Default start current: 1.0A
+            {"startDuration", 0.5}, // Default start duration: 0.5ms
+            {"holdCurrent", 0.5},   // Default hold current: 0.5A
+            {"dotSize", "medium"},  // Default dot size: medium
             {"plans", nlohmann::json::object()}
         };
         
@@ -2280,6 +2324,120 @@ void SettingsWindow::on_glueControllerEnabledCheckBox_stateChanged(int state)
             
     } catch (const std::exception& e) {
         getLogger()->warn("[on_glueControllerEnabledCheckBox_stateChanged] Exception: {}", e.what());
+    }
+}
+
+// ============================================================================
+//  New Glue Controller Field Slots
+// ============================================================================
+
+void SettingsWindow::on_glueStartCurrentSpinBox_valueChanged(double value) {
+    if (isRefreshing_ || !config_ || currentGlueControllerName_.empty()) {
+        return;
+    }
+    
+    try {
+        // Save the current controller settings
+        nlohmann::json glueSettings = config_->getGlueSettings();
+        if (glueSettings.contains("controllers") && glueSettings["controllers"].contains(currentGlueControllerName_)) {
+            glueSettings["controllers"][currentGlueControllerName_]["startCurrent"] = value;
+            
+            // Update the config
+            Config* mutableConfig = const_cast<Config*>(config_);
+            mutableConfig->updateGlueSettings(glueSettings);
+            mutableConfig->saveToFile();
+            
+            getLogger()->debug("[on_glueStartCurrentSpinBox_valueChanged] Updated start current to {} A for controller {}", 
+                             value, currentGlueControllerName_);
+            
+            // Send updated config to controller
+            sendControllerSetupToActiveController();
+        }
+    } catch (const std::exception& e) {
+        getLogger()->error("[on_glueStartCurrentSpinBox_valueChanged] Error: {}", e.what());
+    }
+}
+
+void SettingsWindow::on_glueStartDurationSpinBox_valueChanged(double value) {
+    if (isRefreshing_ || !config_ || currentGlueControllerName_.empty()) {
+        return;
+    }
+    
+    try {
+        // Save the current controller settings
+        nlohmann::json glueSettings = config_->getGlueSettings();
+        if (glueSettings.contains("controllers") && glueSettings["controllers"].contains(currentGlueControllerName_)) {
+            glueSettings["controllers"][currentGlueControllerName_]["startDuration"] = value;
+            
+            // Update the config
+            Config* mutableConfig = const_cast<Config*>(config_);
+            mutableConfig->updateGlueSettings(glueSettings);
+            mutableConfig->saveToFile();
+            
+            getLogger()->debug("[on_glueStartDurationSpinBox_valueChanged] Updated start duration to {} ms for controller {}", 
+                             value, currentGlueControllerName_);
+            
+            // Send updated config to controller
+            sendControllerSetupToActiveController();
+        }
+    } catch (const std::exception& e) {
+        getLogger()->error("[on_glueStartDurationSpinBox_valueChanged] Error: {}", e.what());
+    }
+}
+
+void SettingsWindow::on_glueHoldCurrentSpinBox_valueChanged(double value) {
+    if (isRefreshing_ || !config_ || currentGlueControllerName_.empty()) {
+        return;
+    }
+    
+    try {
+        // Save the current controller settings
+        nlohmann::json glueSettings = config_->getGlueSettings();
+        if (glueSettings.contains("controllers") && glueSettings["controllers"].contains(currentGlueControllerName_)) {
+            glueSettings["controllers"][currentGlueControllerName_]["holdCurrent"] = value;
+            
+            // Update the config
+            Config* mutableConfig = const_cast<Config*>(config_);
+            mutableConfig->updateGlueSettings(glueSettings);
+            mutableConfig->saveToFile();
+            
+            getLogger()->debug("[on_glueHoldCurrentSpinBox_valueChanged] Updated hold current to {} A for controller {}", 
+                             value, currentGlueControllerName_);
+            
+            // Send updated config to controller
+            sendControllerSetupToActiveController();
+        }
+    } catch (const std::exception& e) {
+        getLogger()->error("[on_glueHoldCurrentSpinBox_valueChanged] Error: {}", e.what());
+    }
+}
+
+void SettingsWindow::on_glueDotSizeComboBox_currentIndexChanged(int index) {
+    if (isRefreshing_ || !config_ || currentGlueControllerName_.empty()) {
+        return;
+    }
+    
+    try {
+        QString dotSize = ui->glueDotSizeComboBox->currentText();
+        
+        // Save the current controller settings
+        nlohmann::json glueSettings = config_->getGlueSettings();
+        if (glueSettings.contains("controllers") && glueSettings["controllers"].contains(currentGlueControllerName_)) {
+            glueSettings["controllers"][currentGlueControllerName_]["dotSize"] = dotSize.toStdString();
+            
+            // Update the config
+            Config* mutableConfig = const_cast<Config*>(config_);
+            mutableConfig->updateGlueSettings(glueSettings);
+            mutableConfig->saveToFile();
+            
+            getLogger()->debug("[on_glueDotSizeComboBox_currentIndexChanged] Updated dot size to '{}' for controller {}", 
+                             dotSize.toStdString(), currentGlueControllerName_);
+            
+            // Send updated config to controller
+            sendControllerSetupToActiveController();
+        }
+    } catch (const std::exception& e) {
+        getLogger()->error("[on_glueDotSizeComboBox_currentIndexChanged] Error: {}", e.what());
     }
 }
 
@@ -3630,8 +3788,16 @@ void SettingsWindow::sendControllerSetupToActiveController()
         }
         
         // Create and send comprehensive controller setup message
+        // Get the new glue controller fields
+        double startCurrent = ui->glueStartCurrentSpinBox->value();
+        double startDuration = ui->glueStartDurationSpinBox->value();
+        double holdCurrent = ui->glueHoldCurrentSpinBox->value();
+        std::string dotSize = ui->glueDotSizeComboBox->currentText().toStdString();
+        
+        // Create the controller setup message with all fields
         std::string setupMessage = ArduinoProtocol::createControllerSetupMessage(
-            controllerType, encoderResolution, sensorOffset, controllerEnabled, guns);
+            controllerType, encoderResolution, sensorOffset, controllerEnabled, guns,
+            startCurrent, startDuration, holdCurrent, dotSize);
             
         if (!setupMessage.empty()) {
             ArduinoProtocol::sendMessage(eventQueue_, communicationPort, setupMessage);

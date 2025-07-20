@@ -606,6 +606,119 @@ QDialog[overrideOutputs=&quot;true&quot;] {
                </property>
               </widget>
              </item>
+             <item row="7" column="0">
+              <widget class="QLabel" name="glueStartCurrentLabel">
+               <property name="text">
+                <string>Start Current (A):</string>
+               </property>
+              </widget>
+             </item>
+             <item row="7" column="1">
+              <widget class="QDoubleSpinBox" name="glueStartCurrentSpinBox">
+               <property name="decimals">
+                <number>1</number>
+               </property>
+               <property name="minimum">
+                <double>0.000000000000000</double>
+               </property>
+               <property name="maximum">
+                <double>3.000000000000000</double>
+               </property>
+               <property name="singleStep">
+                <double>0.100000000000000</double>
+               </property>
+               <property name="value">
+                <double>1.000000000000000</double>
+               </property>
+               <property name="suffix">
+                <string> A</string>
+               </property>
+              </widget>
+             </item>
+             <item row="8" column="0">
+              <widget class="QLabel" name="glueStartDurationLabel">
+               <property name="text">
+                <string>Start Duration (ms):</string>
+               </property>
+              </widget>
+             </item>
+             <item row="8" column="1">
+              <widget class="QDoubleSpinBox" name="glueStartDurationSpinBox">
+               <property name="decimals">
+                <number>1</number>
+               </property>
+               <property name="minimum">
+                <double>0.000000000000000</double>
+               </property>
+               <property name="maximum">
+                <double>3.000000000000000</double>
+               </property>
+               <property name="singleStep">
+                <double>0.100000000000000</double>
+               </property>
+               <property name="value">
+                <double>0.500000000000000</double>
+               </property>
+               <property name="suffix">
+                <string> ms</string>
+               </property>
+              </widget>
+             </item>
+             <item row="9" column="0">
+              <widget class="QLabel" name="glueHoldCurrentLabel">
+               <property name="text">
+                <string>Hold Current (A):</string>
+               </property>
+              </widget>
+             </item>
+             <item row="9" column="1">
+              <widget class="QDoubleSpinBox" name="glueHoldCurrentSpinBox">
+               <property name="decimals">
+                <number>1</number>
+               </property>
+               <property name="minimum">
+                <double>0.000000000000000</double>
+               </property>
+               <property name="maximum">
+                <double>3.000000000000000</double>
+               </property>
+               <property name="singleStep">
+                <double>0.100000000000000</double>
+               </property>
+               <property name="value">
+                <double>0.500000000000000</double>
+               </property>
+               <property name="suffix">
+                <string> A</string>
+               </property>
+              </widget>
+             </item>
+             <item row="10" column="0">
+              <widget class="QLabel" name="glueDotSizeLabel">
+               <property name="text">
+                <string>Dot Size:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="10" column="1">
+              <widget class="QComboBox" name="glueDotSizeComboBox">
+               <item>
+                <property name="text">
+                 <string>Small</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Medium</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Large</string>
+                </property>
+               </item>
+              </widget>
+             </item>
             </layout>
            </item>
            <item>

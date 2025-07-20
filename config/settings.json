@@ -62,28 +62,24 @@
     "startPosition": 0
   },
   "glue": {
-    "activeController": "controller_1",
+    "activeController": "controller_2",
     "controllers": {
       "controller_1": {
-        "activePlan": "plan_3",
+        "activePlan": "plan_1",
         "communication": "communication2",
+        "dotSize": "medium",
         "enabled": true,
-        "encoder": 2.51,
+        "encoder": 1.0,
+        "holdCurrent": 0.5,
         "name": "New Controller",
         "pageLength": 100,
         "plans": {
-          "plan_2": {
+          "plan_1": {
             "guns": [
               {
-                "enabled": true,
+                "enabled": false,
                 "gunId": 1,
-                "rows": [
-                  {
-                    "from": 0,
-                    "space": 10.0,
-                    "to": 100
-                  }
-                ]
+                "rows": []
               },
               {
                 "enabled": false,
@@ -101,79 +97,53 @@
                 "rows": []
               }
             ],
-            "name": "New Plan",
-            "sensorOffset": 10
-          },
-          "plan_3": {
-            "guns": [
-              {
-                "enabled": true,
-                "gunId": 1,
-                "rows": [
-                  {
-                    "from": 0,
-                    "space": 10.0,
-                    "to": 337
-                  },
-                  {
-                    "from": 0,
-                    "space": 10.0,
-                    "to": 100
-                  }
-                ]
-              },
-              {
-                "enabled": false,
-                "gunId": 2,
-                "rows": []
-              },
-              {
-                "enabled": false,
-                "gunId": 3,
-                "rows": []
-              },
-              {
-                "enabled": false,
-                "gunId": 4,
-                "rows": []
-              }
-            ],
-            "name": "New Plan",
-            "sensorOffset": 12
-          },
-          "plan_41": {
-            "guns": [
-              {
-                "enabled": true,
-                "gunId": 1,
-                "rows": [
-                  {
-                    "from": 0,
-                    "space": 10.0,
-                    "to": 100
-                  }
-                ]
-              },
-              {
-                "enabled": false,
-                "gunId": 2,
-                "rows": []
-              },
-              {
-                "enabled": false,
-                "gunId": 3,
-                "rows": []
-              },
-              {
-                "enabled": false,
-                "gunId": 4,
-                "rows": []
-              }
-            ],
-            "name": "New Plan",
+            "name": "plan_1",
             "sensorOffset": 10
           }
         },
+        "startCurrent": 1.0,
+        "startDuration": 0.7,
+        "type": "dots"
+      },
+      "controller_2": {
+        "activePlan": "plan_1",
+        "communication": "communication2",
+        "dotSize": "medium",
+        "enabled": true,
+        "encoder": 1.0,
+        "holdCurrent": 0.5,
+        "name": "New Controller",
+        "pageLength": 100,
+        "plans": {
+          "plan_1": {
+            "guns": [
+              {
+                "enabled": false,
+                "gunId": 1,
+                "rows": []
+              },
+              {
+                "enabled": false,
+                "gunId": 2,
+                "rows": []
+              },
+              {
+                "enabled": false,
+                "gunId": 3,
+                "rows": []
+              },
+              {
+                "enabled": false,
+                "gunId": 4,
+                "rows": []
+              }
+            ],
+            "name": "plan_1",
+            "sensorOffset": 10
+          }
+        },
+        "startCurrent": 1.1,
+        "startDuration": 0.5,
         "type": "dots"
       }
     }

@@ -1,32 +1,59 @@
 ARDUINO PROTOCOL - QUICK START
 ===============================
 
-MINIMAL COMMUNICATION EXAMPLE (Both Directions)
+MINIMAL COMMUNICATION EXAMPLES (Both Directions)
 
 1. CONTROLLER SETUP (PC → Arduino)
    {
      "type": "controller_setup",
      "controllerType": "dots",
      "enabled": true,
-     "encoder": 1.5,
-     "sensorOffset": 10,
+     "encoder": 1.5,               // Pulses per mm
+     "sensorOffset": 10,           // mm
+     "startCurrent": 1.0,          // A (0-3A)
+     "startDurationMS": 0.5,       // ms (0-3ms)
+     "holdCurrent": 0.5,           // A (0-3A)
+     "dotSize": "medium",          // "small", "medium", or "large"
+     "pageLength": 100,            // mm (for calibration)
      "guns": [
        {
          "enabled": true,
-         "rows": [{"from": 10, "to": 50, "space": 5.0}]
+         "gunId": 1,               // 1-4
+         "rows": [
+           {"from": 10, "to": 50, "space": 5.0}  // mm, mm, mm
+         ]
        }
      ]
    }
 
 2. CALIBRATE REQUEST (PC → Arduino)
-   {"type": "calibrate", "pageLength": 100}
+   {
+     "type": "calibrate",
+     "pageLength": 100  // mm
+   }
 
 3. CALIBRATE RESPONSE (Arduino → PC)
-   {"type": "calibration_result", "pulsesPerPage": 12345}
+   {
+     "type": "calibration_result",
+     "pulsesPerPage": 12345  // Total encoder pulses for the page length
+   }
 
 4. HEARTBEAT (PC → Arduino)
-   {"type": "heartbeat"}
+   {
+     "type": "heartbeat"
+   }
 
+5. RUN/STOP COMMANDS (PC → Arduino)
+   {"type": "run"}    // Start the controller
+   {"type": "stop"}   // Stop the controller
+
+NOTES:
+- All numeric values should be sent as JSON numbers (no quotes)
+- Current values are in Amperes (A)
+- Distances are in millimeters (mm)
+- Times are in milliseconds (ms)
+- The controller will only process commands when enabled
+- Only enabled guns will fire according to their row configurations
 NOTES:
 - The controller setup message is sent whenever settings change or when the enabled state changes
 - The 'enabled' field controls whether the controller should be active

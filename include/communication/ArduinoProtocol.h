@@ -54,7 +54,7 @@ public:
                                                    bool controllerEnabled,
                                                    const std::vector<std::pair<bool, std::vector<GlueRow>>>& guns,
                                                    double startCurrent = 1.0,
-                                                   double startDuration = 0.5,
+                                                   double startDurationMS = 0.5,
                                                    double holdCurrent = 0.5,
                                                    const std::string& dotSize = "medium");
     

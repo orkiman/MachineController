@@ -1251,11 +1251,11 @@ void SettingsWindow::onGlueControllerSelectorChanged(int index)
             ui->glueStartCurrentSpinBox->setValue(startCurrent);
             
             // Set start duration (ms)
-            double startDuration = 0.5; // Default value (0.5ms)
-            if (controller.contains("startDuration") && controller["startDuration"].is_number()) {
-                startDuration = controller["startDuration"].get<double>();
+            double startDurationMS = 0.5; // Default value (0.5ms)
+            if (controller.contains("startDurationMS") && controller["startDurationMS"].is_number()) {
+                startDurationMS = controller["startDurationMS"].get<double>();
             }
-            ui->glueStartDurationSpinBox->setValue(startDuration);
+            ui->glueStartDurationSpinBox->setValue(startDurationMS);
             
             // Set hold current (A)
             double holdCurrent = 0.5; // Default value (0.5A)
@@ -1811,7 +1811,7 @@ void SettingsWindow::on_addGlueControllerButton_clicked()
             {"enabled", true},
             {"pageLength", 100},
             {"startCurrent", 1.0},  // Default start current: 1.0A
-            {"startDuration", 0.5}, // Default start duration: 0.5ms
+            {"startDurationMS", 0.5}, // Default start duration: 0.5ms
             {"holdCurrent", 0.5},   // Default hold current: 0.5A
             {"dotSize", "medium"},  // Default dot size: medium
             {"plans", nlohmann::json::object()}
@@ -2367,7 +2367,7 @@ void SettingsWindow::on_glueStartDurationSpinBox_valueChanged(double value) {
         // Save the current controller settings
         nlohmann::json glueSettings = config_->getGlueSettings();
         if (glueSettings.contains("controllers") && glueSettings["controllers"].contains(currentGlueControllerName_)) {
-            glueSettings["controllers"][currentGlueControllerName_]["startDuration"] = value;
+            glueSettings["controllers"][currentGlueControllerName_]["startDurationMS"] = value;
             
             // Update the config
             Config* mutableConfig = const_cast<Config*>(config_);
@@ -3790,14 +3790,14 @@ void SettingsWindow::sendControllerSetupToActiveController()
         // Create and send comprehensive controller setup message
         // Get the new glue controller fields
         double startCurrent = ui->glueStartCurrentSpinBox->value();
-        double startDuration = ui->glueStartDurationSpinBox->value();
+        double startDurationMS = ui->glueStartDurationSpinBox->value();
         double holdCurrent = ui->glueHoldCurrentSpinBox->value();
         std::string dotSize = ui->glueDotSizeComboBox->currentText().toStdString();
         
         // Create the controller setup message with all fields
         std::string setupMessage = ArduinoProtocol::createControllerSetupMessage(
             controllerType, encoderResolution, sensorOffset, controllerEnabled, guns,
-            startCurrent, startDuration, holdCurrent, dotSize);
+            startCurrent, startDurationMS, holdCurrent, dotSize);
             
         if (!setupMessage.empty()) {
             ArduinoProtocol::sendMessage(eventQueue_, communicationPort, setupMessage);

@@ -47,7 +47,7 @@ std::string ArduinoProtocol::createControllerSetupMessage(const std::string& con
                                                         bool controllerEnabled,
                                                         const std::vector<std::pair<bool, std::vector<GlueRow>>>& guns,
                                                         double startCurrent,
-                                                        double startDuration,
+                                                        double startDurationMS,
                                                         double holdCurrent,
                                                         const std::string& dotSize) {
     try {
@@ -60,7 +60,7 @@ std::string ArduinoProtocol::createControllerSetupMessage(const std::string& con
         
         // Add new glue controller fields
         setupMsg["startCurrent"] = startCurrent;
-        setupMsg["startDuration"] = startDuration;
+        setupMsg["startDurationMS"] = startDurationMS;
         setupMsg["holdCurrent"] = holdCurrent;
         setupMsg["dotSize"] = dotSize;
         

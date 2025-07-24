@@ -156,6 +156,7 @@ SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQ
     QMetaObject::invokeMethod(this, &SettingsWindow::sendControllerSetupToActiveController, Qt::QueuedConnection);
     
     isRefreshing_ = false;
+    isInitializing_ = false;
 }
 // ----------------------------------------------------------------------------
 // SettingsWindow Destructor
@@ -1337,8 +1338,8 @@ void SettingsWindow::onGlueControllerSelectorChanged(int index)
     ui->glueRowsTable->blockSignals(false);
     isRefreshing_ = false;
     
-    // Send the controller setup to the Arduino
-    if (!currentGlueControllerName_.empty()) {
+    // Send the controller setup to the Arduino (skip during initialization)
+    if (!currentGlueControllerName_.empty() && !isInitializing_) {
         QMetaObject::invokeMethod(this, [this]() {
             sendControllerSetupToActiveController();
         }, Qt::QueuedConnection);
@@ -2209,9 +2210,26 @@ void SettingsWindow::on_glueEncoderSpinBox_valueChanged(double value)
         return;
     }
     
-    // Save changes
-    saveCurrentGlueControllerSettings();
-    
+    try {
+        // Save the encoder value directly
+        nlohmann::json glueSettings = config_->getGlueSettings();
+        if (glueSettings.contains("controllers") && glueSettings["controllers"].contains(currentGlueControllerName_)) {
+            glueSettings["controllers"][currentGlueControllerName_]["encoder"] = value;
+            
+            // Update the config
+            Config* mutableConfig = const_cast<Config*>(config_);
+            mutableConfig->updateGlueSettings(glueSettings);
+            mutableConfig->saveToFile();
+            
+            getLogger()->debug("[on_glueEncoderSpinBox_valueChanged] Updated encoder resolution to {} for controller {}", 
+                             value, currentGlueControllerName_);
+            
+            // Send updated config to controller
+            sendControllerSetupToActiveController();
+        }
+    } catch (const std::exception& e) {
+        getLogger()->error("[on_glueEncoderSpinBox_valueChanged] Error: {}", e.what());
+    }
 }
 
 // Handle page length change
@@ -3709,7 +3727,7 @@ void SettingsWindow::saveCurrentGunSettings()
 // Send comprehensive controller setup message to active controller
 void SettingsWindow::sendControllerSetupToActiveController()
 {
-    if (!config_) {
+    if (!config_ || isRefreshing_) {
         return;
     }
     

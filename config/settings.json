@@ -69,7 +69,7 @@
         "communication": "communication2",
         "dotSize": "medium",
         "enabled": true,
-        "encoder": 1.0,
+        "encoder": 1.01,
         "holdCurrent": 0.5,
         "name": "New Controller",
         "pageLength": 100,
@@ -110,8 +110,8 @@
         "communication": "communication2",
         "dotSize": "medium",
         "enabled": true,
-        "encoder": 2.5,
-        "holdCurrent": 0.5,
+        "encoder": 2.5000000000000004,
+        "holdCurrent": 0.6,
         "name": "New Controller",
         "pageLength": 100,
         "plans": {
@@ -139,11 +139,11 @@
               }
             ],
             "name": "plan_1",
-            "sensorOffset": 10
+            "sensorOffset": 11
           }
         },
-        "startCurrent": 1.0,
-        "startDurationMS": 0.5,
+        "startCurrent": 1.1,
+        "startDurationMS": 0.6,
         "type": "dots"
       }
     }

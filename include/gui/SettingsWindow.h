@@ -136,6 +136,9 @@ private:
     std::string currentGlueControllerName_;
     std::string currentGluePlanName_;
     
+    // Initialization flag to prevent messages during startup
+    bool isInitializing_ = true;
+    
     // Helper function to fill fields with default values
     void fillWithDefaults();
     

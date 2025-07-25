@@ -68,8 +68,10 @@ public:
     // Timer settings
     void saveTimersToConfig();
     
-    // Controller setup message
+    // Controller setup messages
     void sendControllerSetupToActiveController();
+    void sendSetupToAllEnabledControllers();
+    void sendControllerSetupToController(const std::string& controllerName, const nlohmann::json& controller);
 
 signals:
     // Signal emitted when output override is enabled/disabled

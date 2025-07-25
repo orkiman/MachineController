@@ -62,17 +62,17 @@
     "startPosition": 0
   },
   "glue": {
-    "activeController": "controller_2",
+    "activeController": "controller_1",
     "controllers": {
       "controller_1": {
         "activePlan": "plan_1",
         "communication": "communication2",
         "dotSize": "medium",
         "enabled": true,
-        "encoder": 1.01,
+        "encoder": 1.07,
         "holdCurrent": 0.5,
         "name": "New Controller",
-        "pageLength": 100,
+        "pageLength": 101,
         "plans": {
           "plan_1": {
             "guns": [
@@ -110,7 +110,7 @@
         "communication": "communication2",
         "dotSize": "medium",
         "enabled": true,
-        "encoder": 2.5000000000000004,
+        "encoder": 2.5,
         "holdCurrent": 0.6,
         "name": "New Controller",
         "pageLength": 100,
@@ -144,7 +144,7 @@
         },
         "startCurrent": 1.1,
         "startDurationMS": 0.6,
-        "type": "dots"
+        "type": "line"
       }
     }
   },

@@ -152,11 +152,13 @@ SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQ
         }
     }
 
-    // Send initial controller setup to ensure hardware is in sync with UI
-    QMetaObject::invokeMethod(this, &SettingsWindow::sendControllerSetupToActiveController, Qt::QueuedConnection);
-    
     isRefreshing_ = false;
     isInitializing_ = false;
+    
+    // Send initial controller setup to all enabled controllers
+    QMetaObject::invokeMethod(this, [this]() {
+        sendSetupToAllEnabledControllers();
+    }, Qt::QueuedConnection);
 }
 // ----------------------------------------------------------------------------
 // SettingsWindow Destructor
@@ -3744,56 +3746,119 @@ void SettingsWindow::sendControllerSetupToActiveController()
             return;
         }
         
-        auto controller = glueSettings["controllers"][activeControllerName];
+        const auto& controller = glueSettings["controllers"][activeControllerName];
         
-        // Get controller enabled state
-        bool controllerEnabled = controller.value("enabled", true);
+        // Send setup to the active controller
+        sendControllerSetupToController(activeControllerName, controller);
+        
+    } catch (const std::exception& e) {
+        getLogger()->error("[sendControllerSetupToActiveController] Exception: {}", e.what());
+    }
+}
+
+// Send setup to all enabled controllers
+void SettingsWindow::sendSetupToAllEnabledControllers()
+{
+    if (!config_) {
+        return;
+    }
+    
+    try {
+        nlohmann::json glueSettings = config_->getGlueSettings();
+        if (!glueSettings.contains("controllers") || !glueSettings["controllers"].is_object()) {
+            getLogger()->warn("[sendSetupToAllEnabledControllers] No controllers found in settings");
+            return;
+        }
+        
+        const auto& controllers = glueSettings["controllers"];
+        int sentCount = 0;
+        
+        for (const auto& [controllerName, controller] : controllers.items()) {
+            // Check if controller is enabled
+            bool enabled = true;
+            if (controller.contains("enabled") && controller["enabled"].is_boolean()) {
+                enabled = controller["enabled"].get<bool>();
+            }
+            
+            if (enabled) {
+                // Send setup to this specific controller
+                sendControllerSetupToController(controllerName, controller);
+                
+                getLogger()->info("[sendSetupToAllEnabledControllers] Sent setup to controller: {}", controllerName);
+                sentCount++;
+            } else {
+                getLogger()->debug("[sendSetupToAllEnabledControllers] Controller '{}' is disabled, skipping", controllerName);
+            }
+        }
+        
+        getLogger()->info("[sendSetupToAllEnabledControllers] Sent setup to {} enabled controllers", sentCount);
+        
+    } catch (const std::exception& e) {
+        getLogger()->error("[sendSetupToAllEnabledControllers] Exception: {}", e.what());
+    }
+}
+
+// Send comprehensive controller setup message to a specific controller
+void SettingsWindow::sendControllerSetupToController(const std::string& controllerName, const nlohmann::json& controller)
+{
+    if (!config_) {
+        return;
+    }
+    
+    try {
+        // Check if controller is enabled
+        bool enabled = true;
+        if (controller.contains("enabled") && controller["enabled"].is_boolean()) {
+            enabled = controller["enabled"].get<bool>();
+        }
+        
+        if (!enabled) {
+            getLogger()->info("[sendControllerSetupToController] Controller '{}' is disabled, skipping setup", controllerName);
+            return;
+        }
+        
+        // Extract controller configuration
+        std::string controllerType = controller.value("type", "glue");
+        double encoderResolution = controller.value("encoder", 1.0);
+        int sensorOffset = controller.value("sensorOffset", 10);
         
         // Get communication port
         std::string communicationPort = controller.value("communication", "");
         if (communicationPort.empty()) {
-            getLogger()->warn("[sendControllerSetupToActiveController] No communication port for controller '{}'", activeControllerName);
+            getLogger()->warn("[sendControllerSetupToController] No communication port for controller '{}', skipping", controllerName);
             return;
         }
-        
-        // Get controller data
-        std::string controllerType = controller.value("type", "dots");
-        double encoderResolution = controller.value("encoder", 1.0);
         
         // Get active plan
-        std::string activePlanName = controller.value("activePlan", "");
-        if (activePlanName.empty() || !controller.contains("plans") || !controller["plans"].contains(activePlanName)) {
-            getLogger()->warn("[sendControllerSetupToActiveController] No active plan for controller '{}'", activeControllerName);
+        std::string activePlan = controller.value("activePlan", "");
+        if (activePlan.empty()) {
+            getLogger()->warn("[sendControllerSetupToController] No active plan for controller '{}', skipping", controllerName);
             return;
         }
-        
-        auto plan = controller["plans"][activePlanName];
-        int sensorOffset = plan.value("sensorOffset", 10);
         
         // Extract gun configurations
         std::vector<std::pair<bool, std::vector<ArduinoProtocol::GlueRow>>> guns;
         
-        if (plan.contains("guns") && plan["guns"].is_array()) {
-            for (const auto& gun : plan["guns"]) {
-                bool enabled = gun.value("enabled", true);
-                std::vector<ArduinoProtocol::GlueRow> gunRows;
-                
-                if (gun.contains("rows") && gun["rows"].is_array()) {
-                    for (const auto& row : gun["rows"]) {
-                        ArduinoProtocol::GlueRow glueRow;
-                        glueRow.from = row.value("from", 0);
-                        glueRow.to = row.value("to", 100);
-                        glueRow.space = row.value("space", 5.0);
-                        gunRows.push_back(glueRow);
+        if (controller.contains("plans") && controller["plans"].contains(activePlan)) {
+            const auto& plan = controller["plans"][activePlan];
+            
+            if (plan.contains("guns") && plan["guns"].is_array()) {
+                for (const auto& gun : plan["guns"]) {
+                    bool gunEnabled = gun.value("enabled", true);
+                    std::vector<ArduinoProtocol::GlueRow> gunRows;
+                    
+                    if (gun.contains("rows") && gun["rows"].is_array()) {
+                        for (const auto& row : gun["rows"]) {
+                            ArduinoProtocol::GlueRow glueRow;
+                            glueRow.from = row.value("from", 0);
+                            glueRow.to = row.value("to", 100);
+                            glueRow.space = row.value("space", 5.0);
+                            gunRows.push_back(glueRow);
+                        }
                     }
+                    
+                    guns.push_back(std::make_pair(gunEnabled, gunRows));
                 }
-                
-                guns.push_back(std::make_pair(enabled, gunRows));
-            }
-        } else {
-            // Fallback: if no guns array, create 4 empty guns
-            for (int i = 0; i < 4; ++i) {
-                guns.push_back(std::make_pair(true, std::vector<ArduinoProtocol::GlueRow>()));
             }
         }
         
@@ -3805,25 +3870,24 @@ void SettingsWindow::sendControllerSetupToActiveController()
             guns.resize(4);
         }
         
-        // Create and send comprehensive controller setup message
-        // Get the new glue controller fields
-        double startCurrent = ui->glueStartCurrentSpinBox->value();
-        double startDurationMS = ui->glueStartDurationSpinBox->value();
-        double holdCurrent = ui->glueHoldCurrentSpinBox->value();
-        std::string dotSize = ui->glueDotSizeComboBox->currentText().toStdString();
+        // Extract controller-specific settings
+        double startCurrent = controller.value("startCurrent", 1.0);
+        double startDurationMS = controller.value("startDurationMS", 0.5);
+        double holdCurrent = controller.value("holdCurrent", 0.5);
+        std::string dotSize = controller.value("dotSize", "small");
         
-        // Create the controller setup message with all fields
+        // Create and send comprehensive controller setup message
         std::string setupMessage = ArduinoProtocol::createControllerSetupMessage(
-            controllerType, encoderResolution, sensorOffset, controllerEnabled, guns,
+            controllerType, encoderResolution, sensorOffset, enabled, guns,
             startCurrent, startDurationMS, holdCurrent, dotSize);
             
         if (!setupMessage.empty()) {
             ArduinoProtocol::sendMessage(eventQueue_, communicationPort, setupMessage);
-            getLogger()->info("[sendControllerSetupToActiveController] Sent controller setup to '{}' via '{}': {}", 
-                             activeControllerName, communicationPort, setupMessage);
+            getLogger()->info("[sendControllerSetupToController] Sent controller setup to '{}' via '{}': {}", 
+                             controllerName, communicationPort, setupMessage);
         }
         
     } catch (const std::exception& e) {
-        getLogger()->error("[sendControllerSetupToActiveController] Exception: {}", e.what());
+        getLogger()->error("[sendControllerSetupToController] Exception: {}", e.what());
     }
 }

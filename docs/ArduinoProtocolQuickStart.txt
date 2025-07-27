@@ -6,7 +6,7 @@ MINIMAL COMMUNICATION EXAMPLES (Both Directions)
 1. CONTROLLER SETUP (PC → Arduino)
    {
      "type": "controller_setup",
-     "controllerType": "dots",
+     "controllerType": "dots",      // "dots", "line"
      "enabled": true,
      "encoder": 1.5,               // Pulses per mm
      "sensorOffset": 10,           // mm
@@ -38,14 +38,11 @@ MINIMAL COMMUNICATION EXAMPLES (Both Directions)
      "pulsesPerPage": 12345  // Total encoder pulses for the page length
    }
 
-4. HEARTBEAT (PC → Arduino)
+4. HEARTBEAT (PC → Arduino / Arduino → PC) // not implemented yet
    {
      "type": "heartbeat"
    }
 
-5. RUN/STOP COMMANDS (PC → Arduino)
-   {"type": "run"}    // Start the controller
-   {"type": "stop"}   // Stop the controller
 
 NOTES:
 - All numeric values should be sent as JSON numbers (no quotes)

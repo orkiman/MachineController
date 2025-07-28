@@ -18,7 +18,7 @@ MINIMAL COMMUNICATION EXAMPLES (Both Directions)
      "guns": [
        {
          "enabled": true,
-         "gunId": 1,               // 1-4
+         "gunId": 0,               // 0-3
          "rows": [
            {"from": 10, "to": 50, "space": 5.0}  // mm, mm, mm
          ]

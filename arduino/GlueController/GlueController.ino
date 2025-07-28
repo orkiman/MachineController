@@ -22,6 +22,10 @@
 
 #include <ArduinoJson.h>
 
+// Protocol constants
+const char STX = 0x02;  // Start of text
+const char ETX = 0x03;  // End of text
+
 // Pin definitions
 const int ENCODER_PIN_A = 2;      // Encoder channel A (interrupt pin)
 const int ENCODER_PIN_B = 3;      // Encoder channel B (interrupt pin)
@@ -74,10 +78,7 @@ void setup();
 void loop();
 void processSerial();
 void handleConfig(const JsonObject& json);
-void handlePlan(const JsonObject& json);
 void handleCalibrate(const JsonObject& json);
-void handleRun(const JsonObject& json);
-void handleStop(const JsonObject& json);
 void handleHeartbeat(const JsonObject& json);
 void sendCalibrationResult(int pulses);
 void updateGuns();
@@ -114,13 +115,8 @@ void setup() {
   
   Serial.println("{"type":"status","message":"Arduino Glue Controller Ready"}");
   
-  // Blink LED to indicate startup
-  for (int i = 0; i < 3; i++) {
-    digitalWrite(STATUS_LED, HIGH);
-    delay(200);
-    digitalWrite(STATUS_LED, LOW);
-    delay(200);
-  }
+  // Indicate startup with LED
+  digitalWrite(STATUS_LED, HIGH);
 }
 
 void loop() {
@@ -136,43 +132,40 @@ void loop() {
     sendStatus();
     lastHeartbeat = millis();
   }
-  
-  delay(10); // Small delay for stability
 }
 
-void 
-
-  if (Serial.available() > 0) {
-    String input = Serial.readStringUntil('\n');
-    input.trim();
+void processSerial() {
+  static String inputBuffer = "";
+  
+  while (Serial.available() > 0) {
+    char c = Serial.read();
     
-    if (input.length() > 0) {
-      DeserializationError error = deserializeJson(doc, input);
-      
-      if (error) {
-        Serial.print("{\"type\":\"error\",\"message\":\"JSON parse error: ");
-        Serial.print(error.c_str());
-        Serial.println("\"}");
-        return;
+    if (c == STX) {
+      inputBuffer = "";
+    } else if (c == ETX) {
+      if (inputBuffer.length() > 0) {
+        DeserializationError error = deserializeJson(doc, inputBuffer);
+        
+        if (!error) {
+          String type = doc["type"];
+          
+          if (type == "controller_setup") {
+            handleConfig(doc.as<JsonObject>());
+          } else if (type == "calibrate") {
+            handleCalibrate(doc.as<JsonObject>());
+          } else if (type == "heartbeat") {
+            handleHeartbeat(doc.as<JsonObject>());
+          }
+        }
       }
-      
-      String type = doc["type"];
-      
-      if (type == "config") {
-        handleConfig(doc.as<JsonObject>());
-      } else if (type == "plan") {
-        handlePlan(doc.as<JsonObject>());
-      } else if (type == "calibrate") {
-        handleCalibrate(doc.as<JsonObject>());
-      } else if (type == "run") {
-        handleRun(doc.as<JsonObject>());
-      } else if (type == "stop") {
-        handleStop(doc.as<JsonObject>());
-      } else if (type == "heartbeat") {
-        handleHeartbeat(doc.as<JsonObject>());
-      } else {
-        Serial.println("{\"type\":\"error\",\"message\":\"Unknown message type\"}");
-      }
+      inputBuffer = "";
+    } else if (c >= 32 && c <= 126) {  // Only printable ASCII
+      inputBuffer += c;
+    }
+    
+    // Prevent buffer overflow
+    if (inputBuffer.length() > 1023) {
+      inputBuffer = "";
     }
   }
 }
@@ -183,124 +176,106 @@ void handleConfig(const JsonObject& json) {
   config.encoder = json["encoder"] | 1.0;
   config.sensorOffset = json["sensorOffset"] | 10;
   config.startCurrent = json["startCurrent"] | 1.0;
-  config.startDuration = json["startDuration"] | 500;
+  config.startDuration = json["startDuration"] | 0.5;  // Changed to ms as per protocol
   config.holdCurrent = json["holdCurrent"] | 0.5;
   config.dotSize = json["dotSize"] | "small";
   
-  // Send confirmation
-  Serial.println("{\"type\":\"config_ack\",\"status\":\"ok\"}");
-  
-  // Update status LED
+  // Update running state and status LED
+  isRunning = config.enabled;
   digitalWrite(STATUS_LED, config.enabled ? HIGH : LOW);
-}
-
-void handlePlan(const JsonObject& json) {
-  // Clear existing plans
-  for (int i = 0; i < 4; i++) {
-    guns[i].rows.clear();
-  }
   
-  // Load new plans
-  JsonArray gunsArray = json["guns"];
-  for (int i = 0; i < min(4, (int)gunsArray.size()); i++) {
-    JsonObject gunObj = gunsArray[i];
-    guns[i].enabled = gunObj["enabled"] | true;
-    
-    JsonArray rowsArray = gunObj["rows"];
-    for (JsonObject rowObj : rowsArray) {
-      GlueRow row;
-      row.from = rowObj["from"] | 0;
-      row.to = rowObj["to"] | 100;
-      row.space = rowObj["space"] | 5.0;
-      guns[i].rows.push_back(row);
+  // Process gun configurations if present
+  if (json.containsKey("guns")) {
+    JsonArray gunsArray = json["guns"];
+    for (JsonObject gunConfig : gunsArray) {
+      int gunId = gunConfig["gunId"];
+      if (gunId >= 0 && gunId <= 3) {
+        int index = gunId;
+        guns[index].enabled = gunConfig["enabled"] | true;
+        guns[index].rows.clear();
+        
+        if (gunConfig.containsKey("rows")) {
+          JsonArray rows = gunConfig["rows"];
+          for (JsonObject row : rows) {
+            GlueRow newRow = {
+              .from = row["from"],
+              .to = row["to"],
+              .space = row["space"]
+            };
+            guns[index].rows.push_back(newRow);
+          }
+        }
+      }
     }
   }
-  
-  Serial.println("{\"type\":\"plan_ack\",\"status\":\"ok\"}");
 }
 
+
 void handleCalibrate(const JsonObject& json) {
-  if (isRunning) {
-    Serial.println("{\"type\":\"error\",\"message\":\"Cannot calibrate while running\"}");
-    return;
-  }
+  bool wasRunning = isRunning;
+  isRunning = false;  // Stop any running operation during calibration
   
   pageLength = json["pageLength"] | 1000;
   isCalibrating = true;
   encoderCount = 0;
   
-  Serial.println("{\"type\":\"calibrate_ack\",\"status\":\"started\"}");
-  
   // Wait for page to pass sensor
   while (digitalRead(SENSOR_PIN) == HIGH) {
-    delay(10);
+    // Non-blocking wait
+    if (Serial.available()) {
+      char c = Serial.read();
+      if (c == STX) {
+        // Handle potential new message even during calibration
+        processSerial();
+      }
+    }
   }
   
   while (digitalRead(SENSOR_PIN) == LOW) {
-    delay(10);
+    // Non-blocking wait
+    if (Serial.available()) {
+      char c = Serial.read();
+      if (c == STX) {
+        // Handle potential new message even during calibration
+        processSerial();
+      }
+    }
   }
   
   pulsesPerPage = encoderCount;
   isCalibrating = false;
+  isRunning = wasRunning;  // Restore previous running state
   
   sendCalibrationResult(pulsesPerPage);
 }
 
-void handleRun(const JsonObject& json) {
-  if (!config.enabled) {
-    Serial.println("{\"type\":\"error\",\"message\":\"Controller disabled\"}");
-    return;
-  }
-  
-  if (isRunning) {
-    Serial.println("{\"type\":\"error\",\"message\":\"Already running\"}");
-    return;
-  }
-  
-  isRunning = true;
-  encoderCount = 0;
-  Serial.println("{\"type\":\"run_ack\",\"status\":\"started\"}");
-}
-
-void handleStop(const JsonObject& json) {
-  if (!isRunning) {
-    Serial.println("{\"type\":\"error\",\"message\":\"Not running\"}");
-    return;
-  }
-  
-  isRunning = false;
-  
-  // Turn off all guns
-  for (int i = 0; i < 4; i++) {
-    digitalWrite(GUN_PINS[i], LOW);
-  }
-  
-  Serial.println("{\"type\":\"stop_ack\",\"status\":\"stopped\"}");
-}
 
 void handleHeartbeat(const JsonObject& json) {
   sendStatus();
 }
 
 void sendCalibrationResult(int pulses) {
-  StaticJsonDocument<256> doc;
+  StaticJsonDocument<128> doc;
   doc["type"] = "calibration_result";
   doc["pulsesPerPage"] = pulses;
   
-  serializeJson(doc, Serial);
-  Serial.println();
+  String output;
+  serializeJson(doc, output);
+  Serial.write(STX);
+  Serial.print(output);
+  Serial.write(ETX);
 }
 
 void sendStatus() {
-  StaticJsonDocument<512> doc;
-  doc["type"] = "status";
-  doc["running"] = isRunning;
-  doc["enabled"] = config.enabled;
+  StaticJsonDocument<256> doc;
+  doc["type"] = "heartbeat";
   doc["position"] = currentPosition;
-  doc["encoder"] = encoderCount;
   
-  serializeJson(doc, Serial);
-  Serial.println();
+  String output;
+  serializeJson(doc, output);
+  Serial.write(STX);
+  Serial.print(output);
+  Serial.write(ETX);
 }
 
 void updateGuns() {

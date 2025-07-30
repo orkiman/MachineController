@@ -1,62 +1,5 @@
-/**
- * Arduino Glue Controller
- * 
- * This program implements a complete glue controller that receives configuration
- * and commands from the MachineController application via JSON messages.
- * 
- * Features:
- * - JSON protocol communication via Serial
- * - 4-gun glue controller support
- * - Encoder-based positioning
- * - Sensor-based triggering
- * - Real-time glue application
- * - Calibration support
- * 
- * Hardware Requirements:
- * - Arduino Mega 2560 (recommended for multiple guns and interrupts)
- * - 4x Glue gun solenoids (MOSFET drivers)
- * - Rotary encoder (quadrature)
- * - Optical sensor for page detection
- * - RS232/TTL communication module
- */
-
-#include <ArduinoJson.h>
-
-// Protocol constants
-const char STX = 0x02;  // Start of text
-const char ETX = 0x03;  // End of text
-
-// Pin definitions
-const int ENCODER_PIN_A = 2;      // Encoder channel A (interrupt pin)
-const int ENCODER_PIN_B = 3;      // Encoder channel B (interrupt pin)
-const int SENSOR_PIN = 4;         // Optical sensor for page detection
-const int GUN_PINS[4] = {8, 9, 10, 11};  // Solenoid control pins for 4 guns
-const int STATUS_LED = 13;        // Built-in LED for status indication
-
-// Configuration structure
-struct ControllerConfig {
-  String type = "dots";           // "dots" or "line"
-  bool enabled = false;
-  double encoder = 1.0;           // Pulses per mm
-  int sensorOffset = 10;          // mm from sensor to glue position
-  double startCurrent = 1.0;      // A
-  double startDuration = 500;     // ms
-  double holdCurrent = 0.5;       // A
-  String dotSize = "small";       // "small", "medium", "large"
-};
-
-// Glue row structure
-struct GlueRow {
-  int from;
-  int to;
-  double space;
-};
-
-// Gun configuration
-struct GunConfig {
-  bool enabled = true;
-  std::vector<GlueRow> rows;
-};
+#include "GlueController.h"
+#include <Arduino.h>
 
 // Global variables
 ControllerConfig config;
@@ -69,44 +12,34 @@ int pulsesPerPage = 0;
 bool isCalibrating = false;
 unsigned long lastHeartbeat = 0;
 
-// JSON document buffer
-StaticJsonDocument<1024> doc;
-
-// Function prototypes
-void setup();
-void loop();
-void processSerial();
-void handleConfig(const JsonObject& json);
-void handleCalibrate(const JsonObject& json);
-void handleHeartbeat(const JsonObject& json);
-void sendCalibrationResult(int pulses);
-void updateGuns();
-void encoderISR();
-void checkSensor();
-void fireGun(int gunIndex, int position);
-void sendStatus();
+// Interrupt Service Routine for encoder
+void encoderISR() {
+  if (digitalRead(ENCODER_PIN_A) == digitalRead(ENCODER_PIN_B)) {
+    encoderCount++;
+  } else {
+    encoderCount--;
+  }
+}
 
 void setup() {
+  // Initialize serial communication
   Serial.begin(115200);
   
   // Initialize pins
   pinMode(ENCODER_PIN_A, INPUT_PULLUP);
   pinMode(ENCODER_PIN_B, INPUT_PULLUP);
   pinMode(SENSOR_PIN, INPUT_PULLUP);
+  pinMode(STATUS_LED, OUTPUT);
   
   for (int i = 0; i < 4; i++) {
     pinMode(GUN_PINS[i], OUTPUT);
     digitalWrite(GUN_PINS[i], LOW);
   }
   
-  pinMode(STATUS_LED, OUTPUT);
-  digitalWrite(STATUS_LED, LOW);
-  
-  // Setup encoder interrupts
+  // Attach encoder interrupt
   attachInterrupt(digitalPinToInterrupt(ENCODER_PIN_A), encoderISR, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(ENCODER_PIN_B), encoderISR, CHANGE);
   
-  // Initialize guns with empty rows
+  // Initialize gun configurations
   for (int i = 0; i < 4; i++) {
     guns[i].enabled = true;
     guns[i].rows.clear();
@@ -141,6 +74,7 @@ void processSerial() {
       inputBuffer = "";
     } else if (c == ETX) {
       if (inputBuffer.length() > 0) {
+        StaticJsonDocument<1024> doc;
         DeserializationError error = deserializeJson(doc, inputBuffer);
         
         if (!error) {
@@ -154,15 +88,10 @@ void processSerial() {
             handleHeartbeat(doc.as<JsonObject>());
           }
         }
+        inputBuffer = "";
       }
-      inputBuffer = "";
-    } else if (c >= 32 && c <= 126) {  // Only printable ASCII
+    } else {
       inputBuffer += c;
-    }
-    
-    // Prevent buffer overflow
-    if (inputBuffer.length() > 1023) {
-      inputBuffer = "";
     }
   }
 }
@@ -173,7 +102,7 @@ void handleConfig(const JsonObject& json) {
   config.encoder = json["encoder"] | 1.0;
   config.sensorOffset = json["sensorOffset"] | 10;
   config.startCurrent = json["startCurrent"] | 1.0;
-  config.startDuration = json["startDuration"] | 0.5;  // Changed to ms as per protocol
+  config.startDuration = json["startDuration"] | 0.5;
   config.holdCurrent = json["holdCurrent"] | 0.5;
   config.dotSize = json["dotSize"] | "small";
   
@@ -205,7 +134,6 @@ void handleConfig(const JsonObject& json) {
     }
   }
 }
-
 
 void handleCalibrate(const JsonObject& json) {
   // Only process if enabled and not calibrating
@@ -250,7 +178,6 @@ void handleCalibrate(const JsonObject& json) {
   }
 }
 
-
 void handleHeartbeat(const JsonObject& json) {
   sendStatus();
 }
@@ -262,88 +189,70 @@ void sendCalibrationResult(int pulses) {
   
   String output;
   serializeJson(doc, output);
-  Serial.write(STX);
+  Serial.print(STX);
   Serial.print(output);
-  Serial.write(ETX);
-}
-
-void sendStatus() {
-  StaticJsonDocument<256> doc;
-  doc["type"] = "heartbeat";
-  doc["position"] = currentPosition;
-  
-  String output;
-  serializeJson(doc, output);
-  Serial.write(STX);
-  Serial.print(output);
-  Serial.write(ETX);
+  Serial.println(ETX);
 }
 
 void updateGuns() {
-  noInterrupts(); // Prevent encoder updates during calculation
-  currentPosition = (int)(encoderCount / config.encoder);
-  interrupts();
+  // Only process if not calibrating
+  if (isCalibrating) return;
   
-  for (int gunIndex = 0; gunIndex < 4; gunIndex++) {
-    if (!guns[gunIndex].enabled || !config.enabled) {
-      digitalWrite(GUN_PINS[gunIndex], LOW);
+  // Calculate current position in mm
+  currentPosition = (encoderCount * 1000) / (config.encoder * pulsesPerPage / pageLength);
+  
+  // Update each gun
+  for (int i = 0; i < 4; i++) {
+    if (!guns[i].enabled) {
+      digitalWrite(GUN_PINS[i], LOW);
       continue;
     }
     
     bool shouldFire = false;
     
-    for (const GlueRow& row : guns[gunIndex].rows) {
+    // Check all rows for this gun
+    for (const GlueRow& row : guns[i].rows) {
       if (currentPosition >= row.from && currentPosition <= row.to) {
-        int relativePos = currentPosition - row.from;
-        if (fmod(relativePos, row.space) < 1) {
+        // Calculate if we should fire based on spacing
+        int positionInRow = currentPosition - row.from;
+        if (row.space > 0 && positionInRow % static_cast<int>(row.space * 10) < 5) {
           shouldFire = true;
           break;
         }
       }
     }
     
-    digitalWrite(GUN_PINS[gunIndex], shouldFire ? HIGH : LOW);
+    digitalWrite(GUN_PINS[i], shouldFire ? HIGH : LOW);
   }
 }
 
 void checkSensor() {
-  static bool lastSensorState = HIGH;
-  bool currentSensorState = digitalRead(SENSOR_PIN);
+  static bool lastSensorState = digitalRead(SENSOR_PIN);
+  bool currentState = digitalRead(SENSOR_PIN);
   
-  if (lastSensorState == HIGH && currentSensorState == LOW) {
-    // Page detected
-    if (isRunning) {
-      encoderCount = 0;
-      currentPosition = 0;
+  if (currentState != lastSensorState) {
+    if (currentState == LOW) {
+      // Sensor triggered (active low)
+      if (config.enabled) {
+        // Reset position counter when sensor is triggered
+        encoderCount = 0;
+      }
     }
+    lastSensorState = currentState;
   }
-  
-  lastSensorState = currentSensorState;
 }
 
-void encoderISR() {
-  static int lastState = 0;
-  static int state = 0;
+void sendStatus() {
+  StaticJsonDocument<256> doc;
+  doc["type"] = "status";
+  doc["enabled"] = config.enabled;
+  doc["calibrating"] = isCalibrating;
+  doc["position"] = currentPosition;
+  doc["encoder"] = encoderCount;
   
-  state = (digitalRead(ENCODER_PIN_B) << 1) | digitalRead(ENCODER_PIN_A);
-  
-  // Simple quadrature decoding
-  if ((lastState == 0 && state == 1) || 
-      (lastState == 1 && state == 3) || 
-      (lastState == 3 && state == 2) || 
-      (lastState == 2 && state == 0)) {
-    encoderCount++;
-  } else if ((lastState == 0 && state == 2) || 
-             (lastState == 2 && state == 3) || 
-             (lastState == 3 && state == 1) || 
-             (lastState == 1 && state == 0)) {
-    encoderCount--;
-  }
-  
-  lastState = state;
-}
-
-// Helper function for modulo with floating point
-float fmod(float x, float y) {
-  return x - y * floor(x / y);
+  String output;
+  serializeJson(doc, output);
+  Serial.print(STX);
+  Serial.print(output);
+  Serial.println(ETX);
 }

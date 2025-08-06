@@ -1,4 +1,20 @@
 {
+    "cmake.configureOnOpen": true,
+    "cmake.buildDirectory": "${workspaceFolder}/build-ninja",
+    "cmake.generator": "Ninja",
+    "cmake.configureSettings": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+        "CMAKE_PREFIX_PATH": "C:\\Qt\\6.9.1\\msvc2022_64"
+    },
+    "cmake.environment": {
+        "PATH": "${env:PATH};C:\\Program Files\\LLVM\\bin"
+    },
+    "cmake.cmakePath": "cmake",
+    "cmake.cmakePath.windows": "cmake",
+    "cmake.buildBeforeRun": true,
+    "cmake.configureOnEdit": false,
+    "cmake.autoSelectActiveFolder": false,
     "files.associations": {
         "iostream": "cpp",
         "algorithm": "cpp",
@@ -94,10 +110,5 @@
         "stack": "cpp",
         "unordered_set": "cpp",
         "stdfloat": "cpp"
-    },
-    
-        "cmake.configureSettings": {
-            "CMAKE_PREFIX_PATH": "C:/Qt/6.8.2/msvc2022_64"
-        }
-    
+    }
 }

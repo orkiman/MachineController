@@ -37,7 +37,7 @@ const int STATUS_LED = 13;        // Built-in LED for status indication
 struct ControllerConfig {
   String type = "dots";           // "dots" or "line"
   bool enabled = false;
-  double encoder = 1.0;           // Pulses per mm
+  double encoderPulsesPerMm = 1.0;           // Pulses per mm
   int sensorOffset = 10;          // mm from sensor to glue position
   double startCurrent = 1.0;      // A
   double startDuration = 500;     // ms
@@ -170,7 +170,7 @@ void processSerial() {
 void handleConfig(const JsonObject& json) {
   config.type = json["controllerType"] | "dots";
   config.enabled = json["enabled"] | false;
-  config.encoder = json["encoder"] | 1.0;
+  config.encoderPulsesPerMm = json["encoder"] | 1.0;
   config.sensorOffset = json["sensorOffset"] | 10;
   config.startCurrent = json["startCurrent"] | 1.0;
   config.startDuration = json["startDuration"] | 0.5;  // Changed to ms as per protocol
@@ -281,7 +281,7 @@ void sendStatus() {
 
 void updateGuns() {
   noInterrupts(); // Prevent encoder updates during calculation
-  currentPosition = (int)(encoderCount / config.encoder);
+  currentPosition = (int)(encoderCount / config.encoderPulsesPerMm);
   interrupts();
   
   for (int gunIndex = 0; gunIndex < 4; gunIndex++) {

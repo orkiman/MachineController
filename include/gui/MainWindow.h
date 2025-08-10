@@ -53,6 +53,9 @@ private:
     SettingsWindow *settingsWindow_;
     const Config* config_;
 
+    // Build and populate the right-side glue test table
+    void buildGlueTestTable();
+
 };
 
 #endif // MAINWINDOW_H

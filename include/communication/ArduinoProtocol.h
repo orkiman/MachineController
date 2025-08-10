@@ -70,6 +70,14 @@ public:
      * @return JSON string for heartbeat
      */
     static std::string createHeartbeatMessage();
+
+    /**
+     * @brief Create test message for Arduino to toggle a gun in test mode
+     * @param gunIndex 1..4 for specific gun; if 0 or negative, this targets all guns
+     * @param on true to turn test ON, false to turn test OFF
+     * @return JSON string for test message, e.g. {"type":"test","t":"t1","state":"on"}
+     */
+    static std::string createTestMessage(int gunIndex, bool on);
     
     /**
      * @brief Parse calibration response from Arduino

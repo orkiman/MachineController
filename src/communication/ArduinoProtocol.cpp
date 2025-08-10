@@ -115,6 +115,23 @@ std::string ArduinoProtocol::createHeartbeatMessage() {
     }
 }
 
+std::string ArduinoProtocol::createTestMessage(int gunIndex, bool on) {
+    try {
+        nlohmann::json testMsg;
+        testMsg["type"] = "test";
+        if (gunIndex >= 1 && gunIndex <= 4) {
+            testMsg["t"] = std::string("t") + std::to_string(gunIndex);
+        } else {
+            testMsg["t"] = "all";
+        }
+        testMsg["state"] = on ? "on" : "off";
+        return testMsg.dump();
+    } catch (const std::exception& e) {
+        getLogger()->error("[ArduinoProtocol::createTestMessage] Exception: {}", e.what());
+        return "";
+    }
+}
+
 bool ArduinoProtocol::parseCalibrationResponse(const std::string& jsonResponse, int& pulsesPerPage) {
     try {
         nlohmann::json response = nlohmann::json::parse(jsonResponse);

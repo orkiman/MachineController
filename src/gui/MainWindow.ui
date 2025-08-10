@@ -62,6 +62,22 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QTableWidget" name="glueTestTable">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="editTriggers">
+         <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
+        </property>
+        <property name="selectionMode">
+         <enum>QAbstractItemView::SelectionMode::NoSelection</enum>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
     <item>

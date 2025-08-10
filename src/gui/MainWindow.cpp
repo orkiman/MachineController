@@ -2,9 +2,15 @@
 #include "ui_MainWindow.h"
 #include "gui/SettingsWindow.h"
 #include "Logger.h"
+#include "communication/ArduinoProtocol.h"
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QDateTime>
+#include <QTableWidget>
+#include <QCheckBox>
+#include <QHeaderView>
+#include <QHBoxLayout>
+#include <QWidget>
 
 MainWindow::MainWindow(QWidget *parent, EventQueue<EventVariant>& eventQueue, const Config& config)
     : QMainWindow(parent),
@@ -32,10 +38,123 @@ MainWindow::MainWindow(QWidget *parent, EventQueue<EventVariant>& eventQueue, co
     
     // Use Qt::QueuedConnection to ensure this runs after the event loop starts
     getLogger()->debug("[MainWindow] Queuing emitWindowReady()...");
+
+    // Build the glue test table on the right
+    buildGlueTestTable();
+
     QMetaObject::invokeMethod(this, "emitWindowReady", Qt::QueuedConnection);
     getLogger()->debug("[MainWindow] emitWindowReady() queued.");
 
     getLogger()->debug("[MainWindow] Constructor finished");
+}
+
+// Build and populate the right-side glue test table
+void MainWindow::buildGlueTestTable() {
+    QTableWidget* table = findChild<QTableWidget*>("glueTestTable");
+    if (!table) {
+        getLogger()->warn("[MainWindow] glueTestTable widget not found in UI");
+        return;
+    }
+
+    table->clear();
+    table->setColumnCount(5);
+    QStringList headers; headers << "Controller" << "G1" << "G2" << "G3" << "G4";
+    table->setHorizontalHeaderLabels(headers);
+    table->horizontalHeader()->setStretchLastSection(true);
+    table->verticalHeader()->setVisible(false);
+    table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    table->setSelectionMode(QAbstractItemView::NoSelection);
+
+    if (!config_) return;
+
+    try {
+        nlohmann::json glueSettings = config_->getGlueSettings();
+        if (!glueSettings.contains("controllers") || !glueSettings["controllers"].is_object()) {
+            table->setRowCount(0);
+            return;
+        }
+
+        const auto& controllers = glueSettings["controllers"];
+
+        // First, count enabled controllers that have a communication port
+        int rowCount = 0;
+        for (const auto& [controllerName, controller] : controllers.items()) {
+            bool enabled = controller.value("enabled", true);
+            std::string comm = controller.value("communication", "");
+            if (enabled && !comm.empty()) rowCount++;
+        }
+
+        table->setRowCount(rowCount);
+
+        int row = 0;
+        for (const auto& [controllerName, controller] : controllers.items()) {
+            bool controllerEnabled = controller.value("enabled", true);
+            if (!controllerEnabled) continue;
+
+            std::string comm = controller.value("communication", "");
+            if (comm.empty()) continue; // skip controllers without a port
+
+            std::string activePlan = controller.value("activePlan", "");
+
+            // Determine gun enabled flags from active plan
+            bool gunActive[4] = {false,false,false,false};
+            if (!activePlan.empty() && controller.contains("plans") && controller["plans"].contains(activePlan)) {
+                const auto& plan = controller["plans"][activePlan];
+                if (plan.contains("guns") && plan["guns"].is_array()) {
+                    size_t idx = 0;
+                    for (const auto& gun : plan["guns"]) {
+                        if (idx < 4) gunActive[idx] = gun.value("enabled", true);
+                        idx++;
+                    }
+                }
+            }
+
+            // Column 0: Controller name
+            auto* nameItem = new QTableWidgetItem(QString::fromStdString(controllerName));
+            nameItem->setFlags(nameItem->flags() & ~Qt::ItemIsEditable);
+            table->setItem(row, 0, nameItem);
+
+            // Columns 1..4: gun toggles
+            for (int g = 1; g <= 4; ++g) {
+                QCheckBox* cb = new QCheckBox(table);
+                cb->setChecked(false);
+                cb->setEnabled(gunActive[g-1]);
+                // Center the checkbox
+                QWidget* cell = new QWidget(table);
+                QHBoxLayout* layout = new QHBoxLayout(cell);
+                layout->addWidget(cb);
+                layout->setAlignment(cb, Qt::AlignCenter);
+                layout->setContentsMargins(0,0,0,0);
+                cell->setLayout(layout);
+                table->setCellWidget(row, g, cell);
+
+                // Capture needed values for sending messages
+                std::string commPort = comm;
+                int gunIndex = g;
+                QString ctrlNameQ = QString::fromStdString(controllerName);
+                connect(cb, &QCheckBox::toggled, this, [this, commPort, gunIndex, ctrlNameQ](bool on){
+                    std::string msg = ArduinoProtocol::createTestMessage(gunIndex, on);
+                    if (!msg.empty()) {
+                        ArduinoProtocol::sendMessage(eventQueue_, commPort, msg);
+                        addMessage(QString("Sent test %1 for %2 G%3 -> %4")
+                            .arg(on ? "ON" : "OFF")
+                            .arg(ctrlNameQ)
+                            .arg(gunIndex)
+                            .arg(QString::fromStdString(msg)));
+                    }
+                });
+            }
+
+            row++;
+        }
+
+        table->resizeColumnsToContents();
+        table->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+        for (int c=1;c<5;++c) table->horizontalHeader()->setSectionResizeMode(c, QHeaderView::ResizeToContents);
+
+    } catch (const std::exception& e) {
+        getLogger()->error("[MainWindow::buildGlueTestTable] Exception: {}", e.what());
+    }
 }
 
 void MainWindow::on_selectDataFileButton_clicked() {

@@ -13,6 +13,8 @@ const int ENCODER_PIN_A = 2;
 const int SENSOR_PIN    = 4;
 const int GUN_PINS[4]   = {8, 9, 10, 11};
 const int OUTPUT_CURRENT_PINS[4] = {A0, A1, A2, A3};
+// Optional physical test inputs (active LOW)
+const int TEST_INPUT_PINS[4] = {3, 5, 6, 7};
 const int STATUS_LED    = 13;
 
 // ===== ADC scale (10-bit on R3, 12-bit on R4) =====
@@ -97,6 +99,7 @@ void loop();
 void processSerial();
 void handleConfig(const JsonObject& json);
 void handlePlan(const JsonObject& json);
+void handleTest(const JsonObject& json);
 void initCalibration(const JsonObject& json);
 void handleCalibrationSensorStateChange(bool sensorState);
 void handleHeartbeat(const JsonObject& json); // no-op

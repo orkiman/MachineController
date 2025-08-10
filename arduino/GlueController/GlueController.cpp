@@ -47,6 +47,14 @@ static bool linePWMon[4]    = {false,false,false,false};
 
 ZoneRing firingZones[4];
 
+// ===== Test mode state =====
+static bool testRequested[4] = {false,false,false,false}; // PC-driven t1..t4
+static bool testDotActive[4] = {false,false,false,false}; // per-gun dot currently firing
+static unsigned long testNextDotMs[4] = {0,0,0,0};        // 50 Hz scheduler
+static unsigned long testStartMs = 0;                     // global timeout start
+static const unsigned long TEST_TIMEOUT_MS = 30000UL;     // 30 seconds
+static bool testInhibitUntilIdle = false;                 // after timeout, wait for all inputs to release
+
 // ----- ADC backends -----
 #if defined(__AVR__)
 // ===== AVR (Uno R3) free-running ADC (10-bit) =====
@@ -153,6 +161,7 @@ void setup() {
   pinMode(SENSOR_PIN,     INPUT_PULLUP);
   pinMode(STATUS_LED,     OUTPUT);
   for (int i=0;i<4;i++){ pinMode(GUN_PINS[i], OUTPUT); digitalWrite(GUN_PINS[i], LOW); }
+  for (int i=0;i<4;i++){ pinMode(TEST_INPUT_PINS[i], INPUT_PULLUP); }
 
   attachInterrupt(digitalPinToInterrupt(ENCODER_PIN_A), encoderISR, RISING);
 
@@ -187,7 +196,8 @@ void loop() {
   processSerial();
   checkSensor();
 
-  if (config.enabled) updateGuns(); else shutdownAllGuns();
+  // Always run updateGuns so test mode can work even when controller is disabled
+  updateGuns();
 
   if (!allFiringZonesInserted) {
     bool any=false; for(int i=0;i<4;i++){ if(gunStates[i]){ any=true; break; } }
@@ -210,6 +220,8 @@ void processSerial(){
             handleConfig(doc.as<JsonObject>());
           } else if (type == "plan") {
             handlePlan(doc.as<JsonObject>());
+          } else if (type == "test") {
+            handleTest(doc.as<JsonObject>());
           } else if (type == "run") {
             config.enabled = true; digitalWrite(STATUS_LED, HIGH);
           } else if (type == "stop") {
@@ -379,6 +391,45 @@ void handleCalibrationSensorStateChange(bool sensorState){
 
 void handleHeartbeat(const JsonObject &){ /* no-op (status removed) */ }
 
+void handleTest(const JsonObject &json){
+  // Expected: {"type":"test","t":"t1|t2|t3|t4|all","state":"on|off"}
+  const char* t_c = json["t"] | "";
+  const char* s_c = json["state"] | "";
+  String t = String(t_c); t.toLowerCase();
+  String s = String(s_c); s.toLowerCase();
+  bool on = (s == "on" || s == "true" || s == "1");
+
+  auto apply = [&](int idx, bool val){
+    if (idx < 0 || idx >= 4) return;
+    testRequested[idx] = val;
+    if (!val) {
+      // Clear per-channel transient state
+      testDotActive[idx] = false;
+      testNextDotMs[idx] = 0;
+      lineInHold[idx] = false;
+      linePWMon[idx] = false;
+      linePhaseMs[idx] = 0;
+      setGun(idx,false);
+    }
+  };
+
+  if (t == "all") {
+    for (int i=0;i<4;i++) apply(i, on);
+  } else if (t.length() >= 2 && t.charAt(0) == 't') {
+    int d = t.charAt(1) - '1';
+    if (d >= 0 && d < 4) apply(d, on);
+  } else if (json.containsKey("gun")) {
+    int g = json["gun"] | 0; // 1..4
+    if (g >= 1 && g <= 4) apply(g-1, on);
+  }
+
+  // Re-arm timer window for a fresh 30s if turning on via PC
+  if (on) {
+    testStartMs = 0; // will be set when updateGuns() sees activity
+    testInhibitUntilIdle = false;
+  }
+}
+
 // Small, infrequent
 void sendCalibrationResult(int pulses){
   StaticJsonDocument<128> doc;
@@ -428,6 +479,92 @@ void calculateFiringZones(){
 void updateGuns(){
   if (isCalibrating) return;
 
+  // ===== TEST MODE (encoder-independent) =====
+  // Merge PC-driven requests and physical inputs; apply 30s timeout
+  bool anyTestActive = false;
+  bool anyPhysActive = false;
+  for (int i=0;i<4;i++){
+    bool phys = (digitalRead(TEST_INPUT_PINS[i]) == LOW); // active LOW
+    if (phys) anyPhysActive = true;
+    bool active = testRequested[i] || phys;
+    if (active) anyTestActive = true;
+  }
+  if (testInhibitUntilIdle) {
+    if (anyPhysActive) {
+      anyTestActive = false; // blocked until all inputs released
+    } else {
+      testInhibitUntilIdle = false; // re-armed
+    }
+  }
+  if (anyTestActive) {
+    if (testStartMs == 0) testStartMs = millis();
+    if ((millis() - testStartMs) > TEST_TIMEOUT_MS) {
+      // Timeout: clear PC-driven requests and inhibit until all inputs released
+      for (int i=0;i<4;i++){
+        testRequested[i] = false;
+        testDotActive[i] = false;
+        testNextDotMs[i] = 0;
+        lineInHold[i] = false;
+        linePWMon[i] = false;
+        linePhaseMs[i] = 0;
+        setGun(i,false);
+      }
+      testInhibitUntilIdle = true;
+      testStartMs = 0;
+      anyTestActive = false;
+    }
+  } else {
+    testStartMs = 0; // idle
+  }
+
+  if (anyTestActive) {
+    if (config.type == "dots") {
+      // 50 Hz dot train per active channel with threshold cut
+      unsigned long now = millis();
+      const unsigned long periodMs = 20;
+      const int adcMid = (ADC_MAX / 2);
+      const int deadband = INITIATION_DEADBAND_COUNTS;
+      for (int i=0;i<4;i++){
+        bool phys = (digitalRead(TEST_INPUT_PINS[i]) == LOW);
+        bool active = testRequested[i] || phys;
+        if (!active) { setGun(i,false); testDotActive[i]=false; testNextDotMs[i]=0; continue; }
+        if (testNextDotMs[i] == 0) testNextDotMs[i] = now;
+        if (now >= testNextDotMs[i]) {
+          // schedule next tick and start a new dot
+          testNextDotMs[i] += periodMs;
+          int adcNow = getCurrentRaw(i);
+          if (abs(adcNow - adcMid) < deadband) testDotActive[i] = true;
+        }
+        if (testDotActive[i]){
+          int adcNow = getCurrentRaw(i);
+          if (adcNow >= currentThreshold) { setGun(i,false); testDotActive[i]=false; }
+          else                              setGun(i,true);
+        } else {
+          setGun(i,false);
+        }
+      }
+    } else { // lines
+      for (int i=0;i<4;i++){
+        bool phys = (digitalRead(TEST_INPUT_PINS[i]) == LOW);
+        bool active = testRequested[i] || phys;
+        if (!active){ setGun(i,false); lineInHold[i]=false; linePWMon[i]=false; linePhaseMs[i]=0; continue; }
+        if (linePhaseMs[i] == 0){ lineInHold[i]=false; linePhaseMs[i]=millis(); }
+        if (!lineInHold[i]){
+          unsigned long elapsed = millis() - linePhaseMs[i];
+          if (elapsed >= (unsigned long)config.startDuration) lineInHold[i]=true;
+        }
+        int adcNow = getCurrentRaw(i);
+        const int hyst = (int)(ADC_MAX / 64);
+        int target = lineInHold[i] ? lineHoldADC : lineStartADC;
+        if (adcNow > target + hyst)      linePWMon[i] = false;
+        else if (adcNow < target - hyst) linePWMon[i] = true;
+        setGun(i, linePWMon[i]);
+      }
+    }
+    return; // test handled
+  }
+
+  if (!config.enabled) { shutdownAllGuns(); return; }
   // --- Compute carriage speed (mm/s), update ~every 10ms ---
   static unsigned long spLastUs = 0;
   static int64_t       spLastPos = 0;

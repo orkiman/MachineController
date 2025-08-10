@@ -80,6 +80,9 @@ signals:
     // Signal emitted when an output state is changed via the UI
     void outputStateChanged(const std::unordered_map<std::string, IOChannel>& outputs);
 
+    // Signal emitted when gun enable/disable state changes (to refresh MainWindow glue test table)
+    void glueGunsChanged();
+
 private slots:
     
     void on_overrideOutputsCheckBox_stateChanged(int state);

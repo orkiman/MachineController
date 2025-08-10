@@ -29,6 +29,11 @@ MainWindow::MainWindow(QWidget *parent, EventQueue<EventVariant>& eventQueue, co
     settingsWindow_ = new SettingsWindow(this, eventQueue_, config);
     getLogger()->debug("[MainWindow] SettingsWindow created.");
 
+    // Rebuild test table when guns/controller enable states change in SettingsWindow
+    connect(settingsWindow_, &SettingsWindow::glueGunsChanged, this, [this]() {
+        buildGlueTestTable();
+    });
+
     // no need to manuly connect signals to slots it's done automatically
     // Connect signals to slots using the ui pointer
     // connect(ui->runButton, &QPushButton::clicked, this, &MainWindow::on_runButton_clicked);
@@ -60,7 +65,7 @@ void MainWindow::buildGlueTestTable() {
     table->setColumnCount(5);
     QStringList headers; headers << "Controller" << "G1" << "G2" << "G3" << "G4";
     table->setHorizontalHeaderLabels(headers);
-    table->horizontalHeader()->setStretchLastSection(true);
+    table->horizontalHeader()->setStretchLastSection(false);
     table->verticalHeader()->setVisible(false);
     table->setEditTriggers(QAbstractItemView::NoEditTriggers);
     table->setSelectionMode(QAbstractItemView::NoSelection);
@@ -114,11 +119,22 @@ void MainWindow::buildGlueTestTable() {
             nameItem->setFlags(nameItem->flags() & ~Qt::ItemIsEditable);
             table->setItem(row, 0, nameItem);
 
-            // Columns 1..4: gun toggles
+            // Columns 1..4: gun toggles (hidden if gun disabled)
             for (int g = 1; g <= 4; ++g) {
+                bool enabledGun = gunActive[g-1];
+                if (!enabledGun) {
+                    // Put an empty, marginless widget so the cell stays compact; no checkbox shown
+                    QWidget* emptyCell = new QWidget(table);
+                    QHBoxLayout* layout = new QHBoxLayout(emptyCell);
+                    layout->setContentsMargins(0,0,0,0);
+                    layout->addStretch();
+                    emptyCell->setLayout(layout);
+                    table->setCellWidget(row, g, emptyCell);
+                    continue;
+                }
+
                 QCheckBox* cb = new QCheckBox(table);
                 cb->setChecked(false);
-                cb->setEnabled(gunActive[g-1]);
                 // Center the checkbox
                 QWidget* cell = new QWidget(table);
                 QHBoxLayout* layout = new QHBoxLayout(cell);

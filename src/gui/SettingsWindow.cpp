@@ -1369,6 +1369,9 @@ void SettingsWindow::onGluePlanSelectorChanged(int index)
                 
                 // Send the new plan to the controller
                 sendControllerSetupToActiveController();
+
+                // Notify MainWindow to refresh glue test table (gun enables may differ per plan)
+                emit glueGunsChanged();
             }
         }
         return;
@@ -2341,7 +2344,10 @@ void SettingsWindow::on_glueControllerEnabledCheckBox_stateChanged(int state)
         QMetaObject::invokeMethod(this, [this]() {
             sendControllerSetupToActiveController();
         }, Qt::QueuedConnection);
-            
+
+        // Notify MainWindow to refresh glue test table
+        emit glueGunsChanged();
+        
     } catch (const std::exception& e) {
         getLogger()->warn("[on_glueControllerEnabledCheckBox_stateChanged] Exception: {}", e.what());
     }
@@ -3512,6 +3518,9 @@ void SettingsWindow::on_gunEnabledCheckBox_stateChanged(int state)
     
     // Save the enabled state for the currently selected gun
     saveCurrentGunSettings();
+    
+    // Notify MainWindow to refresh glue test table (gun enable changed)
+    emit glueGunsChanged();
     
 }
 

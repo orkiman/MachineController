@@ -62,7 +62,7 @@
     "startPosition": 0
   },
   "glue": {
-    "activeController": "controller_1",
+    "activeController": "controller_2",
     "controllers": {
       "controller_1": {
         "activePlan": "plan_1",
@@ -124,7 +124,7 @@
           "plan_1": {
             "guns": [
               {
-                "enabled": false,
+                "enabled": true,
                 "gunId": 1,
                 "rows": []
               },

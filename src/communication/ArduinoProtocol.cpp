@@ -120,9 +120,9 @@ std::string ArduinoProtocol::createTestMessage(int gunIndex, bool on) {
         nlohmann::json testMsg;
         testMsg["type"] = "test";
         if (gunIndex >= 1 && gunIndex <= 4) {
-            testMsg["t"] = std::string("t") + std::to_string(gunIndex);
+            testMsg["gun"] = gunIndex;  // 1..4
         } else {
-            testMsg["t"] = "all";
+            testMsg["gun"] = 0;          // 0 means all guns
         }
         testMsg["state"] = on ? "on" : "off";
         return testMsg.dump();

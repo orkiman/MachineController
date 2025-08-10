@@ -75,7 +75,7 @@ public:
      * @brief Create test message for Arduino to toggle a gun in test mode
      * @param gunIndex 1..4 for specific gun; if 0 or negative, this targets all guns
      * @param on true to turn test ON, false to turn test OFF
-     * @return JSON string for test message, e.g. {"type":"test","t":"t1","state":"on"}
+     * @return JSON string for test message, e.g. {"type":"test","gun":1,"state":"on"} (gun=0 means all)
      */
     static std::string createTestMessage(int gunIndex, bool on);
     

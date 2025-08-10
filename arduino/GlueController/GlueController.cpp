@@ -48,7 +48,7 @@ static bool linePWMon[4]    = {false,false,false,false};
 ZoneRing firingZones[4];
 
 // ===== Test mode state =====
-static bool testRequested[4] = {false,false,false,false}; // PC-driven t1..t4
+static bool testRequested[4] = {false,false,false,false}; // PC-driven per-gun test (guns 1..4)
 static bool testDotActive[4] = {false,false,false,false}; // per-gun dot currently firing
 static unsigned long testNextDotMs[4] = {0,0,0,0};        // 50 Hz scheduler
 static unsigned long testStartMs = 0;                     // global timeout start
@@ -392,10 +392,9 @@ void handleCalibrationSensorStateChange(bool sensorState){
 void handleHeartbeat(const JsonObject &){ /* no-op (status removed) */ }
 
 void handleTest(const JsonObject &json){
-  // Expected: {"type":"test","t":"t1|t2|t3|t4|all","state":"on|off"}
-  const char* t_c = json["t"] | "";
+  // Expected: {"type":"test","gun":1..4|0,"state":"on|off"}
+  // gun: 1..4 targets specific gun; 0 (or missing) applies to all guns
   const char* s_c = json["state"] | "";
-  String t = String(t_c); t.toLowerCase();
   String s = String(s_c); s.toLowerCase();
   bool on = (s == "on" || s == "true" || s == "1");
 
@@ -413,14 +412,11 @@ void handleTest(const JsonObject &json){
     }
   };
 
-  if (t == "all") {
+  int gun = json["gun"] | 0; // 0 = all
+  if (gun <= 0) {
     for (int i=0;i<4;i++) apply(i, on);
-  } else if (t.length() >= 2 && t.charAt(0) == 't') {
-    int d = t.charAt(1) - '1';
-    if (d >= 0 && d < 4) apply(d, on);
-  } else if (json.containsKey("gun")) {
-    int g = json["gun"] | 0; // 1..4
-    if (g >= 1 && g <= 4) apply(g-1, on);
+  } else if (gun >= 1 && gun <= 4) {
+    apply(gun-1, on);
   }
 
   // Re-arm timer window for a fresh 30s if turning on via PC

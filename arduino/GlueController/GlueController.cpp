@@ -37,6 +37,14 @@ int64_t firingBasePosition = 0;
 
 int  currentThreshold = 0; // 0..ADC_MAX
 
+// Lines-mode: targets in ADC counts and per-gun phase state
+static int lineStartADC = 0;
+static int lineHoldADC  = 0;
+static bool lineActive[4]   = {false,false,false,false};
+static bool lineInHold[4]   = {false,false,false,false};
+static unsigned long linePhaseMs[4] = {0,0,0,0};
+static bool linePWMon[4]    = {false,false,false,false};
+
 ZoneRing firingZones[4];
 
 // ----- ADC backends -----
@@ -198,9 +206,19 @@ void processSerial(){
         DeserializationError err = deserializeJson(doc, inputBuffer);
         if (!err) {
           String type = doc["type"] | "";
-          if      (type == "controller_setup") handleConfig(doc.as<JsonObject>());
-          else if (type == "calibrate")        initCalibration(doc.as<JsonObject>());
-          else if (type == "heartbeat")        handleHeartbeat(doc.as<JsonObject>()); // no-op
+          if      (type == "controller_setup" || type == "config") {
+            handleConfig(doc.as<JsonObject>());
+          } else if (type == "plan") {
+            handlePlan(doc.as<JsonObject>());
+          } else if (type == "run") {
+            config.enabled = true; digitalWrite(STATUS_LED, HIGH);
+          } else if (type == "stop") {
+            config.enabled = false; shutdownAllGuns(); digitalWrite(STATUS_LED, LOW);
+          } else if (type == "calibrate") {
+            initCalibration(doc.as<JsonObject>());
+          } else if (type == "heartbeat") {
+            handleHeartbeat(doc.as<JsonObject>()); // no-op
+          }
         }
         inputBuffer = "";
       }
@@ -214,8 +232,10 @@ void handleConfig(const JsonObject &json){
   config.encoderPulsesPerMm = json["encoder"] | 1.0;
   config.sensorOffset = json["sensorOffset"] | 10;
   config.startCurrent = json["startCurrent"] | 1.0;
-  config.startDuration = json["startDuration"] | 0.5;
+  // startDuration is specified in milliseconds
+  config.startDuration = json["startDuration"] | 500;
   config.holdCurrent = json["holdCurrent"] | 0.5;
+  config.minimumSpeed = json["minimumSpeed"] | 0.0; // mm/s (0 disables gating)
   config.dotSize = json["dotSize"] | "medium";
 
   config.sensorOffsetInPulses = (int)(config.sensorOffset * config.encoderPulsesPerMm);
@@ -227,6 +247,10 @@ void handleConfig(const JsonObject &json){
 
   // Scale to ADC counts using ADC_MAX
   currentThreshold = (int)((thrA * 0.8 + 2.5) * (double)ADC_MAX / 5.0);
+
+  // Precompute line-mode ADC targets from configured currents (same mapping as dots)
+  lineStartADC = (int)((config.startCurrent * 0.8 + 2.5) * (double)ADC_MAX / 5.0);
+  lineHoldADC  = (int)((config.holdCurrent  * 0.8 + 2.5) * (double)ADC_MAX / 5.0);
 
   digitalWrite(STATUS_LED, config.enabled ? HIGH : LOW);
 
@@ -265,6 +289,73 @@ void handleConfig(const JsonObject &json){
 
   allFiringZonesInserted = false;
   for (int i=0;i<4;i++){ firingZones[i].head=firingZones[i].tail=firingZones[i].count=0; }
+}
+
+// Plan updates: update guns/rows only
+void handlePlan(const JsonObject &json){
+  // Update guns from either a full guns[] array, or a single gun + rows payload
+  bool updated = false;
+  if (json.containsKey("guns")) {
+    JsonArray gunsArray = json["guns"];
+    for (JsonObject gunConfig : gunsArray) {
+      int gunId = gunConfig["gunId"] | -1;
+      if (gunId >= 0 && gunId < 4) {
+        auto &g = _guns_internal[gunId];
+        g.enabled = gunConfig["enabled"] | g.enabled;
+        g.rows.clear();
+        if (gunConfig.containsKey("rows")) {
+          JsonArray rows = gunConfig["rows"];
+          std::vector<GlueRow> tmp;
+          for (JsonObject row : rows) {
+            GlueRow r = {
+              .from  = (int)(row["from"].as<float>()  * config.encoderPulsesPerMm) + config.sensorOffsetInPulses,
+              .to    = (int)(row["to"].as<float>()    * config.encoderPulsesPerMm) + config.sensorOffsetInPulses,
+              .space = (int)(row["space"].as<float>() * config.encoderPulsesPerMm)
+            };
+            tmp.push_back(r);
+          }
+          std::sort(tmp.begin(), tmp.end(), [](const GlueRow&a,const GlueRow&b){ return a.from < b.from; });
+          for (const GlueRow &r : tmp) {
+            if (!g.rows.empty() && g.rows.back().to >= r.from) g.rows.back().to = std::max(g.rows.back().to, r.to);
+            else g.rows.push_back(r);
+          }
+        }
+        updated = true;
+      }
+    }
+  } else if (json.containsKey("rows")) {
+    int gunId = json["gunId"] | 0;
+    if (gunId >= 0 && gunId < 4) {
+      auto &g = _guns_internal[gunId];
+      if (json.containsKey("enabled")) g.enabled = json["enabled"].as<bool>();
+      g.rows.clear();
+      JsonArray rows = json["rows"];
+      std::vector<GlueRow> tmp;
+      for (JsonObject row : rows) {
+        GlueRow r = {
+          .from  = (int)(row["from"].as<float>()  * config.encoderPulsesPerMm) + config.sensorOffsetInPulses,
+          .to    = (int)(row["to"].as<float>()    * config.encoderPulsesPerMm) + config.sensorOffsetInPulses,
+          .space = (int)(row["space"].as<float>() * config.encoderPulsesPerMm)
+        };
+        tmp.push_back(r);
+      }
+      std::sort(tmp.begin(), tmp.end(), [](const GlueRow&a,const GlueRow&b){ return a.from < b.from; });
+      for (const GlueRow &r : tmp) {
+        if (!g.rows.empty() && g.rows.back().to >= r.from) g.rows.back().to = std::max(g.rows.back().to, r.to);
+        else g.rows.push_back(r);
+      }
+      updated = true;
+    }
+  }
+
+  if (updated) {
+    // Clear pending zones so new plan takes effect on next sensor trigger
+    allFiringZonesInserted = false;
+    for (int i=0;i<4;i++){
+      firingZones[i].head=firingZones[i].tail=firingZones[i].count=0;
+      lineActive[i]=false; lineInHold[i]=false; linePWMon[i]=false;
+    }
+  }
 }
 
 void initCalibration(const JsonObject &json){
@@ -337,6 +428,74 @@ void calculateFiringZones(){
 void updateGuns(){
   if (isCalibrating) return;
 
+  // --- Compute carriage speed (mm/s), update ~every 10ms ---
+  static unsigned long spLastUs = 0;
+  static int64_t       spLastPos = 0;
+  static double        speedMmPerSec = 0.0;
+  unsigned long nowUs = micros();
+  if (spLastUs == 0) { spLastUs = nowUs; spLastPos = currentPosition64; }
+  else {
+    unsigned long du = nowUs - spLastUs;
+    if (du >= 10000UL) {
+      int64_t dp = currentPosition64 - spLastPos; // pulses
+      double  sec = (double)du / 1000000.0;
+      double  pps = dp / sec; // pulses per second
+      speedMmPerSec = pps / (config.encoderPulsesPerMm > 0 ? config.encoderPulsesPerMm : 1.0);
+      spLastUs = nowUs; spLastPos = currentPosition64;
+    }
+  }
+
+  bool isLinesMode = (config.type == "lines");
+  bool speedTooLow = isLinesMode && (config.minimumSpeed > 0.0) && (speedMmPerSec < config.minimumSpeed);
+
+  if (isLinesMode) {
+    // Lines: start at 'from', keep ON; after startDuration we're in hold (state only), turn OFF at 'to'.
+    for (int i=0;i<4;i++){
+      if (!_guns_internal[i].enabled){ setGun(i,false); lineActive[i]=false; lineInHold[i]=false; continue; }
+
+      if (firingZones[i].count){
+        ActiveZone &zone = ring_peek(firingZones[i], 0);
+
+        if (currentPosition64 > zone.to) {
+          ring_pop(firingZones[i]);
+          setGun(i,false);
+          lineActive[i] = false; lineInHold[i] = false; linePWMon[i] = false;
+        } else if (currentPosition64 >= zone.from) {
+          if (!lineActive[i]){
+            lineActive[i] = true; lineInHold[i] = false; linePhaseMs[i] = millis();
+          }
+
+          // Phase transition
+          if (!lineInHold[i]){
+            unsigned long elapsed = millis() - linePhaseMs[i];
+            if (elapsed >= (unsigned long)(config.startDuration)) {
+              lineInHold[i] = true;
+            }
+          }
+
+          // Bang-bang control around target current (start or hold)
+          int adcNow = getCurrentRaw(i);
+          const int hyst = (int)(ADC_MAX / 64); // ~1.6% FS
+          int target = lineInHold[i] ? lineHoldADC : lineStartADC;
+          if (adcNow > target + hyst)      linePWMon[i] = false;
+          else if (adcNow < target - hyst) linePWMon[i] = true;
+
+          // Apply speed gating
+          if (speedTooLow) setGun(i,false);
+          else             setGun(i,linePWMon[i]);
+        } else {
+          // haven't reached 'from': ensure OFF
+          setGun(i,false); linePWMon[i] = false;
+        }
+      } else {
+        setGun(i,false);
+        lineActive[i] = false; lineInHold[i] = false; linePWMon[i] = false;
+      }
+    }
+    return; // lines mode handled
+  }
+
+  // --- Dots mode (existing logic) ---
   const int adcMid = (ADC_MAX / 2);
   const int deadband = INITIATION_DEADBAND_COUNTS;
 

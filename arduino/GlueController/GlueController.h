@@ -52,6 +52,7 @@ struct ControllerConfig {
   double startCurrent = 1.0;           // A
   double startDuration = 500;          // ms
   double holdCurrent  = 0.5;           // A
+  double minimumSpeed = 0.0;           // mm/s (0 = disabled)
   String dotSize = "medium";           // "small"|"medium"|"large"
 };
 
@@ -95,6 +96,7 @@ void loop();
 
 void processSerial();
 void handleConfig(const JsonObject& json);
+void handlePlan(const JsonObject& json);
 void initCalibration(const JsonObject& json);
 void handleCalibrationSensorStateChange(bool sensorState);
 void handleHeartbeat(const JsonObject& json); // no-op

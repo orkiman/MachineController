@@ -218,14 +218,8 @@ void processSerial(){
           String type = doc["type"] | "";
           if      (type == "controller_setup" || type == "config") {
             handleConfig(doc.as<JsonObject>());
-          } else if (type == "plan") {
-            handlePlan(doc.as<JsonObject>());
           } else if (type == "test") {
             handleTest(doc.as<JsonObject>());
-          } else if (type == "run") {
-            config.enabled = true; digitalWrite(STATUS_LED, HIGH);
-          } else if (type == "stop") {
-            config.enabled = false; shutdownAllGuns(); digitalWrite(STATUS_LED, LOW);
           } else if (type == "calibrate") {
             initCalibration(doc.as<JsonObject>());
           } else if (type == "heartbeat") {
@@ -303,72 +297,6 @@ void handleConfig(const JsonObject &json){
   for (int i=0;i<4;i++){ firingZones[i].head=firingZones[i].tail=firingZones[i].count=0; }
 }
 
-// Plan updates: update guns/rows only
-void handlePlan(const JsonObject &json){
-  // Update guns from either a full guns[] array, or a single gun + rows payload
-  bool updated = false;
-  if (json.containsKey("guns")) {
-    JsonArray gunsArray = json["guns"];
-    for (JsonObject gunConfig : gunsArray) {
-      int gunId = gunConfig["gunId"] | -1;
-      if (gunId >= 0 && gunId < 4) {
-        auto &g = _guns_internal[gunId];
-        g.enabled = gunConfig["enabled"] | g.enabled;
-        g.rows.clear();
-        if (gunConfig.containsKey("rows")) {
-          JsonArray rows = gunConfig["rows"];
-          std::vector<GlueRow> tmp;
-          for (JsonObject row : rows) {
-            GlueRow r = {
-              .from  = (int)(row["from"].as<float>()  * config.encoderPulsesPerMm) + config.sensorOffsetInPulses,
-              .to    = (int)(row["to"].as<float>()    * config.encoderPulsesPerMm) + config.sensorOffsetInPulses,
-              .space = (int)(row["space"].as<float>() * config.encoderPulsesPerMm)
-            };
-            tmp.push_back(r);
-          }
-          std::sort(tmp.begin(), tmp.end(), [](const GlueRow&a,const GlueRow&b){ return a.from < b.from; });
-          for (const GlueRow &r : tmp) {
-            if (!g.rows.empty() && g.rows.back().to >= r.from) g.rows.back().to = std::max(g.rows.back().to, r.to);
-            else g.rows.push_back(r);
-          }
-        }
-        updated = true;
-      }
-    }
-  } else if (json.containsKey("rows")) {
-    int gunId = json["gunId"] | 0;
-    if (gunId >= 0 && gunId < 4) {
-      auto &g = _guns_internal[gunId];
-      if (json.containsKey("enabled")) g.enabled = json["enabled"].as<bool>();
-      g.rows.clear();
-      JsonArray rows = json["rows"];
-      std::vector<GlueRow> tmp;
-      for (JsonObject row : rows) {
-        GlueRow r = {
-          .from  = (int)(row["from"].as<float>()  * config.encoderPulsesPerMm) + config.sensorOffsetInPulses,
-          .to    = (int)(row["to"].as<float>()    * config.encoderPulsesPerMm) + config.sensorOffsetInPulses,
-          .space = (int)(row["space"].as<float>() * config.encoderPulsesPerMm)
-        };
-        tmp.push_back(r);
-      }
-      std::sort(tmp.begin(), tmp.end(), [](const GlueRow&a,const GlueRow&b){ return a.from < b.from; });
-      for (const GlueRow &r : tmp) {
-        if (!g.rows.empty() && g.rows.back().to >= r.from) g.rows.back().to = std::max(g.rows.back().to, r.to);
-        else g.rows.push_back(r);
-      }
-      updated = true;
-    }
-  }
-
-  if (updated) {
-    // Clear pending zones so new plan takes effect on next sensor trigger
-    allFiringZonesInserted = false;
-    for (int i=0;i<4;i++){
-      firingZones[i].head=firingZones[i].tail=firingZones[i].count=0;
-      lineActive[i]=false; lineInHold[i]=false; linePWMon[i]=false;
-    }
-  }
-}
 
 void initCalibration(const JsonObject &json){
   pageLength = json["pageLength"] | 1000;

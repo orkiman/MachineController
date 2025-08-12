@@ -98,7 +98,6 @@ void loop();
 
 void processSerial();
 void handleConfig(const JsonObject& json);
-void handlePlan(const JsonObject& json);
 void handleTest(const JsonObject& json);
 void initCalibration(const JsonObject& json);
 void handleCalibrationSensorStateChange(bool sensorState);

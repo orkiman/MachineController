@@ -2,35 +2,83 @@
 
 ## Overview
 
-This Arduino program implements a complete glue controller that communicates with the MachineController application via JSON messages.
+Glue controller firmware for MachineController. Communicates via framed JSON over Serial.
 
-## Features
+## Quick Facts
 
-- **JSON Protocol Communication** - Full bidirectional communication with the PC
-- **4-Gun Support** - Individual control of up to 4 glue guns
-- **Encoder Positioning** - Precise positioning using rotary encoder
-- **Sensor Integration** - Optical sensor for page detection
-- **Real-time Application** - Dynamic glue application based on configuration
+- Board: Arduino Uno R4 (Minima/WiFi) recommended
+- Serial: 115200 baud
+- Framing: STX (0x02) JSON ETX (0x03)
+- Guns: up to 4
 
-## Hardware Setup
+## Pins (Uno R4)
 
-### Pin Assignments
-- Pin 2: Encoder A (interrupt)
-- Pin 3: Encoder B (interrupt)  
-- Pin 4: Optical sensor
-- Pins 8-11: Gun 1-4 solenoids
-- Pin 13: Status LED
+- 2: Encoder A
+- 4: Optical sensor
+- 8..11: Gun 1..4 outputs
+- 13: Status LED
 
-## Installation
+## Install
 
-1. Install Arduino IDE
-2. Install ArduinoJson library (v6.x+)
-3. Upload GlueController.ino to Arduino Mega 2560
+1) Arduino IDE + board package for Uno R4
+2) Library: ArduinoJson v6+
+3) Open and upload `arduino/GlueController/GlueController.ino`
 
-## Testing
+## Protocol (Inbound)
 
-Send test messages via Serial Monitor (115200 baud):
-- `{"type":"heartbeat"}` - Get status
-- `{"type":"config","encoder":1.5,"sensorOffset":10}` - Set config
-- `{"type":"run"}` - Start operation
-- `{"type":"stop"}` - Stop operation
+Supported message types: `controller_setup` (alias: `config`), `test`, `calibrate`, `heartbeat`
+
+Framing example:
+```
+[STX]{"type":"controller_setup",...}[ETX]
+```
+
+Controller setup (preferred):
+```
+[STX]{
+  "type":"controller_setup",
+  "enabled":true,
+  "encoder":100.0,
+  "sensorOffset":12,
+  "startCurrent":1.0,
+  "startDuration":500,
+  "holdCurrent":0.5,
+  "minimumSpeed":0.0,
+  "dotSize":"medium",
+  "guns":[
+    {"gunId":0,"enabled":true,"rows":[{"from":10.0,"to":50.0,"space":0.0}]}
+  ]
+}[ETX]
+```
+
+Test:
+```
+[STX]{"type":"test","state":"on"}[ETX]
+[STX]{"type":"test","gun":2,"state":"off"}[ETX]
+```
+
+Calibrate:
+```
+[STX]{"type":"calibrate","pageLength":1000}[ETX]
+```
+
+Heartbeat (no-op):
+```
+[STX]{"type":"heartbeat"}[ETX]
+```
+
+Protocol (Outbound):
+```
+{"type":"calibration_result","pulsesPerPage":12345}
+```
+
+Notes:
+- `guns[].rows` are in mm; firmware converts to pulses using `encoder` and `sensorOffset`. Overlaps are merged.
+- STATUS_LED follows `enabled` from setup.
+- Removed/unsupported: `plan`, `run`, `stop`.
+
+## Quick Test
+
+Serial Monitor @ 115200, send (remember to add STX/ETX framing if your tool doesn’t):
+- `{"type":"heartbeat"}`
+- `{"type":"config","enabled":true,"encoder":100}`

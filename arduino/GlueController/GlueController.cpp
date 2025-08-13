@@ -453,7 +453,7 @@ void updateGuns(){
         bool active = testRequested[i] || phys;
         if (!active) { setGun(i,false); testDotActive[i]=false; testNextDotMs[i]=0; continue; }
         if (testNextDotMs[i] == 0) testNextDotMs[i] = now;
-        if (now >= testNextDotMs[i]) {
+        if ((long)(now - testNextDotMs[i]) >= 0) {
           // schedule next tick and start a new dot
           testNextDotMs[i] += periodMs;
           int adcNow = getCurrentRaw(i);

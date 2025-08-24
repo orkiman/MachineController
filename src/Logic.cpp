@@ -2,6 +2,7 @@
 #include "Logger.h"
 #include "communication/RS232Communication.h"
 #include "utils/CompilerMacros.h" // Add cross-platform function name macro
+#include "json.hpp"
 #include <iostream>
 #include <tuple>
 
@@ -21,6 +22,9 @@ Logic::Logic(EventQueue<EventVariant> &eventQueue, const Config &config)
   getLogger()->debug("[{}] Logic initialized", FUNCTION_NAME);
   
   // Communication ports and timers will be initialized when the GUI is ready
+
+  // Create machine core implementation
+  core_.reset(createDefaultMachineCore());
 }
 
 Logic::~Logic() {
@@ -93,7 +97,6 @@ void Logic::stop() {
 
 // Central logic cycle function - called after state changes from any event
 
-
 // **Event Handlers**
 void Logic::handleEvent(const IOEvent &event) {
   std::cout << "[IO Event] Processing input changes..." << std::endl;
@@ -155,23 +158,6 @@ void Logic::handleEvent(const CommEvent &event) {
   oneLogicCycle();
 }
 
-// =====================================================================================
-// GuiEvent Message Structure (see Event.h)
-// -------------------------------------------------------------------------------------
-// struct GuiEvent {
-//     std::string keyword;   // Command keyword (e.g., "SetOutput", "GuiMessage") [mandatory]
-//     std::string target;    // Target identifier (output name, comm port, message type)
-//     std::string data;      // Primary data or message content
-//     int intValue = 0;      // Numeric value when needed
-// };
-//
-// Supported keywords and their semantics:
-//   "SetOutput"                target = outputName, intValue = state
-//   "SetVariable"              target = variableName, data (optional) = var value
-//   "ParameterChange"          target = category (e.g. "communication", "timer", "datafile")
-//   "GuiMessage"               data = message
-//   "SendCommunicationMessage" target = communicationName, data = message
-// =====================================================================================
 void Logic::handleEvent(const GuiEvent &event) {
   // Log the event for debugging
   getLogger()->debug("[{}] GUI Event] Received: keyword='{}', data='{}', target='{}', intValue={}",
@@ -194,6 +180,7 @@ void Logic::handleEvent(const GuiEvent &event) {
     if (event.target == "blinkLed0") {
       blinkLed0_ = !blinkLed0_;
       getLogger()->debug("[{}] LED blinking {}", FUNCTION_NAME, blinkLed0_ ? "enabled" : "disabled");
+      if (core_) { core_->setBlinkLed(blinkLed0_); }
       
       if (blinkLed0_) {
         timers_["timer1"].start(
@@ -563,113 +550,119 @@ bool Logic::initTimers() {
 }
 
 void Logic::oneLogicCycle() {
-  // Handle LED blinking separately from timer state
-  if (blinkLed0_) {
-    // If timer1 triggered, toggle the LED
-    if (timers_["timer1"].state_ == 1 &&
-        timers_["timer1"].eventType_ == IOEventType::Rising) {
-      outputChannels_["o0"].state = !outputChannels_["o0"].state;
-      timers_["timer1"].state_ = 0;
-      timers_["timer1"].eventType_ = IOEventType::None;
-      timers_["timer1"].start(
-          std::chrono::milliseconds(timers_["timer1"].getDuration()), [this]() {
-            // Push the event to the queue
-            eventQueue_.push(TimerEvent{"timer1"});
-          });
+  // Build CycleInputs for the core
+  CycleInputs in{inputChannels_};
+  in.blinkLed0 = blinkLed0_;
+
+  // Collect timer edges for this cycle (Option A)
+  for (auto& [name, t] : timers_) {
+    TimerEdge edge{};
+    if (t.eventType_ == IOEventType::Rising) edge.rising = true;
+    if (t.eventType_ == IOEventType::Falling) edge.falling = true;
+    if (edge.rising || edge.falling) {
+      in.timerEdges[name] = edge;
     }
-  } else {
-    // If blinking is disabled, turn off the LED
-    outputChannels_["o0"].state = 0;
   }
 
-  if(!overrideOutputs_) {
-    writeOutputs();
-  }
-  
-  // Process communication data if available
+  // Collect communication cell messages if updated
   if (commUpdated_) {
-    // Now process data from all active communication ports
     for (auto& [portName, messageList] : communicationDataLists_) {
-      if (!messageList.empty()) {
-        getLogger()->debug("[{}] Processing {} messages from {}", FUNCTION_NAME, messageList.size(), portName);
-        
-        // Process each message in the list
-        for (const auto& message : messageList) {
-          // Try to parse as JSON to check message type
-          try {
-            auto json = nlohmann::json::parse(message);
-            
-            // Check if this is a calibration response
-            if (json.contains("type") && json["type"] == "calibration_result") {
-              if (json.contains("pulsesPerPage")) {
-                int pulsesPerPage = json["pulsesPerPage"];
-                getLogger()->info("[{}] Received calibration response from {}: {} pulses per page", 
-                                FUNCTION_NAME, portName, pulsesPerPage);
-                
-                // Emit signal with calibration result
-                // The controller name is the same as the port name for now
-                emit calibrationResponse(pulsesPerPage, portName);
-                continue; // Skip default logging for calibration responses
-              }
-            }
-            
-            // Add other message type handlers here as needed
-            
-          } catch (const std::exception& e) {
-            // Not a JSON message or invalid JSON, log as debug
-            getLogger()->debug("[{}] Non-JSON message from {}: {}", FUNCTION_NAME, portName, message);
-          }
-          
-          // Default logging for unhandled messages
-          getLogger()->debug("[{}] Message from {}: {}", FUNCTION_NAME, portName, message);
+      for (size_t idx = 0; idx < messageList.size(); ++idx) {
+        const auto& msg = messageList[idx];
+        if (msg.empty()) continue;
+        CommCellMessage cm{portName, static_cast<int>(idx), msg, std::nullopt};
+        try {
+          cm.parsed = nlohmann::json::parse(msg);
+        } catch (...) {
+          // ignore parse errors; keep raw
         }
-        
-        // Clear the list after processing
-        messageList.clear();
-      } else {  
-        getLogger()->debug("[{}] No messages in {}", FUNCTION_NAME, portName);
+        in.cellMsgs.push_back(std::move(cm));
       }
+      // Clear list after consuming
+      messageList.clear();
     }
-    
-    // Reset the flag after processing all communication data
     commUpdated_ = false;
   }
-  
-  // Reset timers' edge detection
-  for (auto& [name, timer] : timers_) {
-    timer.setEventType(IOEventType::None);
-  }
-  
-  // Process input changes if inputs were updated
-  if (inputsUpdated_) {
-    getLogger()->debug("[{}] Processing input changes", FUNCTION_NAME);
 
-    // Example of machine-specific logic based on input states
-    if (inputChannels_.count("i8") > 0 && inputChannels_.count("i9") > 0) {
-      if (inputChannels_["i8"].eventType == IOEventType::Rising &&
-          inputChannels_["i9"].state == 0) {
-        getLogger()->debug("[{}] Start process triggered", FUNCTION_NAME);
-      }
+  // Let core compute effects
+  CycleEffects fx;
+  if (core_) {
+    fx = core_->step(in);
+  }
+
+  // Apply output changes (deferred single write)
+  if (!fx.outputChanges.empty()) {
+    for (const auto& [name, state] : fx.outputChanges) {
+      outputChannels_[name].state = state;
     }
-
-    inputsUpdated_ = false; // Reset the flag
+    outputsUpdated_ = true;
   }
 
-  // Process timer events if any timer was updated
-  if (timerUpdated_) {
-    getLogger()->debug("[{}] Processing timer updates", FUNCTION_NAME);
-    timerUpdated_ = false; // Reset the flag
+  // Apply timer commands
+  for (const auto& cmd : fx.timerCmds) {
+    if (cmd.type == TimerCmd::Start) {
+      // update duration if provided
+      if (cmd.durationMs) {
+        timers_[cmd.name].setDuration(*cmd.durationMs);
+      }
+      startTimer(cmd.name);
+    } else {
+      stopTimer(cmd.name);
+    }
   }
 
-  // Apply output changes if needed
-  if (outputsUpdated_) {
+  // Send comm messages
+  for (const auto& s : fx.commSends) {
+    auto it = activeCommPorts_.find(s.port);
+    if (it != activeCommPorts_.end()) {
+      it->second.send(s.data);
+    } else {
+      getLogger()->warn("[{}] comm send skipped; port '{}' not active", FUNCTION_NAME, s.port);
+    }
+  }
+
+  // Handle calibration results
+  if (fx.calibration) {
+    emit calibrationResponse(fx.calibration->pulsesPerPage, fx.calibration->port);
+  }
+
+  // Single hardware write for this cycle unless GUI override enabled
+  if (!overrideOutputs_ && outputsUpdated_) {
     getLogger()->debug("[{}] Applying output changes", FUNCTION_NAME);
     writeOutputs();
-    outputsUpdated_ = false; // Reset the flag
+    outputsUpdated_ = false;
   }
+
+  // Reset timer edge flags after the cycle
+  for (auto& [name, t] : timers_) {
+    t.setEventType(IOEventType::None);
+    t.state_ = 0;
+  }
+
+  // Inputs flag is informational only now
+  inputsUpdated_ = false;
 
   // Log the end of a logic cycle
   getLogger()->debug("[{}] Logic cycle completed", FUNCTION_NAME);
+}
+
+void Logic::startTimer(const std::string& timerName) {
+  auto it = timers_.find(timerName);
+  if (it == timers_.end()) {
+    getLogger()->warn("[{}] startTimer: timer '{}' not found", FUNCTION_NAME, timerName);
+    return;
+  }
+  int dur = it->second.getDuration();
+  if (dur <= 0) return;
+  it->second.start(std::chrono::milliseconds(dur), [this, timerName]() {
+    eventQueue_.push(TimerEvent{timerName});
+  });
+}
+
+void Logic::stopTimer(const std::string& timerName) {
+  auto it = timers_.find(timerName);
+  if (it == timers_.end()) return;
+  it->second.cancel();
 }
 
 #include "moc_Logic.cpp"

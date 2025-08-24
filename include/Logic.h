@@ -4,6 +4,7 @@
 #include <thread>
 #include <atomic>
 #include <unordered_map>
+#include <memory>
 #include "io/PCI7248IO.h"
 #include "EventQueue.h"
 #include "Event.h"
@@ -12,6 +13,8 @@
 #include "Timer.h"
 #include "communication/RS232Communication.h"
 #include "dataFile/DataFile.h"
+#include "machine/MachineCore.h"
+#include "machine/DefaultMachineCoreFactory.h"
 
 class Logic : public QObject {
     Q_OBJECT
@@ -103,6 +106,9 @@ private:
     bool overrideOutputs_{false}; // Flag to control output overrides
 
     void closeAllPorts(); // Added declaration
+
+    // Machine logic core (pluggable)
+    std::unique_ptr<MachineCore> core_;
 };
 
 #endif // LOGIC_H

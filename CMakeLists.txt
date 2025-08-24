@@ -49,6 +49,7 @@ set(SOURCES
     src/io/windows/PCI7248IO.cpp
     src/Config.cpp
     src/Logic.cpp
+    src/machine/DefaultMachineCore.cpp
     src/gui/MainWindow.cpp
     src/gui/SettingsWindow.cpp
     src/communication/RS232Communication.cpp

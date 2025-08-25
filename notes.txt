@@ -24,3 +24,49 @@ saveCurrentGunSettings
 send controller setup to arduino on startup
 
 check comm massages cell insertion and handling
+
+----------------------------- cont setup build and intellisense
+Got it. I’ll keep the plan and context. Here’s a concise checklist for your other PC so you can continue seamlessly.
+
+Quick checklist on the other PC
+[Verify prerequisites]
+Visual Studio 2022 (Build Tools or Community) with:
+MSVC v143 C++ build tools (x64)
+Windows 10/11 SDK (so rc.exe and mt.exe exist)
+Ninja installed (or available on PATH)
+Qt path matches C:\Qt\6.9.1\msvc2022_64 (adjust if different)
+[Repo settings already in place]
+/.vscode/tasks.json forces MSVC with -DCMAKE_C_COMPILER=cl and -DCMAKE_CXX_COMPILER=cl.
+/.vscode/settings.json sets clangd.arguments to:
+--compile-commands-dir=${workspaceFolder}/build-ninja
+--query-driver=C:/Program Files/Microsoft Visual Studio/2022/**/VC/Tools/MSVC/**/bin/Hostx64/x64/cl.exe
+[Configure with MSVC] (use either)
+Developer Command Prompt/PowerShell for VS 2022:
+Run in c:\or\windsurfProjects\MachineController:
+powershell
+cmake -B build-ninja -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_PREFIX_PATH=C:\Qt\6.9.1\msvc2022_64 -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl
+Or PowerShell wrapper (auto-detect BuildTools/Community):
+powershell
+$vsBt = "C:\Program Files\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\VsDevCmd.bat"
+$vsCm = "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\Tools\VsDevCmd.bat"
+$vsPath = $null
+if (Test-Path $vsBt) { $vsPath = $vsBt } elseif (Test-Path $vsCm) { $vsPath = $vsCm } else { throw "VsDevCmd.bat not found" }
+& "C:\Windows\System32\cmd.exe" /c "`"$vsPath`" -arch=x64 -host_arch=x64 && cmake -B build-ninja -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_PREFIX_PATH=C:\Qt\6.9.1\msvc2022_64 -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl"
+[If Configure fails with RC/MT not found]
+Install Windows SDK via Visual Studio Installer (Individual components: Windows 10/11 SDK).
+Re-run Configure.
+[Finalize]
+Check build-ninja/compile_commands.json contains cl.exe.
+Reload Window (so Kylin clangd picks up new args and index).
+Build with Ninja and verify IntelliSense.
+Quick diagnostics (optional)
+where rc, where mt, where link
+cl.exe /Bv
+TODO status
+[completed] Force MSVC in tasks.json
+[completed] Configure clangd in settings.json
+[pending] Install Windows SDK if missing
+[pending] Re-run Configure on the other PC
+[pending] Reload window
+[pending] Verify compile_commands.json and IntelliSense
+Summary: You’re set to continue on the other PC. Run Configure in a VS developer shell, ensure SDK tools are present, then reload and verify IntelliSense.

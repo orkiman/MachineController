@@ -110,5 +110,13 @@
         "stack": "cpp",
         "unordered_set": "cpp",
         "stdfloat": "cpp"
-    }
+    },
+    "clangd.arguments": [
+        "--compile-commands-dir=${workspaceFolder}/build-ninja",
+        "--query-driver=C:/Program Files/Microsoft Visual Studio/2022/**/VC/Tools/MSVC/**/bin/Hostx64/x64/cl.exe",
+        "--background-index",
+        "--header-insertion=iwyu",
+        "--pch-storage=memory",
+        "--log=error"
+    ]
 }

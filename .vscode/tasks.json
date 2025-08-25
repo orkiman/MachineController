@@ -15,7 +15,9 @@
                 "-G", "Ninja",
                 "-DCMAKE_BUILD_TYPE=Debug",
                 "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
-                "-DCMAKE_PREFIX_PATH=C:\\Qt\\6.9.1\\msvc2022_64"
+                "-DCMAKE_PREFIX_PATH=C:\\Qt\\6.9.1\\msvc2022_64",
+                "-DCMAKE_C_COMPILER=cl",
+                "-DCMAKE_CXX_COMPILER=cl"
             ],
             "group": "build",
             "problemMatcher": ["$msCompile"]

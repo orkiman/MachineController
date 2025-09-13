@@ -19,6 +19,36 @@ void Config::setDataFileSettings(const DataFileSettings& settings)
     configJson_["dataFile"] = dataFileJson;
 }
 
+void Config::ensureDefaultMachineSettings()
+{
+    try {
+        std::lock_guard<std::mutex> lock(configMutex_);
+        if (!configJson_.contains("machine") || !configJson_["machine"].is_object()) {
+            configJson_["machine"] = nlohmann::json::object();
+        }
+
+        auto& machine = configJson_["machine"];
+        if (!machine.contains("numberOfMachinecells")) machine["numberOfMachinecells"] = 20; // default rows
+        if (!machine.contains("barcodeChannelsToShow")) machine["barcodeChannelsToShow"] = 2; // default visible channels
+    } catch (const std::exception& e) {
+        getLogger()->error("Error ensuring default machine settings: {}", e.what());
+    }
+}
+
+int Config::getNumberOfMachineCells() const
+{
+    std::lock_guard<std::mutex> lock(configMutex_);
+    auto machine = configJson_.value("machine", nlohmann::json::object());
+    return machine.value("numberOfMachinecells", 20);
+}
+
+int Config::getBarcodeChannelsToShow() const
+{
+    std::lock_guard<std::mutex> lock(configMutex_);
+    auto machine = configJson_.value("machine", nlohmann::json::object());
+    return machine.value("barcodeChannelsToShow", 2);
+}
+
 Config::DataFileSettings Config::getDataFileSettings() const
 {
     std::lock_guard<std::mutex> lock(configMutex_);
@@ -50,6 +80,7 @@ Config::Config(const std::string &filePath)
         ensureDefaultCommunicationSettings();
         ensureDefaultTimerSettings();
         ensureDefaultGlueSettings();
+        ensureDefaultMachineSettings();
         filePath_ = filePath;
         return;
     }
@@ -66,6 +97,7 @@ Config::Config(const std::string &filePath)
         ensureDefaultCommunicationSettings();
         ensureDefaultTimerSettings();
         ensureDefaultGlueSettings();
+        ensureDefaultMachineSettings();
         filePath_ = filePath;
     }
 }

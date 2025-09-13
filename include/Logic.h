@@ -5,11 +5,14 @@
 #include <atomic>
 #include <unordered_map>
 #include <memory>
+#include <optional>
 #include "io/PCI7248IO.h"
 #include "EventQueue.h"
 #include "Event.h"
 #include "Config.h"
 #include <QObject>
+#include <QMap>
+#include <QStringList>
 #include "Timer.h"
 #include "communication/RS232Communication.h"
 #include "dataFile/DataFile.h"
@@ -31,6 +34,8 @@ signals:
     void guiMessage(const QString &msg, const QString &identifier);
     void inputStatesChanged(const std::unordered_map<std::string, IOChannel>& inputs);
     void calibrationResponse(int pulsesPerPage, const std::string& controllerName);
+    // Emitted after each logic cycle to update the barcode grid in the GUI
+    void barcodeStoreUpdated(const QMap<QString, QStringList>& store);
     
 public slots:
     // Initialize components that require GUI to be ready
@@ -84,7 +89,6 @@ private:
     // State tracking
     std::unordered_map<std::string, IOChannel> inputChannels_;  // Current input states
     std::unordered_map<std::string, IOChannel> outputChannels_; // Current output states
-    std::unordered_map<std::string, std::vector<std::string>> communicationDataLists_;  // Data lists for each port for processing in oneLogicCycle
     std::unordered_map<std::string, Timer> timers_; // Current timer states
     
     // Map of active communication ports (only includes initialized/active ports)
@@ -93,7 +97,8 @@ private:
     // Flags for tracking which systems have updates
     bool inputsUpdated_{false};
     bool outputsUpdated_{false};
-    bool commUpdated_{false};
+    // Pending single communication message to deliver to core in next cycle
+    std::optional<CommCellMessage> pendingCommMsg_;
     bool timerUpdated_{false};
 
     // Initialization flags

@@ -69,6 +69,11 @@ public:
     void updateGlueSettings(const nlohmann::json& glueSettings);
     void ensureDefaultGlueSettings();
 
+    // Machine/Barcode grid settings
+    void ensureDefaultMachineSettings();
+    int getNumberOfMachineCells() const;           // size of per-port vectors and GUI rows
+    int getBarcodeChannelsToShow() const;          // how many communication channels to display in GUI
+
     // Loads the configuration from a file after construction
 
 

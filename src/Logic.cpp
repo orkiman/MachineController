@@ -25,6 +25,12 @@ Logic::Logic(EventQueue<EventVariant> &eventQueue, const Config &config)
 
   // Create machine core implementation
   core_.reset(createDefaultMachineCore());
+  // Configure barcode store capacity from config
+  if (core_) {
+    int cells = config_.getNumberOfMachineCells();
+    if (cells < 0) cells = 0;
+    core_->setStoreCapacity(static_cast<std::size_t>(cells));
+  }
 }
 
 Logic::~Logic() {
@@ -135,24 +141,24 @@ void Logic::handleEvent(const CommEvent &event) {
   std::cout << "[Communication] Received from " << event.communicationName << ": "
             << event.message << std::endl;
 
-  // Insert the received message directly into the correct offset in communicationDataLists_
+  // Compute offset for this port from configuration
   int offset = 0;
   auto commSettings = config_.getCommunicationSettings();
   if (commSettings.contains(event.communicationName) && commSettings[event.communicationName].contains("offset")) {
     offset = commSettings[event.communicationName]["offset"].get<int>();
   }
-  auto& dataVec = communicationDataLists_[event.communicationName];
-  if (dataVec.size() <= static_cast<size_t>(offset)) {
-    dataVec.resize(offset + 1);
+
+  // Prepare a single pending communication message for this cycle
+  CommCellMessage cm;
+  cm.port = event.communicationName;
+  cm.offset = offset;
+  cm.raw = event.message;
+  try {
+    cm.parsed = nlohmann::json::parse(event.message);
+  } catch (...) {
+    // ignore parse errors; keep raw only
   }
-  dataVec[offset] = event.message;
-  // print dataVec[offset] + dataVec[offset].length
-  getLogger()->debug("[{}] Received communication from {}: {}", FUNCTION_NAME,
-     event.communicationName, dataVec[offset] , dataVec[offset].length());
-
-
-  // Set flag to indicate communication data was updated
-  commUpdated_ = true;
+  pendingCommMsg_ = std::move(cm);
 
   // Run the central logic cycle
   oneLogicCycle();
@@ -564,31 +570,28 @@ void Logic::oneLogicCycle() {
     }
   }
 
-  // Collect communication cell messages if updated
-  if (commUpdated_) {
-    for (auto& [portName, messageList] : communicationDataLists_) {
-      for (size_t idx = 0; idx < messageList.size(); ++idx) {
-        const auto& msg = messageList[idx];
-        if (msg.empty()) continue;
-        CommCellMessage cm{portName, static_cast<int>(idx), msg, std::nullopt};
-        try {
-          cm.parsed = nlohmann::json::parse(msg);
-        } catch (...) {
-          // ignore parse errors; keep raw
-        }
-        in.cellMsgs.push_back(std::move(cm));
-      }
-      // Clear list after consuming
-      messageList.clear();
-    }
-    commUpdated_ = false;
+  // Provide snapshots needed by the core
+  in.outputsSnapshot = outputChannels_;
+  in.timersSnapshot.clear();
+  for (auto& [tname, t] : timers_) {
+    TimerSnapshot ts;
+    ts.durationMs = t.getDuration();
+    ts.state = t.getState();
+    ts.eventType = t.getEventType();
+    in.timersSnapshot[tname] = ts;
   }
+
+  // Provide at most one new communication message for this cycle
+  in.newCommMsg = pendingCommMsg_;
 
   // Let core compute effects
   CycleEffects fx;
   if (core_) {
     fx = core_->step(in);
   }
+
+  // This cycle has consumed the pending comm message (if any)
+  pendingCommMsg_ = std::nullopt;
 
   // Apply output changes (deferred single write)
   if (!fx.outputChanges.empty()) {
@@ -644,6 +647,21 @@ void Logic::oneLogicCycle() {
 
   // Log the end of a logic cycle
   getLogger()->debug("[{}] Logic cycle completed", FUNCTION_NAME);
+
+  // Publish barcode store snapshot for GUI
+  if (core_) {
+    auto snap = core_->getBarcodeStoreSnapshot();
+    QMap<QString, QStringList> out;
+    for (const auto& kv : snap) {
+      const std::string& port = kv.first;
+      const auto& vec = kv.second;
+      QStringList list;
+      list.reserve(static_cast<int>(vec.size()));
+      for (const auto& s : vec) list.push_back(QString::fromStdString(s));
+      out.insert(QString::fromStdString(port), list);
+    }
+    emit barcodeStoreUpdated(out);
+  }
 }
 
 void Logic::startTimer(const std::string& timerName) {

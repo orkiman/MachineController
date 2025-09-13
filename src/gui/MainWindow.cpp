@@ -2,6 +2,7 @@
 #include "ui_MainWindow.h"
 #include "gui/SettingsWindow.h"
 #include "Logger.h"
+#include "json.hpp"
 #include "communication/ArduinoProtocol.h"
 #include <QFileDialog>
 #include <QMessageBox>
@@ -51,6 +52,92 @@ MainWindow::MainWindow(QWidget *parent, EventQueue<EventVariant>& eventQueue, co
     getLogger()->debug("[MainWindow] emitWindowReady() queued.");
 
     getLogger()->debug("[MainWindow] Constructor finished");
+}
+
+// Slot: update the barcode table whenever Logic publishes a new snapshot
+void MainWindow::onBarcodeStoreUpdated(const QMap<QString, QStringList>& store) {
+    try {
+        renderBarcodeTable(store);
+    } catch (const std::exception& e) {
+        getLogger()->error("[MainWindow::onBarcodeStoreUpdated] Exception: {}", e.what());
+    }
+}
+
+// Helper to render index + selected channels based on settings
+void MainWindow::renderBarcodeTable(const QMap<QString, QStringList>& store) {
+    QTableWidget* table = findChild<QTableWidget*>("barcodeTable");
+    if (!table || !config_) return;
+
+    // Read settings
+    int rows = config_->getNumberOfMachineCells();
+    if (rows < 0) rows = 0;
+    int maxChannels = config_->getBarcodeChannelsToShow();
+    if (maxChannels < 0) maxChannels = 0;
+
+    // Build an ordered list of channel names to show (prioritize active comms from config)
+    QStringList selected;
+    nlohmann::json comm = config_->getCommunicationSettings();
+    // 1) Active comms in config
+    for (auto it = comm.begin(); it != comm.end(); ++it) {
+        const std::string name = it.key();
+        const bool active = it.value().value("active", true);
+        if (!active) continue;
+        QString qname = QString::fromStdString(name);
+        selected.push_back(qname);
+        if (selected.size() >= maxChannels) break;
+    }
+    // 2) If not enough, add any remaining store keys
+    if (selected.size() < maxChannels) {
+        for (auto it = store.begin(); it != store.end() && selected.size() < maxChannels; ++it) {
+            if (!selected.contains(it.key())) selected.push_back(it.key());
+        }
+    }
+
+    // Prepare columns: 1 index + N channels
+    const int columns = 1 + selected.size();
+    table->clear();
+    table->setRowCount(rows);
+    table->setColumnCount(columns);
+
+    // Headers: Index + channel labels (use description if available)
+    QStringList headers;
+    headers << "Index";
+    for (const auto& ch : selected) {
+        QString label = ch; // default to communication name
+        const std::string chs = ch.toStdString();
+        if (comm.contains(chs) && comm[chs].contains("description")) {
+            label = QString::fromStdString(comm[chs]["description"].get<std::string>());
+        }
+        headers << label;
+    }
+    table->setHorizontalHeaderLabels(headers);
+    table->verticalHeader()->setVisible(false);
+    table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    table->setSelectionMode(QAbstractItemView::NoSelection);
+
+    // Fill rows
+    for (int r = 0; r < rows; ++r) {
+        // Index column
+        auto* idxItem = new QTableWidgetItem(QString::number(r));
+        idxItem->setFlags(idxItem->flags() & ~Qt::ItemIsEditable);
+        table->setItem(r, 0, idxItem);
+
+        // Channel columns
+        for (int c = 0; c < selected.size(); ++c) {
+            const QString& ch = selected[c];
+            QString text;
+            if (store.contains(ch)) {
+                const QStringList& list = store[ch];
+                if (r >= 0 && r < list.size()) text = list[r];
+            }
+            auto* item = new QTableWidgetItem(text);
+            item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+            table->setItem(r, 1 + c, item);
+        }
+    }
+
+    table->resizeColumnsToContents();
+    table->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
 }
 
 // Build and populate the right-side glue test table

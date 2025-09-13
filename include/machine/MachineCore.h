@@ -4,6 +4,7 @@
 #include <vector>
 #include <unordered_map>
 #include <optional>
+#include <cstddef>
 #include "io/IOChannel.h"
 #include "json.hpp"
 
@@ -19,10 +20,18 @@ struct TimerEdge {
   bool falling{false};
 };
 
+struct TimerSnapshot {
+  int durationMs{0};
+  int state{0};                 // 0=inactive, 1=active
+  IOEventType eventType{IOEventType::None};
+};
+
 struct CycleInputs {
   const std::unordered_map<std::string, IOChannel>& inputs;
   std::unordered_map<std::string, TimerEdge> timerEdges; // timers that fired this cycle
-  std::vector<CommCellMessage> cellMsgs;                 // messages received this cycle
+  std::unordered_map<std::string, IOChannel> outputsSnapshot; // snapshot of current outputs
+  std::unordered_map<std::string, TimerSnapshot> timersSnapshot; // snapshot of timers
+  std::optional<CommCellMessage> newCommMsg; // message received this cycle (if any)
   bool blinkLed0{false};                                  // example machine flag
 };
 
@@ -55,4 +64,12 @@ public:
   virtual CycleEffects step(const CycleInputs& in) = 0;
   // Optional knobs controlled by GUI
   virtual void setBlinkLed(bool) {}
+
+  // Barcode grid support (optional; default no-ops)
+  // Configure the maximum number of machine cells (rows) maintained per channel
+  virtual void setStoreCapacity(std::size_t) {}
+  // Retrieve the configured capacity (0 if unsupported)
+  virtual std::size_t getStoreCapacity() const { return 0; }
+  // Snapshot of per-port message storage; vectors should be sized to capacity
+  virtual std::unordered_map<std::string, std::vector<std::string>> getBarcodeStoreSnapshot() const { return {}; }
 };

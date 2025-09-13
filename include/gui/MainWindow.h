@@ -5,6 +5,8 @@
 #include <vector>
 #include <string>
 #include <QString>
+#include <QStringList>
+#include <QMap>
 #include "dataFile/DataFile.h"
 #include "Event.h"
 #include "EventQueue.h"
@@ -34,6 +36,10 @@ public:
     // Add a message to the message area
     void addMessage(const QString& message, const QString& identifier = "");
 
+public slots:
+    // Render barcode table when core store updates
+    void onBarcodeStoreUpdated(const QMap<QString, QStringList>& store);
+
 private slots:
     void on_selectDataFileButton_clicked();
 
@@ -55,6 +61,9 @@ private:
 
     // Build and populate the right-side glue test table
     void buildGlueTestTable();
+
+    // Helper to (re)build barcode table with index + selected channels
+    void renderBarcodeTable(const QMap<QString, QStringList>& store);
 
 };
 

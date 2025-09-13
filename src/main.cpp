@@ -76,6 +76,7 @@ int main(int argc, char* argv[]) {
 
     // Connect Logic signals to MainWindow slots
     QObject::connect(&logic, &Logic::guiMessage, &mainWindow, &MainWindow::addMessage);
+    QObject::connect(&logic, &Logic::barcodeStoreUpdated, &mainWindow, &MainWindow::onBarcodeStoreUpdated);
     
     // Connect Logic's inputStatesChanged signal to SettingsWindow's updateInputStates slot
     QObject::connect(&logic, SIGNAL(inputStatesChanged(const std::unordered_map<std::string, IOChannel>&)), 

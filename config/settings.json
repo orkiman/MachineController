@@ -61,6 +61,10 @@
     "sequenceDirection": "Up",
     "startPosition": 0
   },
+  "machine": {
+    "numberOfMachinecells": 20,
+    "barcodeChannelsToShow": 2
+  },
   "glue": {
     "activeController": "controller_2",
     "controllers": {

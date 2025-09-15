@@ -648,19 +648,45 @@ void Logic::oneLogicCycle() {
   // Log the end of a logic cycle
   getLogger()->debug("[{}] Logic cycle completed", FUNCTION_NAME);
 
-  // Publish barcode store snapshot for GUI
+  // Publish barcode store snapshot for GUI only when data changed and with a throttle
   if (core_) {
-    auto snap = core_->getBarcodeStoreSnapshot();
-    QMap<QString, QStringList> out;
-    for (const auto& kv : snap) {
-      const std::string& port = kv.first;
-      const auto& vec = kv.second;
-      QStringList list;
-      list.reserve(static_cast<int>(vec.size()));
-      for (const auto& s : vec) list.push_back(QString::fromStdString(s));
-      out.insert(QString::fromStdString(port), list);
+    bool shouldPublish = false;
+
+    // Consider store changed if a non-calibration communication message arrived this cycle
+    if (in.newCommMsg) {
+      bool isCalibration = false;
+      if (in.newCommMsg->parsed && (*in.newCommMsg->parsed).contains("type") &&
+          (*in.newCommMsg->parsed)["type"].is_string() &&
+          (*in.newCommMsg->parsed)["type"] == "calibration_result") {
+        isCalibration = true;
+      }
+      if (!isCalibration) {
+        shouldPublish = true;
+      }
     }
-    emit barcodeStoreUpdated(out);
+
+    // Apply simple time-based throttle to coalesce bursts
+    auto now = std::chrono::steady_clock::now();
+    if (shouldPublish &&
+        lastBarcodeEmit_ != std::chrono::steady_clock::time_point::min() &&
+        std::chrono::duration_cast<std::chrono::milliseconds>(now - lastBarcodeEmit_).count() < barcodeEmitIntervalMs_) {
+      shouldPublish = false;
+    }
+
+    if (shouldPublish) {
+      auto snap = core_->getBarcodeStoreSnapshot();
+      QMap<QString, QStringList> out;
+      for (const auto& kv : snap) {
+        const std::string& port = kv.first;
+        const auto& vec = kv.second;
+        QStringList list;
+        list.reserve(static_cast<int>(vec.size()));
+        for (const auto& s : vec) list.push_back(QString::fromStdString(s));
+        out.insert(QString::fromStdString(port), list);
+      }
+      emit barcodeStoreUpdated(out);
+      lastBarcodeEmit_ = now;
+    }
   }
 }
 

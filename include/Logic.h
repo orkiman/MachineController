@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <memory>
 #include <optional>
+#include <chrono>
 #include "io/PCI7248IO.h"
 #include "EventQueue.h"
 #include "Event.h"
@@ -114,6 +115,10 @@ private:
 
     // Machine logic core (pluggable)
     std::unique_ptr<MachineCore> core_;
+
+    // Throttle GUI barcode updates to avoid excessive work on the GUI thread
+    std::chrono::steady_clock::time_point lastBarcodeEmit_{std::chrono::steady_clock::time_point::min()};
+    int barcodeEmitIntervalMs_{50}; // minimum interval between GUI updates
 };
 
 #endif // LOGIC_H

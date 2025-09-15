@@ -48,6 +48,9 @@ MainWindow::MainWindow(QWidget *parent, EventQueue<EventVariant>& eventQueue, co
     // Build the glue test table on the right
     buildGlueTestTable();
 
+    // Initialize the barcode table based on config (so column count reflects barcodeChannelsToShow immediately)
+    renderBarcodeTable(QMap<QString, QStringList>{});
+
     QMetaObject::invokeMethod(this, "emitWindowReady", Qt::QueuedConnection);
     getLogger()->debug("[MainWindow] emitWindowReady() queued.");
 
@@ -93,15 +96,14 @@ void MainWindow::renderBarcodeTable(const QMap<QString, QStringList>& store) {
         }
     }
 
-    // Prepare columns: 1 index + N channels
-    const int columns = 1 + selected.size();
+    // Prepare columns: N channels (no Index column)
+    const int columns = selected.size();
     table->clear();
     table->setRowCount(rows);
     table->setColumnCount(columns);
 
-    // Headers: Index + channel labels (use description if available)
+    // Headers: channel labels (use description if available)
     QStringList headers;
-    headers << "Index";
     for (const auto& ch : selected) {
         QString label = ch; // default to communication name
         const std::string chs = ch.toStdString();
@@ -111,17 +113,17 @@ void MainWindow::renderBarcodeTable(const QMap<QString, QStringList>& store) {
         headers << label;
     }
     table->setHorizontalHeaderLabels(headers);
-    table->verticalHeader()->setVisible(false);
+    // Show row indices in the vertical header instead of a dedicated Index column
+    table->verticalHeader()->setVisible(true);
+    QStringList vheaders;
+    vheaders.reserve(rows);
+    for (int r = 0; r < rows; ++r) vheaders << QString::number(r);
+    table->setVerticalHeaderLabels(vheaders);
     table->setEditTriggers(QAbstractItemView::NoEditTriggers);
     table->setSelectionMode(QAbstractItemView::NoSelection);
 
     // Fill rows
     for (int r = 0; r < rows; ++r) {
-        // Index column
-        auto* idxItem = new QTableWidgetItem(QString::number(r));
-        idxItem->setFlags(idxItem->flags() & ~Qt::ItemIsEditable);
-        table->setItem(r, 0, idxItem);
-
         // Channel columns
         for (int c = 0; c < selected.size(); ++c) {
             const QString& ch = selected[c];
@@ -132,12 +134,13 @@ void MainWindow::renderBarcodeTable(const QMap<QString, QStringList>& store) {
             }
             auto* item = new QTableWidgetItem(text);
             item->setFlags(item->flags() & ~Qt::ItemIsEditable);
-            table->setItem(r, 1 + c, item);
+            table->setItem(r, c, item);
         }
     }
 
     table->resizeColumnsToContents();
-    table->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+    if (columns > 0)
+        table->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
 }
 
 // Build and populate the right-side glue test table

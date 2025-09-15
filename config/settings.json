@@ -63,7 +63,7 @@
   },
   "machine": {
     "numberOfMachinecells": 20,
-    "barcodeChannelsToShow": 2
+    "barcodeChannelsToShow": 1
   },
   "glue": {
     "activeController": "controller_2",

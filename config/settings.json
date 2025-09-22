@@ -8,14 +8,14 @@
       "etx": 3,
       "offset": 3,
       "parity": "N",
-      "port": "COM1",
+      "port": "COM5",
       "stopBits": 1.0,
       "stx": 2,
       "trigger": "1234",
       "type": "RS232"
     },
     "communication2": {
-      "active": true,
+      "active": false,
       "baudRate": 115200,
       "dataBits": 8,
       "description": "reader2",
@@ -60,10 +60,6 @@
     "sequenceCheck": true,
     "sequenceDirection": "Up",
     "startPosition": 0
-  },
-  "machine": {
-    "numberOfMachinecells": 20,
-    "barcodeChannelsToShow": 2
   },
   "glue": {
     "activeController": "controller_2",
@@ -117,7 +113,7 @@
       },
       "controller_2": {
         "activePlan": "plan_1",
-        "communication": "communication2",
+        "communication": "communication1",
         "dotSize": "medium",
         "enabled": true,
         "encoder": 2.5,
@@ -245,6 +241,10 @@
       "CH": "input",
       "CL": "output"
     }
+  },
+  "machine": {
+    "barcodeChannelsToShow": 2,
+    "numberOfMachinecells": 20
   },
   "timers": {
     "timer1": {

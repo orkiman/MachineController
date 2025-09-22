@@ -73,8 +73,6 @@ SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQ
     QComboBox* commSelector = findChild<QComboBox*>("communicationSelectorComboBox");
     QStackedWidget* commStack = findChild<QStackedWidget*>("communicationStackedWidget");
     if (commSelector && commStack) {
-        connect(commSelector, QOverload<int>::of(&QComboBox::currentIndexChanged),
-                this, &SettingsWindow::onCommunicationSelectorChanged);
         QPushButton* commDefaultsButton = new QPushButton("Set Defaults", this);
         commDefaultsButton->setToolTip("Reset the current communication settings to defaults");
         QHBoxLayout* selectorLayout = findChild<QHBoxLayout*>("communicationSelectorLayout");
@@ -83,6 +81,10 @@ SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQ
             connect(commDefaultsButton, &QPushButton::clicked, this, &SettingsWindow::onCommunicationDefaultsButtonClicked);
         }
     }
+
+    // Ensure all communication widgets (RS232/TCPIP/Offset/etc.) are connected to save handlers
+    // This hooks up valueChanged/textChanged signals so edits persist to settings.json
+    setupCommunicationTabConnections();
 
     // Setup timers defaults button
     QPushButton* timersDefaultsButton = new QPushButton("Set Defaults", this);
@@ -132,25 +134,6 @@ SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQ
 
     // Ensure communication type visibility is correct after setup
     QMetaObject::invokeMethod(this, [this]() { updateCommunicationTypeVisibility(-1); }, Qt::QueuedConnection);
-    
-    // Connect communicationActiveCheckBox on all communication pages to prevent Qt auto-connect issues
-    for (int i = 0; i < commStack->count(); ++i) {
-        QWidget* commPage = commStack->widget(i);
-        if (commPage) {
-            QComboBox* typeComboBox = commPage->findChild<QComboBox*>("communicationTypeComboBox");
-            if (typeComboBox) {
-                connect(typeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
-                        this, &SettingsWindow::updateCommunicationTypeVisibility);
-            }
-            // Manually connect communicationActiveCheckBox to prevent double connections
-            // (Qt auto-connect would connect to all checkboxes with same name across all pages)
-            QCheckBox* activeCheckBox = commPage->findChild<QCheckBox*>("communicationActiveCheckBox");
-            if (activeCheckBox) {
-                connect(activeCheckBox, &QCheckBox::stateChanged, this, &SettingsWindow::onCommunicationActiveCheckBoxChanged);
-            }
-            // SendPushButton handled by Qt auto-connect
-        }
-    }
 
     isRefreshing_ = false;
     isInitializing_ = false;
@@ -2986,7 +2969,7 @@ void SettingsWindow::setupCommunicationTabConnections() {
     }
     
     // Connect the active checkbox separately as it has special handling
-    connect(ui->communicationActiveCheckBox, &QCheckBox::checkStateChanged, this, &SettingsWindow::onCommunicationActiveCheckBoxChanged);
+    connect(ui->communicationActiveCheckBox, &QCheckBox::stateChanged, this, &SettingsWindow::onCommunicationActiveCheckBoxChanged);
 }
 
 

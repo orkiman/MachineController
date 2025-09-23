@@ -55,6 +55,8 @@ struct CycleEffects {
   std::vector<std::pair<std::string,int>> outputChanges; // name -> state
   std::vector<TimerCmd> timerCmds;
   std::vector<CommSend> commSends;
+  // Set to true if the machine core modified its barcode/message store in this cycle
+  bool barcodeStoreChanged{false};
   std::optional<CalibrationResult> calibration;
 };
 

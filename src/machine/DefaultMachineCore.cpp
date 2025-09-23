@@ -35,6 +35,7 @@ class DefaultMachineCore : public MachineCore {
     }
     // Clear the first 'by' positions
     for (size_t i = 0; i < by; ++i) vec[i].clear();
+    //
   }
 
 public:
@@ -99,6 +100,8 @@ public:
           std::size_t idx = static_cast<std::size_t>(m.offset);
           if (idx < capacity_) {
             store_[m.commName][idx] = m.raw;
+            // Mark that barcode/message store changed this cycle
+            fx.barcodeStoreChanged = true;
           }
           // else: offset beyond capacity; ignore or clamp (choosing ignore)
         }
@@ -108,11 +111,9 @@ public:
     // Demo: when input i8 has a rising edge, shift the latest message port to the right by 1
     // Adjust the input name and port selection to your real machine logic.
     if (i8 != in.inputs.end() && i8->second.eventType == IOEventType::Rising) {
-      if (in.newCommMsg) {
-        shiftRightPort(in.newCommMsg->commName, 1);
-      }
-      // Or, to shift a fixed port regardless of a new message in this cycle:
-      // if (store_.count("COM3")) shiftRightPort("COM3", 1);
+      shiftRightPort("communication1", 1);
+      // Mark that barcode/message store changed due to shift
+      fx.barcodeStoreChanged = true;
     }
 
     return fx;

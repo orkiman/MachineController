@@ -665,6 +665,12 @@ void Logic::oneLogicCycle() {
       }
     }
 
+    // Also publish when the core signaled a change to its barcode/message store
+    // (e.g., a write into a cell or a shift operation occurred this cycle)
+    if (fx.barcodeStoreChanged) {
+      shouldPublish = true;
+    }
+
     // Apply simple time-based throttle to coalesce bursts
     auto now = std::chrono::steady_clock::now();
     if (shouldPublish &&

@@ -9,7 +9,7 @@
 #include "json.hpp"
 
 struct CommCellMessage {
-  std::string port;
+  std::string commName;
   int offset{0};
   std::string raw;
   std::optional<nlohmann::json> parsed; // present if JSON parsing succeeded
@@ -42,13 +42,13 @@ struct TimerCmd {
 };
 
 struct CommSend {
-  std::string port;
+  std::string commName;
   std::string data;
 };
 
 struct CalibrationResult {
   int pulsesPerPage{0};
-  std::string port;
+  std::string commName;
 };
 
 struct CycleEffects {

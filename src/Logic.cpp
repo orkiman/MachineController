@@ -150,7 +150,7 @@ void Logic::handleEvent(const CommEvent &event) {
 
   // Prepare a single pending communication message for this cycle
   CommCellMessage cm;
-  cm.port = event.communicationName;
+  cm.commName = event.communicationName;
   cm.offset = offset;
   cm.raw = event.message;
   try {
@@ -616,17 +616,17 @@ void Logic::oneLogicCycle() {
 
   // Send comm messages
   for (const auto& s : fx.commSends) {
-    auto it = activeCommPorts_.find(s.port);
+    auto it = activeCommPorts_.find(s.commName);
     if (it != activeCommPorts_.end()) {
       it->second.send(s.data);
     } else {
-      getLogger()->warn("[{}] comm send skipped; port '{}' not active", FUNCTION_NAME, s.port);
+      getLogger()->warn("[{}] comm send skipped; port '{}' not active", FUNCTION_NAME, s.commName);
     }
   }
 
   // Handle calibration results
   if (fx.calibration) {
-    emit calibrationResponse(fx.calibration->pulsesPerPage, fx.calibration->port);
+    emit calibrationResponse(fx.calibration->pulsesPerPage, fx.calibration->commName);
   }
 
   // Single hardware write for this cycle unless GUI override enabled

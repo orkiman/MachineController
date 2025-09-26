@@ -41,6 +41,14 @@ Logic::Logic(EventQueue<EventVariant> &eventQueue, const Config &config)
       core_->setMasterSequenceEnabled(enabled);
       core_->setMasterSequenceConfig(startIndex, length, direction);
       core_->resetMasterSequence();
+
+      bool matchEnabled = tests.value("matchWithReader2", false);
+      int matchMasterStart = tests.value("reader1StartIndex", 0);
+      int matchReaderStart = tests.value("reader2StartIndex", 0);
+      int matchLength = tests.value("matchLength", 1);
+      core_->setMatchTestEnabled(matchEnabled);
+      core_->setMatchTestConfig(matchMasterStart, matchReaderStart, matchLength);
+      core_->resetMatchTest();
     } catch (...) {
       // Ignore configuration errors; use core defaults
     }

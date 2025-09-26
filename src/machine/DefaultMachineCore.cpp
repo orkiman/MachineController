@@ -16,6 +16,14 @@ class DefaultMachineCore : public MachineCore {
   std::string sequenceDirection_{"Ascending"};  // "Ascending" or "Descending"
   bool masterSequenceEnabled_{false};            // off by default
 
+  // Match test config/state (from Tests tab)
+  bool matchTestEnabled_{false};
+  int matchMasterStartIndex_{0};
+  int matchReaderStartIndex_{0};
+  int matchLength_{1};
+  std::optional<int> lastMatchMaster_{};
+  std::optional<int> lastMatchReader_{};
+
   // Ensure a given port's vector is sized to 'capacity_'
   void ensurePortCapacity(const std::string& port) {
     if (capacity_ == 0) return;
@@ -99,19 +107,52 @@ public:
   void setBlinkLed(bool v) override { blinkLed0_ = v; }
 
   // Configure Tests: master sequence options (can be wired from Logic/UI later)
-  void setMasterSequenceEnabled(bool enabled) { masterSequenceEnabled_ = enabled; }
-  void setMasterSequenceConfig(int startIndex, int length, const std::string& direction) {
+  void setMasterSequenceEnabled(bool enabled) override { masterSequenceEnabled_ = enabled; }
+  void setMasterSequenceConfig(int startIndex, int length, const std::string& direction) override {
     if (startIndex < 0) startIndex = 0;
     if (length < 1) length = 1;
     masterStartIndex_ = startIndex;
     masterLength_ = length;
     sequenceDirection_ = direction;
   }
-  void resetMasterSequence() { lastSeqNumber_.reset(); }
+  void resetMasterSequence() override { lastSeqNumber_.reset(); }
 
   // Public check function that accepts a string and applies the sequence test.
   // Uses current configuration (start, length, direction). Stores last number.
-  bool testMasterSequence(const std::string& text) { return checkMasterSequence(text); }
+  bool testMasterSequence(const std::string& text) override { return checkMasterSequence(text); }
+
+  // Configure Match test options
+  void setMatchTestEnabled(bool enabled) override { matchTestEnabled_ = enabled; }
+  void setMatchTestConfig(int masterStartIndex, int matchStartIndex, int length) override {
+    if (masterStartIndex < 0) masterStartIndex = 0;
+    if (matchStartIndex < 0) matchStartIndex = 0;
+    if (length < 1) length = 1;
+    matchMasterStartIndex_ = masterStartIndex;
+    matchReaderStartIndex_ = matchStartIndex;
+    matchLength_ = length;
+  }
+  void resetMatchTest() override {
+    lastMatchMaster_.reset();
+    lastMatchReader_.reset();
+  }
+
+  bool testMatchReaders(const std::string& masterText, const std::string& matchText) override {
+    if (!matchTestEnabled_) return true; // disabled => pass
+
+    int masterValue{};
+    if (!extractNumberAt(masterText, matchMasterStartIndex_, matchLength_, masterValue)) {
+      return false;
+    }
+
+    int matchValue{};
+    if (!extractNumberAt(matchText, matchReaderStartIndex_, matchLength_, matchValue)) {
+      return false;
+    }
+
+    lastMatchMaster_ = masterValue;
+    lastMatchReader_ = matchValue;
+    return masterValue == matchValue;
+  }
 
   // Configure/get store capacity
   void setStoreCapacity(std::size_t cap) override {

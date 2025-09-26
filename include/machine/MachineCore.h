@@ -76,6 +76,12 @@ public:
   // Default implementation: always pass.
   virtual bool testMasterSequence(const std::string&) { return true; }
 
+  // Match test (optional hooks; default no-ops)
+  virtual void setMatchTestEnabled(bool) {}
+  virtual void setMatchTestConfig(int /*masterStartIndex*/, int /*matchStartIndex*/, int /*length*/) {}
+  virtual void resetMatchTest() {}
+  virtual bool testMatchReaders(const std::string& /*masterText*/, const std::string& /*matchText*/) { return true; }
+
   // Barcode grid support (optional; default no-ops)
   // Configure the maximum number of machine cells (rows) maintained per channel
   virtual void setStoreCapacity(std::size_t) {}

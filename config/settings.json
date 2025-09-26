@@ -15,14 +15,14 @@
       "type": "RS232"
     },
     "communication2": {
-      "active": false,
+      "active": true,
       "baudRate": 115200,
       "dataBits": 8,
       "description": "reader2",
       "etx": 3,
       "offset": 2,
       "parity": "N",
-      "port": "COM5",
+      "port": "COM1",
       "stopBits": 1.0,
       "stx": 2,
       "trigger": "t",
@@ -53,13 +53,6 @@
       "trigger": "t",
       "type": "RS232"
     }
-  },
-  "dataFile": {
-    "endPosition": 10,
-    "existenceCheck": false,
-    "sequenceCheck": true,
-    "sequenceDirection": "Up",
-    "startPosition": 0
   },
   "glue": {
     "activeController": "controller_2",
@@ -113,7 +106,7 @@
       },
       "controller_2": {
         "activePlan": "plan_1",
-        "communication": "communication1",
+        "communication": "",
         "dotSize": "medium",
         "enabled": true,
         "encoder": 2.5,
@@ -247,8 +240,18 @@
     "numberOfMachinecells": 20
   },
   "tests": {
-    "masterInFileCheck": false,
-    "matchWithReader2": false,
+    "fileLength": 3,
+    "filePath": "C:/or/windsurfProjects/MachineController/notes.txt",
+    "fileStartIndex": 1,
+    "masterInFileCheck": true,
+    "masterLength": 6,
+    "masterReader": "communication1",
+    "masterSequenceEnabled": true,
+    "masterStartIndex": 1,
+    "matchLength": 5,
+    "matchWithReader2": true,
+    "reader2": "communication2",
+    "reader2StartIndex": 1,
     "sequenceDirection": "Ascending"
   },
   "timers": {

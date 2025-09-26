@@ -33,9 +33,6 @@ public:
     // Fill timers tab fields with values from settings.json
     void fillTimersTabFields();
 
-    // Fill Data File tab fields with values from config
-    void fillDataFileTabFields();
-    
     // Fill IO tab with inputs and outputs from config
     void fillIOTabFields();
     
@@ -147,10 +144,20 @@ private slots:
     void on_testsMatchEnableCheckBox_stateChanged(int state);
     void on_testsRunMatchButton_clicked();
 
+    // New Tests tab fields
+    void on_testsMasterSequenceEnableCheckBox_stateChanged(int state);
+    void on_testsMasterStartIndexSpinBox_valueChanged(int value);
+    void on_testsMasterLengthSpinBox_valueChanged(int value);
+    void on_testsReader1StartIndexSpinBox_valueChanged(int value);
+    void on_testsReader2StartIndexSpinBox_valueChanged(int value);
+    void on_testsMatchLengthSpinBox_valueChanged(int value);
+
     void on_testsBrowseFileButton_clicked();
     void on_testsFilePathLineEdit_textChanged(const QString& text);
     void on_testsMasterInFileEnableCheckBox_stateChanged(int state);
     void on_testsRunMasterInFileButton_clicked();
+    void on_testsFileStartIndexSpinBox_valueChanged(int value);
+    void on_testsFileLengthSpinBox_valueChanged(int value);
 
 private:
     // Current selected communication channel name
@@ -168,9 +175,6 @@ private:
     
     // Helper function to parse char settings (STX, ETX) similar to RS232Communication::parseCharSetting
     int parseCharSetting(const nlohmann::json &settings, const std::string &key, int defaultValue);
-    
-    // Save timers tab settings to config
-    void saveDataFileSettingsToConfig();
     
     // Collect and send current output states to Logic
     void sendCurrentOutputStates();
@@ -193,7 +197,6 @@ private:
     
     // UI Event Handler Functions
     void setupCommunicationTabConnections();
-    void setupDataFileTabConnections();
     
     // Arduino protocol helper methods
     void sendRunStopToEnabledControllers(bool run);

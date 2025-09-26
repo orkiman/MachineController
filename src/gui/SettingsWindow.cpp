@@ -22,29 +22,7 @@
 // ============================================================================
 //  UI Setup Helper Functions
 // ============================================================================
-// Populate the Data File tab with settings from config
-void SettingsWindow::fillDataFileTabFields() {
-    if (!config_) return;
-    auto settings = config_->getDataFileSettings();
-    if (ui->startPositionSpinBox)
-        ui->startPositionSpinBox->setValue(settings.startPosition);
-    if (ui->endPositionSpinBox)
-        ui->endPositionSpinBox->setValue(settings.endPosition);
-    if (ui->sequenceCheckBox)
-        ui->sequenceCheckBox->setChecked(settings.sequenceCheck);
-    if (ui->existenceCheckBox)
-        ui->existenceCheckBox->setChecked(settings.existenceCheck);
-    if (ui->sequenceDirectionComboBox) {
-        // Map legacy values to new ones for compatibility
-        QString dir = QString::fromStdString(settings.sequenceDirection);
-        if (dir.compare("Forward", Qt::CaseInsensitive) == 0) dir = "Up";
-        else if (dir.compare("Reverse", Qt::CaseInsensitive) == 0) dir = "Down";
-        int idx = ui->sequenceDirectionComboBox->findText(dir);
-        if (idx >= 0)
-            ui->sequenceDirectionComboBox->setCurrentIndex(idx);
-    }
-
-}
+// Data File tab was removed
 
 // Populate the Tests tab with settings from config
 void SettingsWindow::fillTestsTabFields() {
@@ -88,6 +66,13 @@ void SettingsWindow::fillTestsTabFields() {
             if (didx >= 0) ui->testsMasterDirectionComboBox->setCurrentIndex(didx);
         }
 
+        // Set direction arrow visual
+        if (ui->testsDirectionArrowToolButton && ui->testsMasterDirectionComboBox) {
+            const QString currentDir = ui->testsMasterDirectionComboBox->currentText();
+            ui->testsDirectionArrowToolButton->setArrowType(
+                currentDir.compare("Descending", Qt::CaseInsensitive) == 0 ? Qt::DownArrow : Qt::UpArrow);
+        }
+
         // Match enable
         if (ui->testsMatchEnableCheckBox) {
             bool en = tests.value("matchWithReader2", false);
@@ -104,6 +89,36 @@ void SettingsWindow::fillTestsTabFields() {
         if (ui->testsFilePathLineEdit) {
             QString path = QString::fromStdString(tests.value("filePath", std::string("")));
             ui->testsFilePathLineEdit->setText(path);
+        }
+
+        // Master sequence enable/start/length
+        if (ui->testsMasterSequenceEnableCheckBox) {
+            ui->testsMasterSequenceEnableCheckBox->setChecked(tests.value("masterSequenceEnabled", false));
+        }
+        if (ui->testsMasterStartIndexSpinBox) {
+            ui->testsMasterStartIndexSpinBox->setValue(tests.value("masterStartIndex", 0));
+        }
+        if (ui->testsMasterLengthSpinBox) {
+            ui->testsMasterLengthSpinBox->setValue(tests.value("masterLength", 1));
+        }
+
+        // Match indices and length
+        if (ui->testsReader1StartIndexSpinBox) {
+            ui->testsReader1StartIndexSpinBox->setValue(tests.value("reader1StartIndex", 0));
+        }
+        if (ui->testsReader2StartIndexSpinBox) {
+            ui->testsReader2StartIndexSpinBox->setValue(tests.value("reader2StartIndex", 0));
+        }
+        if (ui->testsMatchLengthSpinBox) {
+            ui->testsMatchLengthSpinBox->setValue(tests.value("matchLength", 1));
+        }
+
+        // File start/length
+        if (ui->testsFileStartIndexSpinBox) {
+            ui->testsFileStartIndexSpinBox->setValue(tests.value("fileStartIndex", 0));
+        }
+        if (ui->testsFileLengthSpinBox) {
+            ui->testsFileLengthSpinBox->setValue(tests.value("fileLength", 1));
         }
 
     } catch (const std::exception& e) {
@@ -185,6 +200,11 @@ void SettingsWindow::on_testsMasterDirectionComboBox_currentIndexChanged(int ind
         QString dir = ui->testsMasterDirectionComboBox->currentText();
         tests["sequenceDirection"] = dir.toStdString();
         saveTestsToConfig(tests);
+        // Update visual arrow
+        if (ui->testsDirectionArrowToolButton) {
+            ui->testsDirectionArrowToolButton->setArrowType(
+                dir.compare("Descending", Qt::CaseInsensitive) == 0 ? Qt::DownArrow : Qt::UpArrow);
+        }
     } catch (const std::exception& e) {
         getLogger()->warn("[on_testsMasterDirectionComboBox_currentIndexChanged] Exception: {}", e.what());
     }
@@ -285,6 +305,95 @@ void SettingsWindow::on_testsRunMasterInFileButton_clicked() {
     eventQueue_.push(msg);
 }
 
+// New Tests tab fields handlers
+void SettingsWindow::on_testsMasterSequenceEnableCheckBox_stateChanged(int state) {
+    if (isRefreshing_ || !config_) return;
+    try {
+        nlohmann::json tests = config_->getTestsSettings();
+        tests["masterSequenceEnabled"] = (state == Qt::Checked);
+        saveTestsToConfig(tests);
+    } catch (const std::exception& e) {
+        getLogger()->warn("[on_testsMasterSequenceEnableCheckBox_stateChanged] Exception: {}", e.what());
+    }
+}
+
+void SettingsWindow::on_testsMasterStartIndexSpinBox_valueChanged(int value) {
+    if (isRefreshing_ || !config_) return;
+    try {
+        nlohmann::json tests = config_->getTestsSettings();
+        tests["masterStartIndex"] = value;
+        saveTestsToConfig(tests);
+    } catch (const std::exception& e) {
+        getLogger()->warn("[on_testsMasterStartIndexSpinBox_valueChanged] Exception: {}", e.what());
+    }
+}
+
+void SettingsWindow::on_testsMasterLengthSpinBox_valueChanged(int value) {
+    if (isRefreshing_ || !config_) return;
+    try {
+        nlohmann::json tests = config_->getTestsSettings();
+        tests["masterLength"] = value;
+        saveTestsToConfig(tests);
+    } catch (const std::exception& e) {
+        getLogger()->warn("[on_testsMasterLengthSpinBox_valueChanged] Exception: {}", e.what());
+    }
+}
+
+void SettingsWindow::on_testsReader1StartIndexSpinBox_valueChanged(int value) {
+    if (isRefreshing_ || !config_) return;
+    try {
+        nlohmann::json tests = config_->getTestsSettings();
+        tests["reader1StartIndex"] = value;
+        saveTestsToConfig(tests);
+    } catch (const std::exception& e) {
+        getLogger()->warn("[on_testsReader1StartIndexSpinBox_valueChanged] Exception: {}", e.what());
+    }
+}
+
+void SettingsWindow::on_testsReader2StartIndexSpinBox_valueChanged(int value) {
+    if (isRefreshing_ || !config_) return;
+    try {
+        nlohmann::json tests = config_->getTestsSettings();
+        tests["reader2StartIndex"] = value;
+        saveTestsToConfig(tests);
+    } catch (const std::exception& e) {
+        getLogger()->warn("[on_testsReader2StartIndexSpinBox_valueChanged] Exception: {}", e.what());
+    }
+}
+
+void SettingsWindow::on_testsMatchLengthSpinBox_valueChanged(int value) {
+    if (isRefreshing_ || !config_) return;
+    try {
+        nlohmann::json tests = config_->getTestsSettings();
+        tests["matchLength"] = value;
+        saveTestsToConfig(tests);
+    } catch (const std::exception& e) {
+        getLogger()->warn("[on_testsMatchLengthSpinBox_valueChanged] Exception: {}", e.what());
+    }
+}
+
+void SettingsWindow::on_testsFileStartIndexSpinBox_valueChanged(int value) {
+    if (isRefreshing_ || !config_) return;
+    try {
+        nlohmann::json tests = config_->getTestsSettings();
+        tests["fileStartIndex"] = value;
+        saveTestsToConfig(tests);
+    } catch (const std::exception& e) {
+        getLogger()->warn("[on_testsFileStartIndexSpinBox_valueChanged] Exception: {}", e.what());
+    }
+}
+
+void SettingsWindow::on_testsFileLengthSpinBox_valueChanged(int value) {
+    if (isRefreshing_ || !config_) return;
+    try {
+        nlohmann::json tests = config_->getTestsSettings();
+        tests["fileLength"] = value;
+        saveTestsToConfig(tests);
+    } catch (const std::exception& e) {
+        getLogger()->warn("[on_testsFileLengthSpinBox_valueChanged] Exception: {}", e.what());
+    }
+}
+
 // ============================================================================
 //  Constructor, Destructor, and Initialization
 // ============================================================================
@@ -354,11 +463,53 @@ SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQ
     // Note: All glue tab elements use Qt's auto-connect feature via on_<objectName>_<signalName>() naming convention
     // This includes: buttons, line edits, and other combo boxes - no manual connections needed
 
+    // Explicit connects for Tests tab to ensure persistence of new fields
+    if (ui->testsMasterDirectionComboBox)
+        connect(ui->testsMasterDirectionComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SettingsWindow::on_testsMasterDirectionComboBox_currentIndexChanged);
+
+    if (ui->testsMasterSequenceEnableCheckBox)
+        connect(ui->testsMasterSequenceEnableCheckBox, &QCheckBox::stateChanged, this, &SettingsWindow::on_testsMasterSequenceEnableCheckBox_stateChanged);
+
+    if (ui->testsMasterStartIndexSpinBox)
+        connect(ui->testsMasterStartIndexSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &SettingsWindow::on_testsMasterStartIndexSpinBox_valueChanged);
+
+    if (ui->testsMasterLengthSpinBox)
+        connect(ui->testsMasterLengthSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &SettingsWindow::on_testsMasterLengthSpinBox_valueChanged);
+
+    if (ui->testsMasterReaderComboBox)
+        connect(ui->testsMasterReaderComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SettingsWindow::on_testsMasterReaderComboBox_currentIndexChanged);
+
+    if (ui->testsReader2ComboBox)
+        connect(ui->testsReader2ComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SettingsWindow::on_testsReader2ComboBox_currentIndexChanged);
+
+    if (ui->testsMatchEnableCheckBox)
+        connect(ui->testsMatchEnableCheckBox, &QCheckBox::stateChanged, this, &SettingsWindow::on_testsMatchEnableCheckBox_stateChanged);
+
+    if (ui->testsReader1StartIndexSpinBox)
+        connect(ui->testsReader1StartIndexSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &SettingsWindow::on_testsReader1StartIndexSpinBox_valueChanged);
+
+    if (ui->testsReader2StartIndexSpinBox)
+        connect(ui->testsReader2StartIndexSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &SettingsWindow::on_testsReader2StartIndexSpinBox_valueChanged);
+
+    if (ui->testsMatchLengthSpinBox)
+        connect(ui->testsMatchLengthSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &SettingsWindow::on_testsMatchLengthSpinBox_valueChanged);
+
+    if (ui->testsFilePathLineEdit)
+        connect(ui->testsFilePathLineEdit, &QLineEdit::textChanged, this, &SettingsWindow::on_testsFilePathLineEdit_textChanged);
+
+    if (ui->testsMasterInFileEnableCheckBox)
+        connect(ui->testsMasterInFileEnableCheckBox, &QCheckBox::stateChanged, this, &SettingsWindow::on_testsMasterInFileEnableCheckBox_stateChanged);
+
+    if (ui->testsFileStartIndexSpinBox)
+        connect(ui->testsFileStartIndexSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &SettingsWindow::on_testsFileStartIndexSpinBox_valueChanged);
+
+    if (ui->testsFileLengthSpinBox)
+        connect(ui->testsFileLengthSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &SettingsWindow::on_testsFileLengthSpinBox_valueChanged);
+
     // Fill all tab fields with current config values
     fillCommunicationTabFields();
     fillTimersTabFields();
     fillIOTabFields();
-    fillDataFileTabFields();
     populateGlueCommunicationComboBox();
     fillGlueTabFields();
     fillTestsTabFields();
@@ -3076,43 +3227,7 @@ void SettingsWindow::saveTimersToConfig() {
     }
 }
 
-// Save data file tab settings to config
-void SettingsWindow::saveDataFileSettingsToConfig() {
-    if (!config_ || !ui) {
-        getLogger()->warn("[saveDataFileSettingsToConfig] Config object or UI is null. Cannot save data file settings.");
-        return;
-    }
-    
-    Config* mutableConfig = const_cast<Config*>(config_);
-    if (!mutableConfig) {
-        getLogger()->error("[saveDataFileSettingsToConfig] Failed to get mutable config");
-        return;
-    }
-
-    Config::DataFileSettings dataFileSettings;
-    
-    // Get values from UI elements if they exist
-    if (ui->startPositionSpinBox)
-        dataFileSettings.startPosition = ui->startPositionSpinBox->value();
-    if (ui->endPositionSpinBox)
-        dataFileSettings.endPosition = ui->endPositionSpinBox->value();
-    if (ui->sequenceCheckBox)
-        dataFileSettings.sequenceCheck = ui->sequenceCheckBox->isChecked();
-    if (ui->existenceCheckBox)
-        dataFileSettings.existenceCheck = ui->existenceCheckBox->isChecked();
-    if (ui->sequenceDirectionComboBox)
-        dataFileSettings.sequenceDirection = ui->sequenceDirectionComboBox->currentText().toStdString();
-    
-    // Update the config
-    mutableConfig->setDataFileSettings(dataFileSettings);
-    
-    // Save the configuration to file
-    if (mutableConfig->saveToFile()) {
-        getLogger()->debug("[saveDataFileSettingsToConfig] Data file settings saved to file");
-    } else {
-        getLogger()->warn("[saveDataFileSettingsToConfig] Failed to save data file settings to file");
-    }
-}
+// Data File tab save handler removed
 
 // Note: saveSettingsToConfig() has been removed in favor of per-tab save handlers
 

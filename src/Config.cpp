@@ -36,6 +36,16 @@ void Config::ensureDefaultTestsSettings()
         if (!tests.contains("masterInFileCheck")) tests["masterInFileCheck"] = false;
         if (!tests.contains("filePath")) tests["filePath"] = "";
 
+        // New defaults for enhanced Tests tab
+        if (!tests.contains("masterSequenceEnabled")) tests["masterSequenceEnabled"] = false;
+        if (!tests.contains("masterStartIndex")) tests["masterStartIndex"] = 0;
+        if (!tests.contains("masterLength")) tests["masterLength"] = 1;
+        if (!tests.contains("reader1StartIndex")) tests["reader1StartIndex"] = 0;
+        if (!tests.contains("reader2StartIndex")) tests["reader2StartIndex"] = 0;
+        if (!tests.contains("matchLength")) tests["matchLength"] = 1;
+        if (!tests.contains("fileStartIndex")) tests["fileStartIndex"] = 0;
+        if (!tests.contains("fileLength")) tests["fileLength"] = 1;
+
         getLogger()->debug("Default tests settings ensured");
     } catch (const std::exception& e) {
         getLogger()->error("Error ensuring default tests settings: {}", e.what());

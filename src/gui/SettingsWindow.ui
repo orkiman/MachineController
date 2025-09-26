@@ -330,79 +330,7 @@ QDialog[overrideOutputs=&quot;true&quot;] {
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="dataFileTab">
-      <attribute name="title">
-       <string>Data File</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_dataFile">
-       <item>
-        <layout class="QFormLayout" name="formLayout_dataFile">
-         <item row="0" column="0">
-          <widget class="QLabel" name="startPositionLabel">
-           <property name="text">
-            <string>Start Position:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QSpinBox" name="startPositionSpinBox">
-           <property name="minimum">
-            <number>0</number>
-           </property>
-           <property name="maximum">
-            <number>1000</number>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="endPositionLabel">
-           <property name="text">
-            <string>End Position:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QSpinBox" name="endPositionSpinBox">
-           <property name="minimum">
-            <number>0</number>
-           </property>
-           <property name="maximum">
-            <number>1000</number>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QCheckBox" name="sequenceCheckBox">
-           <property name="text">
-            <string>Sequence Check</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QComboBox" name="sequenceDirectionComboBox">
-             <item>
-              <property name="text">
-               <string>Up</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Down</string>
-              </property>
-           </item>
-          </widget>
-         </item>
-         <item row="3" column="0">
-          <widget class="QCheckBox" name="existenceCheckBox">
-           <property name="text">
-            <string>Existence Check</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-      </layout>
-     </widget>
+     
      <widget class="QWidget" name="timersTab">
       <attribute name="title">
        <string>Timers</string>
@@ -972,19 +900,9 @@ QDialog[overrideOutputs=&quot;true&quot;] {
           <item row="1" column="0" colspan="2">
            <layout class="QHBoxLayout" name="testsArrowsLayout">
             <item>
-             <widget class="QToolButton" name="testsUpArrowButton">
+             <widget class="QToolButton" name="testsDirectionArrowToolButton">
               <property name="arrowType">
                <enum>Qt::UpArrow</enum>
-              </property>
-              <property name="toolButtonStyle">
-               <enum>Qt::ToolButtonIconOnly</enum>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QToolButton" name="testsDownArrowButton">
-              <property name="arrowType">
-               <enum>Qt::DownArrow</enum>
               </property>
               <property name="toolButtonStyle">
                <enum>Qt::ToolButtonIconOnly</enum>
@@ -1004,14 +922,48 @@ QDialog[overrideOutputs=&quot;true&quot;] {
               </property>
              </spacer>
             </item>
-            <item>
-             <widget class="QPushButton" name="testsRunMasterSequenceButton">
-              <property name="text">
-               <string>Run Master Sequence</string>
-              </property>
-             </widget>
-            </item>
            </layout>
+          </item>
+          <item row="2" column="0" colspan="2">
+           <widget class="QCheckBox" name="testsMasterSequenceEnableCheckBox">
+            <property name="text">
+             <string>Enable Master Sequence Test</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="testsMasterStartIndexLabel">
+            <property name="text">
+             <string>Start Index:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QSpinBox" name="testsMasterStartIndexSpinBox">
+            <property name="minimum">
+             <number>0</number>
+            </property>
+            <property name="maximum">
+             <number>1000</number>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="testsMasterLengthLabel">
+            <property name="text">
+             <string>Length:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QSpinBox" name="testsMasterLengthSpinBox">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>1000</number>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
@@ -1019,13 +971,13 @@ QDialog[overrideOutputs=&quot;true&quot;] {
        <item>
         <widget class="QGroupBox" name="testsMatchGroupBox">
          <property name="title">
-          <string>Match Test (masterReader vs reader2)</string>
+          <string>Match Test (1 vs 2)</string>
          </property>
          <layout class="QFormLayout" name="testsMatchFormLayout">
           <item row="0" column="0">
            <widget class="QLabel" name="testsMasterReaderLabel">
             <property name="text">
-             <string>Master Reader:</string>
+             <string>1:</string>
             </property>
            </widget>
           </item>
@@ -1033,16 +985,67 @@ QDialog[overrideOutputs=&quot;true&quot;] {
            <widget class="QComboBox" name="testsMasterReaderComboBox"/>
           </item>
           <item row="1" column="0">
-           <widget class="QLabel" name="testsReader2Label">
+           <widget class="QLabel" name="testsReader1StartIndexLabel">
             <property name="text">
-             <string>Reader 2:</string>
+             <string>1 Start Index:</string>
             </property>
            </widget>
           </item>
           <item row="1" column="1">
+           <widget class="QSpinBox" name="testsReader1StartIndexSpinBox">
+            <property name="minimum">
+             <number>0</number>
+            </property>
+            <property name="maximum">
+             <number>1000</number>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="testsReader2Label">
+            <property name="text">
+             <string>2:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
            <widget class="QComboBox" name="testsReader2ComboBox"/>
           </item>
-          <item row="2" column="0" colspan="2">
+          <item row="3" column="0">
+           <widget class="QLabel" name="testsReader2StartIndexLabel">
+            <property name="text">
+             <string>2 Start Index:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QSpinBox" name="testsReader2StartIndexSpinBox">
+            <property name="minimum">
+             <number>0</number>
+            </property>
+            <property name="maximum">
+             <number>1000</number>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="testsMatchLengthLabel">
+            <property name="text">
+             <string>Length:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QSpinBox" name="testsMatchLengthSpinBox">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>1000</number>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0" colspan="2">
            <layout class="QHBoxLayout" name="testsMatchActionsLayout">
             <item>
              <widget class="QCheckBox" name="testsMatchEnableCheckBox">
@@ -1110,6 +1113,40 @@ QDialog[overrideOutputs=&quot;true&quot;] {
            <widget class="QPushButton" name="testsRunMasterInFileButton">
             <property name="text">
              <string>Run File Check</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="testsFileStartIndexLabel">
+            <property name="text">
+             <string>Start Index:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QSpinBox" name="testsFileStartIndexSpinBox">
+            <property name="minimum">
+             <number>0</number>
+            </property>
+            <property name="maximum">
+             <number>1000000</number>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="testsFileLengthLabel">
+            <property name="text">
+             <string>Length:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QSpinBox" name="testsFileLengthSpinBox">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>1000000</number>
             </property>
            </widget>
           </item>

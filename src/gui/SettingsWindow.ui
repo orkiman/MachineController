@@ -871,12 +871,27 @@ QDialog[overrideOutputs=&quot;true&quot;] {
       </attribute>
       <layout class="QVBoxLayout" name="testsVerticalLayout">
        <item>
+        <layout class="QHBoxLayout" name="testsMasterReaderLayout">
+         <item>
+          <widget class="QLabel" name="testsMasterReaderLabel">
+           <property name="text">
+            <string>Master Reader:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="testsMasterReaderComboBox"/>
+         </item>
+        </layout>
+       </item>
+       <item>
         <widget class="QGroupBox" name="testsMasterSequenceGroupBox">
          <property name="title">
           <string>Master Sequence Test</string>
          </property>
          <layout class="QFormLayout" name="testsMasterSequenceFormLayout">
           <item row="0" column="0">
+{{ ... }}
            <widget class="QLabel" name="testsMasterDirectionLabel">
             <property name="text">
              <string>Direction:</string>
@@ -975,19 +990,35 @@ QDialog[overrideOutputs=&quot;true&quot;] {
          </property>
          <layout class="QFormLayout" name="testsMatchFormLayout">
           <item row="0" column="0">
-           <widget class="QLabel" name="testsMasterReaderLabel">
-            <property name="text">
-             <string>1:</string>
+           <spacer name="testsMatchTopSpacer1">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
             </property>
-           </widget>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
           </item>
           <item row="0" column="1">
-           <widget class="QComboBox" name="testsMasterReaderComboBox"/>
+           <spacer name="testsMatchTopSpacer2">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
           </item>
           <item row="1" column="0">
            <widget class="QLabel" name="testsReader1StartIndexLabel">
             <property name="text">
-             <string>1 Start Index:</string>
+             <string>master Start Index:</string>
             </property>
            </widget>
           </item>
@@ -1004,7 +1035,7 @@ QDialog[overrideOutputs=&quot;true&quot;] {
           <item row="2" column="0">
            <widget class="QLabel" name="testsReader2Label">
             <property name="text">
-             <string>2:</string>
+             <string>Match Reader:</string>
             </property>
            </widget>
           </item>
@@ -1014,7 +1045,7 @@ QDialog[overrideOutputs=&quot;true&quot;] {
           <item row="3" column="0">
            <widget class="QLabel" name="testsReader2StartIndexLabel">
             <property name="text">
-             <string>2 Start Index:</string>
+             <string>Match Start Index:</string>
             </property>
            </widget>
           </item>

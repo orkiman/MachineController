@@ -1,4 +1,6 @@
 #include "machine/MachineCore.h"
+#include <cctype>
+#include <optional>
 
 class DefaultMachineCore : public MachineCore {
   bool blinkLed0_ = false;
@@ -7,11 +9,66 @@ class DefaultMachineCore : public MachineCore {
   // Fixed capacity for per-port vectors (configured by Config via Logic)
   std::size_t capacity_{0};
 
+  // Sequence test config/state (from Tests tab)
+  std::optional<int> lastSeqNumber_{};           // last extracted number
+  int masterStartIndex_{0};                      // default aligns with GUI
+  int masterLength_{1};                          // default aligns with GUI
+  std::string sequenceDirection_{"Ascending"};  // "Ascending" or "Descending"
+  bool masterSequenceEnabled_{false};            // off by default
+
   // Ensure a given port's vector is sized to 'capacity_'
   void ensurePortCapacity(const std::string& port) {
     if (capacity_ == 0) return;
     auto& vec = store_[port];
     if (vec.size() != capacity_) vec.resize(capacity_);
+  }
+
+  // Extract a number from text slice [startIndex, startIndex+length)
+  bool extractNumberAt(const std::string& text, int startIndex, int length, int& out) const {
+    if (startIndex < 0 || length <= 0) return false;
+    if (static_cast<size_t>(startIndex) >= text.size()) return false;
+    size_t len = static_cast<size_t>(length);
+    size_t avail = text.size() - static_cast<size_t>(startIndex);
+    if (len > avail) len = avail;
+    const std::string slice = text.substr(static_cast<size_t>(startIndex), len);
+
+    std::string digits;
+    digits.reserve(slice.size());
+    for (unsigned char ch : slice) {
+      if (std::isdigit(ch)) digits.push_back(static_cast<char>(ch));
+    }
+    if (digits.empty()) return false;
+    try {
+      out = std::stoi(digits);
+      return true;
+    } catch (...) {
+      return false;
+    }
+  }
+
+  // Check master sequence based on current configuration.
+  // Returns true if the sequence condition passes. Always stores the latest number if extracted.
+  bool checkMasterSequence(const std::string& text) {
+    if (!masterSequenceEnabled_) return true; // disabled => pass
+    int current{};
+    if (!extractNumberAt(text, masterStartIndex_, masterLength_, current)) {
+      return false; // could not extract a number
+    }
+
+    bool pass = true;
+    if (!lastSeqNumber_.has_value()) {
+      pass = true; // first number passes by definition
+    } else {
+      if (sequenceDirection_ == "Descending") {
+        pass = (current == lastSeqNumber_.value() - 1);
+      } else {
+        // Default to ascending
+        pass = (current == lastSeqNumber_.value() + 1);
+      }
+    }
+    // Update last seen number regardless, so next comparison is relative to this one
+    lastSeqNumber_ = current;
+    return pass;
   }
 
   // Helper: shift all messages in a given port's vector to the right by 'by'.
@@ -40,6 +97,21 @@ class DefaultMachineCore : public MachineCore {
 
 public:
   void setBlinkLed(bool v) override { blinkLed0_ = v; }
+
+  // Configure Tests: master sequence options (can be wired from Logic/UI later)
+  void setMasterSequenceEnabled(bool enabled) { masterSequenceEnabled_ = enabled; }
+  void setMasterSequenceConfig(int startIndex, int length, const std::string& direction) {
+    if (startIndex < 0) startIndex = 0;
+    if (length < 1) length = 1;
+    masterStartIndex_ = startIndex;
+    masterLength_ = length;
+    sequenceDirection_ = direction;
+  }
+  void resetMasterSequence() { lastSeqNumber_.reset(); }
+
+  // Public check function that accepts a string and applies the sequence test.
+  // Uses current configuration (start, length, direction). Stores last number.
+  bool testMasterSequence(const std::string& text) { return checkMasterSequence(text); }
 
   // Configure/get store capacity
   void setStoreCapacity(std::size_t cap) override {

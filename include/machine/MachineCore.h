@@ -67,6 +67,15 @@ public:
   // Optional knobs controlled by GUI
   virtual void setBlinkLed(bool) {}
 
+  // Tests (optional hooks; default no-ops)
+  // Configure master sequence check options
+  virtual void setMasterSequenceEnabled(bool) {}
+  virtual void setMasterSequenceConfig(int /*startIndex*/, int /*length*/, const std::string& /*direction*/) {}
+  virtual void resetMasterSequence() {}
+  // Apply master sequence test to a text message. Returns true if it passes.
+  // Default implementation: always pass.
+  virtual bool testMasterSequence(const std::string&) { return true; }
+
   // Barcode grid support (optional; default no-ops)
   // Configure the maximum number of machine cells (rows) maintained per channel
   virtual void setStoreCapacity(std::size_t) {}

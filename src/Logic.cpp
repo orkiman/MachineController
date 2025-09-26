@@ -30,6 +30,20 @@ Logic::Logic(EventQueue<EventVariant> &eventQueue, const Config &config)
     int cells = config_.getNumberOfMachineCells();
     if (cells < 0) cells = 0;
     core_->setStoreCapacity(static_cast<std::size_t>(cells));
+
+    // Configure Tests: master sequence settings from config (defaults match GUI)
+    try {
+      auto tests = config_.getTestsSettings();
+      bool enabled = tests.value("masterSequenceEnabled", false);
+      int startIndex = tests.value("masterStartIndex", 0);
+      int length = tests.value("masterLength", 1);
+      std::string direction = tests.value("sequenceDirection", std::string("Ascending"));
+      core_->setMasterSequenceEnabled(enabled);
+      core_->setMasterSequenceConfig(startIndex, length, direction);
+      core_->resetMasterSequence();
+    } catch (...) {
+      // Ignore configuration errors; use core defaults
+    }
   }
 }
 

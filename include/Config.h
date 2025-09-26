@@ -69,6 +69,11 @@ public:
     void updateGlueSettings(const nlohmann::json& glueSettings);
     void ensureDefaultGlueSettings();
 
+    // Get/set methods for Tests settings
+    void ensureDefaultTestsSettings();
+    nlohmann::json getTestsSettings() const;
+    void updateTestsSettings(const nlohmann::json& testsSettings);
+
     // Machine/Barcode grid settings
     void ensureDefaultMachineSettings();
     int getNumberOfMachineCells() const;           // size of per-port vectors and GUI rows

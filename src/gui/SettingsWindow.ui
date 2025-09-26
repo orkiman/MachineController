@@ -937,6 +937,200 @@ QDialog[overrideOutputs=&quot;true&quot;] {
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="testsTab">
+      <attribute name="title">
+       <string>Tests</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="testsVerticalLayout">
+       <item>
+        <widget class="QGroupBox" name="testsMasterSequenceGroupBox">
+         <property name="title">
+          <string>Master Sequence Test</string>
+         </property>
+         <layout class="QFormLayout" name="testsMasterSequenceFormLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="testsMasterDirectionLabel">
+            <property name="text">
+             <string>Direction:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="testsMasterDirectionComboBox">
+            <item>
+             <property name="text">
+              <string>Ascending</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Descending</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="1" column="0" colspan="2">
+           <layout class="QHBoxLayout" name="testsArrowsLayout">
+            <item>
+             <widget class="QToolButton" name="testsUpArrowButton">
+              <property name="arrowType">
+               <enum>Qt::UpArrow</enum>
+              </property>
+              <property name="toolButtonStyle">
+               <enum>Qt::ToolButtonIconOnly</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="testsDownArrowButton">
+              <property name="arrowType">
+               <enum>Qt::DownArrow</enum>
+              </property>
+              <property name="toolButtonStyle">
+               <enum>Qt::ToolButtonIconOnly</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="testsArrowSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="testsRunMasterSequenceButton">
+              <property name="text">
+               <string>Run Master Sequence</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="testsMatchGroupBox">
+         <property name="title">
+          <string>Match Test (masterReader vs reader2)</string>
+         </property>
+         <layout class="QFormLayout" name="testsMatchFormLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="testsMasterReaderLabel">
+            <property name="text">
+             <string>Master Reader:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="testsMasterReaderComboBox"/>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="testsReader2Label">
+            <property name="text">
+             <string>Reader 2:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QComboBox" name="testsReader2ComboBox"/>
+          </item>
+          <item row="2" column="0" colspan="2">
+           <layout class="QHBoxLayout" name="testsMatchActionsLayout">
+            <item>
+             <widget class="QCheckBox" name="testsMatchEnableCheckBox">
+              <property name="text">
+               <string>Enable Match Test</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="testsMatchSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="testsRunMatchButton">
+              <property name="text">
+               <string>Run Match</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="testsMasterInFileGroupBox">
+         <property name="title">
+          <string>Master-in-File Check</string>
+         </property>
+         <layout class="QGridLayout" name="testsMasterInFileGridLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="testsFilePathLabel">
+            <property name="text">
+             <string>File:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="testsFilePathLineEdit"/>
+          </item>
+          <item row="0" column="2">
+           <widget class="QPushButton" name="testsBrowseFileButton">
+            <property name="text">
+             <string>Browse...</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0" colspan="2">
+           <widget class="QCheckBox" name="testsMasterInFileEnableCheckBox">
+            <property name="text">
+             <string>Enable Master-in-File Check</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="QPushButton" name="testsRunMasterInFileButton">
+            <property name="text">
+             <string>Run File Check</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="testsBottomSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
      <widget class="QWidget" name="IOTab">
       <attribute name="title">
        <string>IO</string>
@@ -1045,4 +1239,4 @@ QCheckBox {
  </widget>
  <resources/>
  <connections/>
-</ui>
+ </ui>

@@ -41,6 +41,9 @@ public:
     
     // Fill Glue tab with controllers and plans from config
     void fillGlueTabFields();
+
+    // Fill Tests tab with settings from config
+    void fillTestsTabFields();
     
  public slots:
     // Update input states in the IO tab
@@ -133,6 +136,22 @@ private slots:
     void on_glueHoldCurrentSpinBox_valueChanged(double value);
     void on_glueDotSizeComboBox_currentIndexChanged(int index);
 
+    // Tests tab slots
+    void on_testsMasterDirectionComboBox_currentIndexChanged(int index);
+    void on_testsUpArrowButton_clicked();
+    void on_testsDownArrowButton_clicked();
+    void on_testsRunMasterSequenceButton_clicked();
+
+    void on_testsMasterReaderComboBox_currentIndexChanged(int index);
+    void on_testsReader2ComboBox_currentIndexChanged(int index);
+    void on_testsMatchEnableCheckBox_stateChanged(int state);
+    void on_testsRunMatchButton_clicked();
+
+    void on_testsBrowseFileButton_clicked();
+    void on_testsFilePathLineEdit_textChanged(const QString& text);
+    void on_testsMasterInFileEnableCheckBox_stateChanged(int state);
+    void on_testsRunMasterInFileButton_clicked();
+
 private:
     // Current selected communication channel name
     std::string currentCommunicationName_;
@@ -169,6 +188,8 @@ private:
     void updateGlueTypeVisibility(int index = 0);
     void populateGlueCommunicationComboBox();
     void addGlueRowToTable(int from, int to, double space);
+    void populateTestsCommunicationCombos();
+    void saveTestsToConfig(const nlohmann::json& tests);
     
     // UI Event Handler Functions
     void setupCommunicationTabConnections();

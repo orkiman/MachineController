@@ -14,6 +14,7 @@
 #include <QJsonArray>
 #include <QFile>
 #include <QDir>
+#include <QFileDialog>
 #include <QStackedWidget>
 #include <QTimer>
 #include <vector>
@@ -42,6 +43,246 @@ void SettingsWindow::fillDataFileTabFields() {
         if (idx >= 0)
             ui->sequenceDirectionComboBox->setCurrentIndex(idx);
     }
+
+}
+
+// Populate the Tests tab with settings from config
+void SettingsWindow::fillTestsTabFields() {
+    if (!config_) return;
+
+    // Prevent change handlers from saving while we populate
+    bool prevRefreshing = isRefreshing_;
+    isRefreshing_ = true;
+
+    // Ensure communication dropdowns are populated
+    populateTestsCommunicationCombos();
+
+    try {
+        nlohmann::json tests = config_->getTestsSettings();
+
+        // Master reader combo
+        if (ui->testsMasterReaderComboBox) {
+            if (tests.contains("masterReader") && tests["masterReader"].is_string()) {
+                QString mr = QString::fromStdString(tests["masterReader"].get<std::string>());
+                int idx = ui->testsMasterReaderComboBox->findData(mr);
+                if (idx >= 0) ui->testsMasterReaderComboBox->setCurrentIndex(idx);
+            }
+        }
+
+        // Reader2 combo
+        if (ui->testsReader2ComboBox) {
+            if (tests.contains("reader2") && tests["reader2"].is_string()) {
+                QString r2 = QString::fromStdString(tests["reader2"].get<std::string>());
+                int idx = ui->testsReader2ComboBox->findData(r2);
+                if (idx >= 0) ui->testsReader2ComboBox->setCurrentIndex(idx);
+            }
+        }
+
+        // Direction
+        if (ui->testsMasterDirectionComboBox) {
+            QString dir = "Ascending";
+            if (tests.contains("sequenceDirection") && tests["sequenceDirection"].is_string()) {
+                dir = QString::fromStdString(tests["sequenceDirection"].get<std::string>());
+            }
+            int didx = ui->testsMasterDirectionComboBox->findText(dir);
+            if (didx >= 0) ui->testsMasterDirectionComboBox->setCurrentIndex(didx);
+        }
+
+        // Match enable
+        if (ui->testsMatchEnableCheckBox) {
+            bool en = tests.value("matchWithReader2", false);
+            ui->testsMatchEnableCheckBox->setChecked(en);
+        }
+
+        // Master in file
+        if (ui->testsMasterInFileEnableCheckBox) {
+            bool en = tests.value("masterInFileCheck", false);
+            ui->testsMasterInFileEnableCheckBox->setChecked(en);
+        }
+
+        // File path
+        if (ui->testsFilePathLineEdit) {
+            QString path = QString::fromStdString(tests.value("filePath", std::string("")));
+            ui->testsFilePathLineEdit->setText(path);
+        }
+
+    } catch (const std::exception& e) {
+        getLogger()->warn("[fillTestsTabFields] Exception: {}", e.what());
+    }
+
+    isRefreshing_ = prevRefreshing;
+}
+
+// Populate the Tests tab communication comboboxes with active communication channels
+void SettingsWindow::populateTestsCommunicationCombos() {
+    if (!config_ || !ui) return;
+
+    // Preserve current selections
+    QString prevMaster = ui->testsMasterReaderComboBox ? ui->testsMasterReaderComboBox->currentData().toString() : QString();
+    QString prevReader2 = ui->testsReader2ComboBox ? ui->testsReader2ComboBox->currentData().toString() : QString();
+
+    if (ui->testsMasterReaderComboBox) ui->testsMasterReaderComboBox->clear();
+    if (ui->testsReader2ComboBox) ui->testsReader2ComboBox->clear();
+
+    try {
+        nlohmann::json comm = config_->getCommunicationSettings();
+        for (auto it = comm.begin(); it != comm.end(); ++it) {
+            const std::string name = it.key();
+            const auto& cfg = it.value();
+            bool isActive = true;
+            try { if (cfg.contains("active")) isActive = cfg["active"].get<bool>(); } catch (...) {}
+            if (!isActive) continue; // Only show active channels
+
+            QString label = QString::fromStdString(name);
+            if (cfg.contains("description") && cfg["description"].is_string()) {
+                label += " (" + QString::fromStdString(cfg["description"].get<std::string>()) + ")";
+            }
+
+            QVariant data = QString::fromStdString(name);
+            if (ui->testsMasterReaderComboBox) ui->testsMasterReaderComboBox->addItem(label, data);
+            if (ui->testsReader2ComboBox) ui->testsReader2ComboBox->addItem(label, data);
+        }
+    } catch (const std::exception& e) {
+        getLogger()->warn("[populateTestsCommunicationCombos] Exception: {}", e.what());
+    }
+
+    // Restore previous selections if present
+    if (ui->testsMasterReaderComboBox) {
+        int idx = ui->testsMasterReaderComboBox->findData(prevMaster);
+        if (idx >= 0) ui->testsMasterReaderComboBox->setCurrentIndex(idx);
+    }
+    if (ui->testsReader2ComboBox) {
+        int idx = ui->testsReader2ComboBox->findData(prevReader2);
+        if (idx >= 0) ui->testsReader2ComboBox->setCurrentIndex(idx);
+    }
+}
+
+// Save Tests tab settings to config and persist to file
+void SettingsWindow::saveTestsToConfig(const nlohmann::json& tests) {
+    if (!config_) return;
+    try {
+        Config* mutableConfig = const_cast<Config*>(config_);
+        mutableConfig->updateTestsSettings(tests);
+        if (!mutableConfig->saveToFile()) {
+            getLogger()->warn("[saveTestsToConfig] Failed to save tests settings to file");
+        }
+        // Notify that parameters changed (no reinit side-effects currently)
+        GuiEvent ev; ev.keyword = "ParameterChange"; ev.target = "tests"; ev.data = ""; ev.intValue = 0;
+        eventQueue_.push(ev);
+    } catch (const std::exception& e) {
+        getLogger()->error("[saveTestsToConfig] Exception: {}", e.what());
+    }
+}
+
+// =========================
+// Tests tab slot handlers
+// =========================
+
+void SettingsWindow::on_testsMasterDirectionComboBox_currentIndexChanged(int index) {
+    if (isRefreshing_ || !config_ || index < 0) return;
+    try {
+        nlohmann::json tests = config_->getTestsSettings();
+        QString dir = ui->testsMasterDirectionComboBox->currentText();
+        tests["sequenceDirection"] = dir.toStdString();
+        saveTestsToConfig(tests);
+    } catch (const std::exception& e) {
+        getLogger()->warn("[on_testsMasterDirectionComboBox_currentIndexChanged] Exception: {}", e.what());
+    }
+}
+
+void SettingsWindow::on_testsUpArrowButton_clicked() {
+    if (!ui || !ui->testsMasterDirectionComboBox) return;
+    int idx = ui->testsMasterDirectionComboBox->findText("Ascending");
+    if (idx >= 0) ui->testsMasterDirectionComboBox->setCurrentIndex(idx);
+}
+
+void SettingsWindow::on_testsDownArrowButton_clicked() {
+    if (!ui || !ui->testsMasterDirectionComboBox) return;
+    int idx = ui->testsMasterDirectionComboBox->findText("Descending");
+    if (idx >= 0) ui->testsMasterDirectionComboBox->setCurrentIndex(idx);
+}
+
+void SettingsWindow::on_testsRunMasterSequenceButton_clicked() {
+    // Placeholder: only GUI message for now
+    GuiEvent msg; msg.keyword = "GuiMessage"; msg.target = "info"; msg.data = "Run Master Sequence clicked (logic not implemented yet)";
+    eventQueue_.push(msg);
+}
+
+void SettingsWindow::on_testsMasterReaderComboBox_currentIndexChanged(int index) {
+    if (isRefreshing_ || !config_ || index < 0) return;
+    try {
+        nlohmann::json tests = config_->getTestsSettings();
+        QString commName = ui->testsMasterReaderComboBox->itemData(index).toString();
+        tests["masterReader"] = commName.toStdString();
+        saveTestsToConfig(tests);
+    } catch (const std::exception& e) {
+        getLogger()->warn("[on_testsMasterReaderComboBox_currentIndexChanged] Exception: {}", e.what());
+    }
+}
+
+void SettingsWindow::on_testsReader2ComboBox_currentIndexChanged(int index) {
+    if (isRefreshing_ || !config_ || index < 0) return;
+    try {
+        nlohmann::json tests = config_->getTestsSettings();
+        QString commName = ui->testsReader2ComboBox->itemData(index).toString();
+        tests["reader2"] = commName.toStdString();
+        saveTestsToConfig(tests);
+    } catch (const std::exception& e) {
+        getLogger()->warn("[on_testsReader2ComboBox_currentIndexChanged] Exception: {}", e.what());
+    }
+}
+
+void SettingsWindow::on_testsMatchEnableCheckBox_stateChanged(int state) {
+    if (isRefreshing_ || !config_) return;
+    try {
+        nlohmann::json tests = config_->getTestsSettings();
+        tests["matchWithReader2"] = (state == Qt::Checked);
+        saveTestsToConfig(tests);
+    } catch (const std::exception& e) {
+        getLogger()->warn("[on_testsMatchEnableCheckBox_stateChanged] Exception: {}", e.what());
+    }
+}
+
+void SettingsWindow::on_testsRunMatchButton_clicked() {
+    // Placeholder: only GUI message for now
+    GuiEvent msg; msg.keyword = "GuiMessage"; msg.target = "info"; msg.data = "Run Match clicked (logic not implemented yet)";
+    eventQueue_.push(msg);
+}
+
+void SettingsWindow::on_testsBrowseFileButton_clicked() {
+    QString path = QFileDialog::getOpenFileName(this, "Select File", "", "Text Files (*.txt);;All Files (*)");
+    if (!path.isEmpty() && ui && ui->testsFilePathLineEdit) {
+        ui->testsFilePathLineEdit->setText(path);
+        // on_testsFilePathLineEdit_textChanged will handle saving
+    }
+}
+
+void SettingsWindow::on_testsFilePathLineEdit_textChanged(const QString& text) {
+    if (isRefreshing_ || !config_) return;
+    try {
+        nlohmann::json tests = config_->getTestsSettings();
+        tests["filePath"] = text.toStdString();
+        saveTestsToConfig(tests);
+    } catch (const std::exception& e) {
+        getLogger()->warn("[on_testsFilePathLineEdit_textChanged] Exception: {}", e.what());
+    }
+}
+
+void SettingsWindow::on_testsMasterInFileEnableCheckBox_stateChanged(int state) {
+    if (isRefreshing_ || !config_) return;
+    try {
+        nlohmann::json tests = config_->getTestsSettings();
+        tests["masterInFileCheck"] = (state == Qt::Checked);
+        saveTestsToConfig(tests);
+    } catch (const std::exception& e) {
+        getLogger()->warn("[on_testsMasterInFileEnableCheckBox_stateChanged] Exception: {}", e.what());
+    }
+}
+
+void SettingsWindow::on_testsRunMasterInFileButton_clicked() {
+    // Placeholder: only GUI message for now
+    GuiEvent msg; msg.keyword = "GuiMessage"; msg.target = "info"; msg.data = "Run File Check clicked (logic not implemented yet)";
+    eventQueue_.push(msg);
 }
 
 // ============================================================================
@@ -120,6 +361,7 @@ SettingsWindow::SettingsWindow(QWidget *parent, EventQueue<EventVariant>& eventQ
     fillDataFileTabFields();
     populateGlueCommunicationComboBox();
     fillGlueTabFields();
+    fillTestsTabFields();
 
 
     // Timers table: auto-save on duration edit
@@ -3086,6 +3328,7 @@ void SettingsWindow::onCommunicationActiveCheckBoxChanged(int state) {
     // Use QTimer::singleShot to delay the call until after the config save completes
     QTimer::singleShot(0, this, [this]() {
         populateGlueCommunicationComboBox();
+        populateTestsCommunicationCombos();
     });
 }
 

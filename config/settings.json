@@ -4,7 +4,7 @@
       "active": true,
       "baudRate": 115200,
       "dataBits": 8,
-      "description": "reader1",
+      "description": "masterReader",
       "etx": 3,
       "offset": 3,
       "parity": "N",
@@ -245,6 +245,11 @@
   "machine": {
     "barcodeChannelsToShow": 2,
     "numberOfMachinecells": 20
+  },
+  "tests": {
+    "masterInFileCheck": false,
+    "matchWithReader2": false,
+    "sequenceDirection": "Ascending"
   },
   "timers": {
     "timer1": {

@@ -19,6 +19,50 @@ void Config::setDataFileSettings(const DataFileSettings& settings)
     configJson_["dataFile"] = dataFileJson;
 }
 
+void Config::ensureDefaultTestsSettings()
+{
+    try {
+        std::lock_guard<std::mutex> lock(configMutex_);
+        // Ensure tests section exists
+        if (!configJson_.contains("tests") || !configJson_["tests"].is_object()) {
+            configJson_["tests"] = nlohmann::json::object();
+        }
+
+        auto& tests = configJson_["tests"];
+        if (!tests.contains("masterReader")) tests["masterReader"] = "communication1";
+        if (!tests.contains("reader2")) tests["reader2"] = "communication2";
+        if (!tests.contains("sequenceDirection")) tests["sequenceDirection"] = "Ascending"; // or "Descending"
+        if (!tests.contains("matchWithReader2")) tests["matchWithReader2"] = false;
+        if (!tests.contains("masterInFileCheck")) tests["masterInFileCheck"] = false;
+        if (!tests.contains("filePath")) tests["filePath"] = "";
+
+        getLogger()->debug("Default tests settings ensured");
+    } catch (const std::exception& e) {
+        getLogger()->error("Error ensuring default tests settings: {}", e.what());
+    }
+}
+
+nlohmann::json Config::getTestsSettings() const
+{
+    std::lock_guard<std::mutex> lock(configMutex_);
+    return configJson_.value("tests", nlohmann::json::object());
+}
+
+void Config::updateTestsSettings(const nlohmann::json& testsSettings)
+{
+    try {
+        std::lock_guard<std::mutex> lock(configMutex_);
+        if (testsSettings.is_object()) {
+            configJson_["tests"] = testsSettings;
+            getLogger()->debug("Tests settings updated");
+        } else {
+            getLogger()->error("Invalid tests settings format");
+        }
+    } catch (const std::exception& e) {
+        getLogger()->error("Error updating tests settings: {}", e.what());
+    }
+}
+
 void Config::ensureDefaultMachineSettings()
 {
     try {
@@ -80,6 +124,7 @@ Config::Config(const std::string &filePath)
         ensureDefaultCommunicationSettings();
         ensureDefaultTimerSettings();
         ensureDefaultGlueSettings();
+        ensureDefaultTestsSettings();
         ensureDefaultMachineSettings();
         filePath_ = filePath;
         return;
@@ -91,12 +136,14 @@ Config::Config(const std::string &filePath)
         ensureDefaultCommunicationSettings();
         ensureDefaultTimerSettings();
         ensureDefaultGlueSettings();
+        ensureDefaultTestsSettings();
     } catch (const std::exception& e) {
         getLogger()->warn("[Config] Failed to parse configuration file: {}", e.what());
         // If parsing fails, set defaults
         ensureDefaultCommunicationSettings();
         ensureDefaultTimerSettings();
         ensureDefaultGlueSettings();
+        ensureDefaultTestsSettings();
         ensureDefaultMachineSettings();
         filePath_ = filePath;
     }

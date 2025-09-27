@@ -26,6 +26,22 @@ MainWindow::MainWindow(QWidget *parent, EventQueue<EventVariant>& eventQueue, co
     ui->setupUi(this);
     getLogger()->debug("[MainWindow] ui->setupUi() finished.");
 
+    // Initialize the data file label from settings (tests.filePath)
+    try {
+        if (config_) {
+            nlohmann::json tests = config_->getTestsSettings();
+            if (tests.contains("filePath") && tests["filePath"].is_string()) {
+                const std::string path = tests["filePath"].get<std::string>();
+                if (!path.empty()) {
+                    ui->dataFilePathLabel->setText(QString::fromStdString(path));
+                    getLogger()->debug("[MainWindow] Initialized dataFilePathLabel from tests.filePath: {}", path);
+                }
+            }
+        }
+    } catch (const std::exception& e) {
+        getLogger()->warn("[MainWindow] Failed to initialize dataFilePathLabel from config: {}", e.what());
+    }
+
     // Create the settings window once and pass the Config object
     getLogger()->debug("[MainWindow] Creating SettingsWindow...");
     settingsWindow_ = new SettingsWindow(this, eventQueue_, config);

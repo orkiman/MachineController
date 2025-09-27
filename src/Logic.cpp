@@ -795,7 +795,17 @@ void Logic::refreshMasterFileReferenceSet() {
       if (!token.empty()) refSet.insert(std::move(token));
     }
 
-    getLogger()->info("[{}] Master file reference set loaded: {} unique entries from '{}'", FUNCTION_NAME, refSet.size(), path);
+    // Compose a small sample of entries for debugging
+    std::string sample;
+    int count = 0;
+    for (const auto& s : refSet) {
+      if (count++ >= 5) break;
+      if (!sample.empty()) sample += ", ";
+      // Truncate long tokens for log readability
+      if (s.size() > 32) sample += s.substr(0, 32) + "..."; else sample += s;
+    }
+    getLogger()->info("[{}] Master file reference set loaded: {} unique entries from '{}' | sample: [{}]",
+                      FUNCTION_NAME, refSet.size(), path, sample);
     core_->setMasterFileReferenceSet(refSet);
   } catch (const std::exception& e) {
     getLogger()->error("[{}] Exception refreshing master file reference set: {}", FUNCTION_NAME, e.what());

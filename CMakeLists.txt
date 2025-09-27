@@ -54,7 +54,6 @@ set(SOURCES
     src/gui/SettingsWindow.cpp
     src/communication/RS232Communication.cpp
     src/communication/ArduinoProtocol.cpp
-    src/dataFile/DataFile.cpp
     ${GENERATED_MOC_SOURCES}
     ${UI_HEADERS}
 )

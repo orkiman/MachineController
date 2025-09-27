@@ -267,42 +267,36 @@ void MainWindow::buildGlueTestTable() {
 void MainWindow::on_selectDataFileButton_clicked() {
     QString filePath = QFileDialog::getOpenFileName(this, "Select Data File", "", "Text Files (*.txt);;All Files (*)");
     if (!filePath.isEmpty()) {
-        // Load file using config startPosition and endPosition
-        if (dataFile_.loadFromFile(filePath.toStdString(), *config_)) {
-            dataFilePath_ = filePath;
-            ui->dataFilePathLabel->setText(filePath);
-            // create gui event for loading the file
-            GuiEvent event;
-            event.keyword = "ParameterChange";
-            event.target = "datafile";
-            event.data = filePath.toStdString();
-            eventQueue_.push(event);
+        // Update label
+        ui->dataFilePathLabel->setText(filePath);
 
-            // Also persist selection into tests.filePath so Tests tab uses the same file
-            try {
-                if (config_) {
-                    nlohmann::json tests = config_->getTestsSettings();
-                    tests["filePath"] = filePath.toStdString();
-                    Config* mutableConfig = const_cast<Config*>(config_);
-                    mutableConfig->updateTestsSettings(tests);
-                    mutableConfig->saveToFile();
+        // Notify Logic to refresh master-in-file set
+        GuiEvent event;
+        event.keyword = "ParameterChange";
+        event.target = "datafile";
+        event.data = filePath.toStdString();
+        eventQueue_.push(event);
 
-                    // If SettingsWindow is open, reflect the new path in its line edit
-                    if (settingsWindow_) {
-                        if (auto le = settingsWindow_->findChild<QLineEdit*>("testsFilePathLineEdit"); le) {
-                            if (le->text() != filePath) {
-                                le->setText(filePath);
-                            }
+        // Persist selection into tests.filePath so Tests tab uses the same file
+        try {
+            if (config_) {
+                nlohmann::json tests = config_->getTestsSettings();
+                tests["filePath"] = filePath.toStdString();
+                Config* mutableConfig = const_cast<Config*>(config_);
+                mutableConfig->updateTestsSettings(tests);
+                mutableConfig->saveToFile();
+
+                // If SettingsWindow is open, reflect the new path in its line edit
+                if (settingsWindow_) {
+                    if (auto le = settingsWindow_->findChild<QLineEdit*>("testsFilePathLineEdit"); le) {
+                        if (le->text() != filePath) {
+                            le->setText(filePath);
                         }
                     }
                 }
-            } catch (const std::exception& e) {
-                getLogger()->warn("[MainWindow::on_selectDataFileButton_clicked] Failed to save tests.filePath: {}", e.what());
             }
-        } else {
-            dataFilePath_ = "";
-            ui->dataFilePathLabel->setText("Failed to load file");
-            QMessageBox::warning(this, "File Load Error", "Failed to load the selected data file.");
+        } catch (const std::exception& e) {
+            getLogger()->warn("[MainWindow::on_selectDataFileButton_clicked] Failed to save tests.filePath: {}", e.what());
         }
     }
 }

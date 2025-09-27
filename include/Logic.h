@@ -17,7 +17,6 @@
 #include <QStringList>
 #include "Timer.h"
 #include "communication/RS232Communication.h"
-#include "dataFile/DataFile.h"
 #include "machine/MachineCore.h"
 #include "machine/DefaultMachineCoreFactory.h"
 

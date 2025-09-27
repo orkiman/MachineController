@@ -7,7 +7,6 @@
 #include <QString>
 #include <QStringList>
 #include <QMap>
-#include "dataFile/DataFile.h"
 #include "Event.h"
 #include "EventQueue.h"
 #include "gui/SettingsWindow.h"
@@ -51,9 +50,6 @@ private slots:
     void on_testButton_clicked();
 
 private:
-    QString dataFilePath_;
-    DataFile dataFile_;
-
     Ui::MainWindow *ui;
     EventQueue<EventVariant> &eventQueue_;
     SettingsWindow *settingsWindow_;

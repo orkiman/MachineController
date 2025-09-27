@@ -7,6 +7,7 @@
 #include <memory>
 #include <optional>
 #include <chrono>
+#include <unordered_set>
 #include "io/PCI7248IO.h"
 #include "EventQueue.h"
 #include "Event.h"
@@ -80,11 +81,13 @@ private:
     void stopTimer(const std::string& timerName);
     bool initTimers();
     
+    // Build/refresh the master file reference set from tests settings and apply to core
+    void refreshMasterFileReferenceSet();
 
-    const Config& config_;
+    // Core dependencies
     EventQueue<EventVariant> &eventQueue_;
+    const Config& config_;
     PCI7248IO io_;
-    DataFile dataFile_;
 
     
     // State tracking

@@ -240,9 +240,9 @@
     "numberOfMachinecells": 20
   },
   "tests": {
-    "fileLength": 3,
-    "filePath": "C:/or/windsurfProjects/MachineController/notes.txt",
-    "fileStartIndex": 1,
+    "fileLength": 9,
+    "filePath": "C:/or/windsurfProjects/MachineController/test_data.txt",
+    "fileStartIndex": 0,
     "masterInFileCheck": true,
     "masterLength": 6,
     "masterReader": "communication1",

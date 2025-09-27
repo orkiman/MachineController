@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <unordered_set>
 #include <optional>
 #include <cstddef>
 #include "io/IOChannel.h"
@@ -81,6 +82,13 @@ public:
   virtual void setMatchTestConfig(int /*masterStartIndex*/, int /*matchStartIndex*/, int /*length*/) {}
   virtual void resetMatchTest() {}
   virtual bool testMatchReaders(const std::string& /*masterText*/, const std::string& /*matchText*/) { return true; }
+
+  // Master-in-File check (optional hooks; default no-ops)
+  virtual void setMasterInFileCheckEnabled(bool) {}
+  virtual void setMasterInFileExtraction(int /*startIndex*/, int /*length*/) {}
+  virtual void setMasterFileReferenceSet(const std::unordered_set<std::string>& /*set*/) {}
+  // Applies in-file test to a text message based on current extraction settings
+  virtual bool testMasterInFile(const std::string& /*text*/) { return true; }
 
   // Barcode grid support (optional; default no-ops)
   // Configure the maximum number of machine cells (rows) maintained per channel

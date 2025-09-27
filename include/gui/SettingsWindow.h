@@ -152,7 +152,6 @@ private slots:
     void on_testsReader2StartIndexSpinBox_valueChanged(int value);
     void on_testsMatchLengthSpinBox_valueChanged(int value);
 
-    void on_testsBrowseFileButton_clicked();
     void on_testsFilePathLineEdit_textChanged(const QString& text);
     void on_testsMasterInFileEnableCheckBox_stateChanged(int state);
     void on_testsRunMasterInFileButton_clicked();

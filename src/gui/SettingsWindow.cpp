@@ -269,13 +269,7 @@ void SettingsWindow::on_testsRunMatchButton_clicked() {
     eventQueue_.push(msg);
 }
 
-void SettingsWindow::on_testsBrowseFileButton_clicked() {
-    QString path = QFileDialog::getOpenFileName(this, "Select File", "", "Text Files (*.txt);;All Files (*)");
-    if (!path.isEmpty() && ui && ui->testsFilePathLineEdit) {
-        ui->testsFilePathLineEdit->setText(path);
-        // on_testsFilePathLineEdit_textChanged will handle saving
-    }
-}
+// Removed: on_testsBrowseFileButton_clicked() (Browse button removed from UI)
 
 void SettingsWindow::on_testsFilePathLineEdit_textChanged(const QString& text) {
     if (isRefreshing_ || !config_) return;

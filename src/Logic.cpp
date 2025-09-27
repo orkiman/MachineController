@@ -5,6 +5,7 @@
 #include "json.hpp"
 #include <iostream>
 #include <tuple>
+#include <fstream>
 
 Logic::Logic(EventQueue<EventVariant> &eventQueue, const Config &config)
     : eventQueue_(eventQueue), config_(config), io_(eventQueue_, config) {
@@ -49,6 +50,17 @@ Logic::Logic(EventQueue<EventVariant> &eventQueue, const Config &config)
       core_->setMatchTestEnabled(matchEnabled);
       core_->setMatchTestConfig(matchMasterStart, matchReaderStart, matchLength);
       core_->resetMatchTest();
+
+      // Master-in-File check wiring: set extraction and enabled flag, and load set on startup if enabled
+      bool mifEnabled = tests.value("masterInFileCheck", false);
+      int fileStartIndex = tests.value("fileStartIndex", 0);
+      int fileLength = tests.value("fileLength", 0);
+      core_->setMasterInFileCheckEnabled(mifEnabled);
+      // Use very large length if 0 or negative to mean 'to end of line'
+      core_->setMasterInFileExtraction(fileStartIndex, (fileLength > 0 ? fileLength : 1000000));
+      if (mifEnabled) {
+        refreshMasterFileReferenceSet();
+      }
     } catch (...) {
       // Ignore configuration errors; use core defaults
     }
@@ -248,11 +260,9 @@ void Logic::handleEvent(const GuiEvent &event) {
       getLogger()->debug("[{}] Skipping timers reinitialization as parameters don't affect them", FUNCTION_NAME);
     }
     
-    if (event.target == "datafile") {
-      // Reinitialize data file
-      dataFile_.loadFromFile(event.data, config_);
-      
-      
+    // Refresh master-in-file set when tests settings change or legacy datafile event occurs
+    if (event.target == "tests" || event.target == "datafile") {
+      refreshMasterFileReferenceSet();
     }
     
     runLogicCycle = true;
@@ -735,6 +745,61 @@ void Logic::stopTimer(const std::string& timerName) {
   auto it = timers_.find(timerName);
   if (it == timers_.end()) return;
   it->second.cancel();
+}
+
+// Build/refresh the master file reference set from tests settings and apply to the core
+void Logic::refreshMasterFileReferenceSet() {
+  try {
+    auto tests = config_.getTestsSettings();
+    bool enabled = tests.value("masterInFileCheck", false);
+    int startIndex = tests.value("fileStartIndex", 0);
+    int length = tests.value("fileLength", 0);
+    std::string path = tests.value("filePath", std::string(""));
+
+    if (!core_) return;
+
+    // Always push the latest flags to the core
+    core_->setMasterInFileCheckEnabled(enabled);
+    // If length <= 0, treat as to end-of-line by using a large sentinel
+    core_->setMasterInFileExtraction(startIndex, (length > 0 ? length : 1000000));
+
+    if (!enabled) {
+      getLogger()->debug("[{}] Master-in-File check disabled; skipping file load", FUNCTION_NAME);
+      core_->setMasterFileReferenceSet({});
+      return;
+    }
+
+    if (path.empty()) {
+      getLogger()->warn("[{}] Master-in-File enabled but testsFilePath is empty", FUNCTION_NAME);
+      core_->setMasterFileReferenceSet({});
+      return;
+    }
+
+    std::ifstream f(path);
+    if (!f.is_open()) {
+      getLogger()->warn("[{}] Failed to open testsFilePath: {}", FUNCTION_NAME, path);
+      core_->setMasterFileReferenceSet({});
+      return;
+    }
+
+    std::unordered_set<std::string> refSet;
+    std::string line;
+    while (std::getline(f, line)) {
+      if (line.empty()) continue;
+      if (startIndex < 0) startIndex = 0;
+      if (static_cast<size_t>(startIndex) >= line.size()) continue;
+      size_t avail = line.size() - static_cast<size_t>(startIndex);
+      size_t take = (length > 0) ? static_cast<size_t>(length) : avail;
+      if (take > avail) take = avail;
+      std::string token = line.substr(static_cast<size_t>(startIndex), take);
+      if (!token.empty()) refSet.insert(std::move(token));
+    }
+
+    getLogger()->info("[{}] Master file reference set loaded: {} unique entries from '{}'", FUNCTION_NAME, refSet.size(), path);
+    core_->setMasterFileReferenceSet(refSet);
+  } catch (const std::exception& e) {
+    getLogger()->error("[{}] Exception refreshing master file reference set: {}", FUNCTION_NAME, e.what());
+  }
 }
 
 #include "moc_Logic.cpp"

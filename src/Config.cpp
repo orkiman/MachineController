@@ -107,19 +107,16 @@ Config::DataFileSettings Config::getDataFileSettings() const
 {
     std::lock_guard<std::mutex> lock(configMutex_);
     DataFileSettings settings;
-    if (configJson_.contains("dataFile")) {
-        const auto& dataFileJson = configJson_["dataFile"];
-        if (dataFileJson.contains("startPosition"))
-            settings.startPosition = dataFileJson["startPosition"].get<int>();
-        if (dataFileJson.contains("endPosition"))
-            settings.endPosition = dataFileJson["endPosition"].get<int>();
-        if (dataFileJson.contains("sequenceCheck"))
-            settings.sequenceCheck = dataFileJson["sequenceCheck"].get<bool>();
-        if (dataFileJson.contains("existenceCheck"))
-            settings.existenceCheck = dataFileJson["existenceCheck"].get<bool>();
-        if (dataFileJson.contains("sequenceDirection"))
-            settings.sequenceDirection = dataFileJson["sequenceDirection"].get<std::string>();
+    // New mapping: read from tests.* to simplify handling
+    const auto tests = configJson_.value("tests", nlohmann::json::object());
+    const int startIndex = tests.value("fileStartIndex", 0);
+    const int length = tests.value("fileLength", 0);
+    settings.startPosition = startIndex;
+    settings.endPosition = (length > 0) ? (startIndex + length) : 0; // 0 means to end of line
+    if (tests.contains("sequenceDirection") && tests["sequenceDirection"].is_string()) {
+        settings.sequenceDirection = tests["sequenceDirection"].get<std::string>();
     }
+    // sequence/existence checks are legacy; leave defaults
     return settings;
 }
 

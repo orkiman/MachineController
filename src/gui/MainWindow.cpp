@@ -12,6 +12,7 @@
 #include <QHeaderView>
 #include <QHBoxLayout>
 #include <QWidget>
+#include <QLineEdit>
 
 MainWindow::MainWindow(QWidget *parent, EventQueue<EventVariant>& eventQueue, const Config& config)
     : QMainWindow(parent),
@@ -276,6 +277,28 @@ void MainWindow::on_selectDataFileButton_clicked() {
             event.target = "datafile";
             event.data = filePath.toStdString();
             eventQueue_.push(event);
+
+            // Also persist selection into tests.filePath so Tests tab uses the same file
+            try {
+                if (config_) {
+                    nlohmann::json tests = config_->getTestsSettings();
+                    tests["filePath"] = filePath.toStdString();
+                    Config* mutableConfig = const_cast<Config*>(config_);
+                    mutableConfig->updateTestsSettings(tests);
+                    mutableConfig->saveToFile();
+
+                    // If SettingsWindow is open, reflect the new path in its line edit
+                    if (settingsWindow_) {
+                        if (auto le = settingsWindow_->findChild<QLineEdit*>("testsFilePathLineEdit"); le) {
+                            if (le->text() != filePath) {
+                                le->setText(filePath);
+                            }
+                        }
+                    }
+                }
+            } catch (const std::exception& e) {
+                getLogger()->warn("[MainWindow::on_selectDataFileButton_clicked] Failed to save tests.filePath: {}", e.what());
+            }
         } else {
             dataFilePath_ = "";
             ui->dataFilePathLabel->setText("Failed to load file");

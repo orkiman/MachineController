@@ -1,6 +1,7 @@
 #include "machine/MachineCore.h"
 #include <cctype>
 #include <optional>
+#include <unordered_set>
 
 class DefaultMachineCore : public MachineCore {
   bool blinkLed0_ = false;
@@ -24,11 +25,28 @@ class DefaultMachineCore : public MachineCore {
   std::optional<int> lastMatchMaster_{};
   std::optional<int> lastMatchReader_{};
 
+  // Master-in-File check (from Tests tab)
+  bool masterInFileEnabled_{false};
+  int masterInFileStartIndex_{0};
+  int masterInFileLength_{1};
+  std::unordered_set<std::string> masterFileSet_;
+
   // Ensure a given port's vector is sized to 'capacity_'
   void ensurePortCapacity(const std::string& port) {
     if (capacity_ == 0) return;
     auto& vec = store_[port];
     if (vec.size() != capacity_) vec.resize(capacity_);
+  }
+
+  // Extract a raw slice [startIndex, startIndex+length) from text. Returns false if invalid.
+  bool extractSliceAt(const std::string& text, int startIndex, int length, std::string& out) const {
+    if (startIndex < 0 || length <= 0) return false;
+    if (static_cast<size_t>(startIndex) >= text.size()) return false;
+    size_t len = static_cast<size_t>(length);
+    size_t avail = text.size() - static_cast<size_t>(startIndex);
+    if (len > avail) len = avail;
+    out = text.substr(static_cast<size_t>(startIndex), len);
+    return true;
   }
 
   // Extract a number from text slice [startIndex, startIndex+length)
@@ -164,6 +182,25 @@ public:
   }
 
   std::size_t getStoreCapacity() const override { return capacity_; }
+
+  // Master-in-File overrides
+  void setMasterInFileCheckEnabled(bool enabled) override { masterInFileEnabled_ = enabled; }
+  void setMasterInFileExtraction(int startIndex, int length) override {
+    if (startIndex < 0) startIndex = 0;
+    if (length < 1) length = 1;
+    masterInFileStartIndex_ = startIndex;
+    masterInFileLength_ = length;
+  }
+  void setMasterFileReferenceSet(const std::unordered_set<std::string>& set) override {
+    masterFileSet_ = set;
+  }
+  bool testMasterInFile(const std::string& text) override {
+    if (!masterInFileEnabled_) return true;
+    if (masterFileSet_.empty()) return false; // enabled but no reference
+    std::string token;
+    if (!extractSliceAt(text, masterInFileStartIndex_, masterInFileLength_, token)) return false;
+    return masterFileSet_.find(token) != masterFileSet_.end();
+  }
 
   std::unordered_map<std::string, std::vector<std::string>> getBarcodeStoreSnapshot() const override {
     // Ensure vectors are exactly capacity_ in the snapshot

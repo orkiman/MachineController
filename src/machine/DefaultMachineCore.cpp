@@ -5,6 +5,7 @@
 
 class DefaultMachineCore : public MachineCore {
   bool blinkLed0_ = false;
+  bool lastLedState_ = false;
   // Per-port message storage owned by the machine core
   std::unordered_map<std::string, std::vector<std::string>> store_;
   // Fixed capacity for per-port vectors (configured by Config via Logic)
@@ -218,7 +219,8 @@ public:
     auto t = in.timerEdges.find("timer1");
     if (blinkLed0_ && t != in.timerEdges.end() && t->second.rising) {
       // For demo we set to 1; Logic can compute toggle if needed with current state
-      fx.outputChanges.emplace_back("o0", 1);
+      lastLedState_ = !lastLedState_;
+      fx.outputChanges.emplace_back("o0", lastLedState_ ? 1 : 0);
       fx.timerCmds.push_back({TimerCmd::Start, "timer1", std::nullopt});
     } else if (!blinkLed0_) {
       fx.outputChanges.emplace_back("o0", 0);

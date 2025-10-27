@@ -107,6 +107,7 @@ private:
     // Initialization flags
     bool commsInitialized_{false};
     bool timersInitialized_{false};
+    bool initializingComms_{false}; // Flag to prevent duplicate initialization during parameter changes
 
     bool blinkLed0_{false};
     

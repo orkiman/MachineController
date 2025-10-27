@@ -906,12 +906,14 @@ void SettingsWindow::fillCommunicationTabFields() {
         triggerLineEdit->setText("t");
     }
     
-    // Emit a message to the event queue that settings were loaded
-    GuiEvent commLoadedEvent;
-    commLoadedEvent.keyword = "GuiMessage";
-    commLoadedEvent.data = "Communication settings loaded from JSON";
-    commLoadedEvent.target = "info";
-    eventQueue_.push(commLoadedEvent);
+    // Emit a message to the event queue that settings were loaded (only if not initializing)
+    if (!isInitializing_) {
+        GuiEvent commLoadedEvent;
+        commLoadedEvent.keyword = "GuiMessage";
+        commLoadedEvent.data = "Communication settings loaded from JSON";
+        commLoadedEvent.target = "info";
+        eventQueue_.push(commLoadedEvent);
+    }
 }
 
 void SettingsWindow::on_overrideOutputsCheckBox_stateChanged(int state) {

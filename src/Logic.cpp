@@ -241,9 +241,15 @@ void Logic::handleEvent(const GuiEvent &event) {
     // Check which parameters changed to avoid unnecessary reinitializations
     if (event.target.find("communication") != std::string::npos) {
       getLogger()->debug("[{}] Reinitializing communication ports due to parameter changes", FUNCTION_NAME);
-      if (!initializeCommunicationPorts()) {
-        getLogger()->error("[{}] Failed to reinitialize communication ports after parameter change", FUNCTION_NAME);
-        emit guiMessage("Failed to reinitialize communication ports after parameter change", "error");
+      if (!initializingComms_) {
+        initializingComms_ = true;
+        if (!initializeCommunicationPorts()) {
+          getLogger()->error("[{}] Failed to reinitialize communication ports after parameter change", FUNCTION_NAME);
+          emit guiMessage("Failed to reinitialize communication ports after parameter change", "error");
+        }
+        initializingComms_ = false;
+      } else {
+        getLogger()->debug("[{}] Communication initialization already in progress, skipping", FUNCTION_NAME);
       }
     } else {
       getLogger()->debug("[{}] Skipping communication ports reinitialization as parameters don't affect them", FUNCTION_NAME);
@@ -379,6 +385,12 @@ void Logic::emergencyShutdown() { io_.resetConfiguredOutputPorts(); }
 
 bool Logic::initializeCommunicationPorts() {
   try {
+    // Prevent duplicate initialization
+    if (initializingComms_) {
+      getLogger()->debug("[{}] Communication initialization already in progress, skipping", FUNCTION_NAME);
+      return true; // Return true as this is not an error, just a duplicate call
+    }
+    
     getLogger()->debug("[{}] Initializing communication ports...", FUNCTION_NAME);
     
     // Close existing communication ports if they're open
